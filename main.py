@@ -780,6 +780,7 @@ class Game:
         self.state = GameState.TITLE
         self.running = True
         self.round_killer = "revenge_bot"
+        self.selected_player_killer = "revenge_bot"
         self.player_role = "Survivor"
         self.round_time = ROUND_DURATION
         self.survivor_life_number = 1
@@ -937,7 +938,10 @@ class Game:
                 self.state = GameState.ROUND_SETUP
 
         elif self.state == GameState.ROUND_SETUP:
-            if key in (pygame.K_RETURN, pygame.K_SPACE):
+            selected_index = self.killer_index_from_key(key)
+            if selected_index is not None:
+                self.selected_player_killer = KILLER_IDS[selected_index]
+            elif key in (pygame.K_RETURN, pygame.K_SPACE):
                 self.reveal_role()
 
         elif self.state == GameState.ROLE_REVEAL:
@@ -999,6 +1003,11 @@ class Game:
                 self.state = GameState.ROUND_SETUP
 
         elif self.state == GameState.ROUND_SETUP:
+            clicked_killer = self.killer_from_card_click(pos)
+            if clicked_killer is not None:
+                self.selected_player_killer = clicked_killer
+                return
+
             if self.menu_buttons["reveal"].contains(pos):
                 self.reveal_role()
 
@@ -1013,12 +1022,37 @@ class Game:
 
     def reveal_role(self) -> None:
         self.player_role = random.choice(["Survivor", "Killer"])
-        self.round_killer = random.choice(KILLER_IDS)
+        if self.player_role == "Killer":
+            self.round_killer = self.selected_player_killer
+        else:
+            self.round_killer = random.choice(KILLER_IDS)
         self.survivor_life_number = 1
         self.survivor_status_message = ""
         self.survivor_stun_timer = 0.0
         self.survivor_slow_timer = 0.0
         self.state = GameState.ROLE_REVEAL
+
+    def killer_index_from_key(self, key: int) -> int | None:
+        number_keys = (pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4, pygame.K_5)
+        if key not in number_keys:
+            return None
+
+        index = number_keys.index(key)
+        if index >= len(KILLER_IDS):
+            return None
+        return index
+
+    def killer_card_rect(self, index: int) -> pygame.Rect:
+        card_width = 172
+        card_gap = 16
+        start_x = 36
+        return pygame.Rect(start_x + index * (card_width + card_gap), 170, card_width, 305)
+
+    def killer_from_card_click(self, pos: tuple[int, int]) -> str | None:
+        for index, killer_id in enumerate(KILLER_IDS):
+            if self.killer_card_rect(index).collidepoint(pos):
+                return killer_id
+        return None
 
     def begin_round(self) -> None:
         self.round_time = ROUND_DURATION
@@ -1549,26 +1583,30 @@ class Game:
         draw_text(
             self.screen,
             self.font_small,
-            "Each round has exactly one killer. The killer and your role are chosen at random.",
+            "Choose your killer if your random role is Killer. Survivor rounds still use a random AI killer.",
             (203, 213, 225),
             (WIDTH // 2, 123),
             True,
         )
 
-        card_width = 172
-        card_gap = 16
-        start_x = 36
-
         for index, killer_id in enumerate(KILLER_IDS):
             data = KILLERS[killer_id]
-            panel = pygame.Rect(start_x + index * (card_width + card_gap), 170, card_width, 305)
+            panel = self.killer_card_rect(index)
+            is_selected = killer_id == self.selected_player_killer
             pygame.draw.rect(self.screen, (24, 34, 52), panel, border_radius=12)
             pygame.draw.rect(
                 self.screen,
-                (77, 88, 106),
+                (248, 199, 88) if is_selected else (77, 88, 106),
                 panel,
-                3,
+                4 if is_selected else 3,
                 border_radius=12,
+            )
+            draw_text(
+                self.screen,
+                self.font_small,
+                str(index + 1),
+                (248, 199, 88) if is_selected else (148, 163, 184),
+                (panel.left + 13, panel.top + 10),
             )
 
             sprite = self.sprites.get(killer_id)
@@ -1602,11 +1640,20 @@ class Game:
                 pygame.Rect(panel.left + 10, panel.top + 218, panel.width - 20, 58),
             )
 
+        selected_name = KILLERS[self.selected_player_killer]["name"]
+        draw_text(
+            self.screen,
+            self.font_small,
+            f"Selected killer if you become Killer: {selected_name}",
+            (248, 199, 88),
+            (WIDTH // 2, 500),
+            True,
+        )
         self.menu_buttons["reveal"].draw(self.screen, self.font_medium, True)
         draw_text(
             self.screen,
             self.font_small,
-            "Press Enter or Space to reveal your random role and killer.",
+            "Click a killer or press 1-5, then press Enter or Space to reveal your role.",
             (203, 213, 225),
             (WIDTH // 2, 625),
             True,
@@ -1629,9 +1676,9 @@ class Game:
         )
 
         if self.player_role == "Survivor":
-            prompt = "Survive two 60-second lives while the killer hunts you."
+            prompt = "Survive two 60-second lives while the random killer hunts you."
         else:
-            prompt = "Catch the AI survivor and attack before time runs out."
+            prompt = "Catch the AI survivor with your selected killer before time runs out."
         draw_text(self.screen, self.font_medium, prompt, (203, 213, 225), (WIDTH // 2, 390), True)
         self.menu_buttons["begin"].draw(self.screen, self.font_medium, True)
 

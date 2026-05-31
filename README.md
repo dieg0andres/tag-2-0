@@ -1,6 +1,6 @@
 # Tag 2.0
 
-Tag 2.0 is a short chase survival game built with Python and Pygame. Each round randomly assigns the player role and randomly chooses exactly one killer.
+Tag 2.0 is a short chase survival game built with Python and Pygame. Each round randomly assigns the player role. If you become the killer, you play as the killer you selected on the setup screen.
 
 ## Setup
 
@@ -21,6 +21,8 @@ python tools/generate_assets.py
 ## Controls
 
 - WASD or arrow keys: move
+- 1-5 on setup screen: choose the killer you will play if your random role is Killer
+- Mouse click on setup screen: choose the killer you will play if your random role is Killer
 - Spacebar: attack when you are the killer
 - C: Ducky only, activate crying swing
 - Y: Ducky only, activate HG
@@ -42,7 +44,9 @@ python tools/generate_assets.py
 
 - Each round lasts 60 seconds.
 - Each round has one killer: Ducky, Subslasher, Show Runner, Malice, or Vengance Bot.
-- Your role and the round killer are randomly assigned.
+- Your role is randomly assigned.
+- If your role is Killer, you play as the killer you selected on the setup screen.
+- If your role is Survivor, the AI killer is still chosen randomly.
 - Survivor mode: survive two 60-second lives. A hit ends the current life and starts the next one; a hit on the final life loses.
 - Killer mode: chase the AI survivor and land an attack before time expires.
 - Ducky uses Lunge Swing: short windup, fast forward lunge, rectangular hitbox.
