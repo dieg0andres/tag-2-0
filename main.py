@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import math
 import random
 import sys
@@ -19,6 +20,7 @@ SURVIVOR_TOTAL_LIVES = 2
 ROOT_DIR = Path(__file__).resolve().parent
 ASSET_DIR = ROOT_DIR / "assets"
 SPRITE_DIR = ASSET_DIR / "sprites"
+SAVE_FILE = ROOT_DIR / "save_data.json"
 
 ARENA_RECT = pygame.Rect(30, 100, 940, 570)
 CHARACTER_COLLISION_SIZE = 44
@@ -50,7 +52,127 @@ VENGANCE_DASH_DURATION = 5.0
 VENGANCE_DASH_SPEED = 440
 VENGANCE_DASH_COOLDOWN = 8.0
 VENGANCE_MINE_COOLDOWN = 5.0
+VENGANCE_MINE_AVOID_RADIUS = 160
+VENGANCE_MINE_AVOID_WEIGHT = 2.8
 VENGANCE_TELEPORT_MIN_DISTANCE = 190
+FRIED_CHICKEN_UNLOCK_WINS = 5
+OCEAN_RUNNER_UNLOCK_WINS = 3
+WICK_WONALDS_SURVIVES = 2
+DUCKY_INVERTED_LOSSES = 2
+DUCKY_OGEL_LOSSES = 4
+SHOW_RUNNER_MASTERY_1_KILLS = 20
+SHOW_RUNNER_MASTERY_2_KILLS = 40
+SHOW_RUNNER_MASTERY_3_KILLS = 61
+VENGANCE_BOT_MASTERY_1_WINS = 20
+VENGANCE_BOT_MASTERY_2_WINS = 50
+VENGANCE_BOT_MASTERY_3_WINS = 79
+PACK_RUNNER_LAPS = 3
+PERIMETER_MARGIN = 58
+
+SKINS = {
+    "fried_chicken": {
+        "killer_id": "revenge_bot",
+        "name": "Fried Chicken",
+        "sprite_key": "ducky_fried_chicken",
+        "challenge": "Win 5 rounds.",
+    },
+    "ducky_inverted": {
+        "killer_id": "revenge_bot",
+        "name": "Inverted",
+        "sprite_key": "ducky_inverted",
+        "challenge": "Lose 2 rounds as Ducky.",
+    },
+    "ducky_ogel": {
+        "killer_id": "revenge_bot",
+        "name": "Ogel",
+        "sprite_key": "ducky_ogel",
+        "challenge": "Lose 4 rounds as Ducky.",
+    },
+    "tennis_dude": {
+        "killer_id": "subslasher",
+        "name": "Tennis Dude",
+        "sprite_key": "subslasher_tennis_dude",
+        "challenge": "Hit the survivor with Perpelling Shootdown.",
+    },
+    "pickle_ball_bro": {
+        "killer_id": "subslasher",
+        "name": "Pickle Ball Bro",
+        "sprite_key": "subslasher_pickle_ball_bro",
+        "challenge": "Win a round using the Tennis Dude skin.",
+    },
+    "pack_runner": {
+        "killer_id": "show_runner",
+        "name": "Pack Runner",
+        "sprite_key": "show_runner_pack_runner",
+        "challenge": "Run around the arena perimeter 3 times in a row.",
+    },
+    "maldin_inverted": {
+        "killer_id": "show_runner",
+        "name": "Maldin Inverted",
+        "sprite_key": "show_runner_maldin_inverted",
+        "challenge": "Win a round using the Pack Runner skin.",
+    },
+    "ocean_runner": {
+        "killer_id": "show_runner",
+        "name": "Ocean Runner",
+        "sprite_key": "show_runner_ocean_runner",
+        "challenge": "Win 3 rounds as Show Runner.",
+    },
+    "show_runner_mastery_1": {
+        "killer_id": "show_runner",
+        "name": "Mastery 1",
+        "sprite_key": "show_runner_mastery_1",
+        "challenge": "Kill 20 survivors as Show Runner.",
+        "type": "mastery",
+    },
+    "show_runner_mastery_2": {
+        "killer_id": "show_runner",
+        "name": "Mastery 2",
+        "sprite_key": "show_runner_mastery_2",
+        "challenge": "Kill 40 survivors as Show Runner.",
+        "type": "mastery",
+    },
+    "show_runner_mastery_3": {
+        "killer_id": "show_runner",
+        "name": "Mastery 3",
+        "sprite_key": "show_runner_mastery_3",
+        "challenge": "Kill 61 survivors as Show Runner.",
+        "type": "mastery",
+    },
+    "wick_wonalds": {
+        "killer_id": "vengance_bot",
+        "name": "Wick Wonalds",
+        "sprite_key": "vengance_wick_wonalds",
+        "challenge": "Survive Vengance Bot 2 times.",
+    },
+    "mlg": {
+        "killer_id": "vengance_bot",
+        "name": "MLG",
+        "sprite_key": "vengance_mlg",
+        "challenge": "Kill the survivor with a landmine after placing 2 or fewer mines that round.",
+    },
+    "vengance_bot_mastery_1": {
+        "killer_id": "vengance_bot",
+        "name": "Mastery 1",
+        "sprite_key": "vengance_bot_mastery_1",
+        "challenge": "Win 20 rounds as Vengance Bot.",
+        "type": "mastery",
+    },
+    "vengance_bot_mastery_2": {
+        "killer_id": "vengance_bot",
+        "name": "Mastery 2",
+        "sprite_key": "vengance_bot_mastery_2",
+        "challenge": "Win 50 rounds as Vengance Bot.",
+        "type": "mastery",
+    },
+    "vengance_bot_mastery_3": {
+        "killer_id": "vengance_bot",
+        "name": "Mastery 3",
+        "sprite_key": "vengance_bot_mastery_3",
+        "challenge": "Win 79 rounds as Vengance Bot.",
+        "type": "mastery",
+    },
+}
 
 KILLERS = {
     "revenge_bot": {
@@ -781,6 +903,16 @@ class Game:
         self.running = True
         self.round_killer = "revenge_bot"
         self.selected_player_killer = "revenge_bot"
+        self.save_data = self.load_save_data()
+        self.total_wins = self.save_data["total_wins"]
+        self.unlocked_skins: set[str] = set(self.save_data["unlocked_skins"])
+        self.challenge_progress: dict[str, int] = dict(self.save_data["challenge_progress"])
+        self.selected_skins = {killer_id: "classic" for killer_id in KILLER_IDS}
+        self.skin_notice = ""
+        self.show_runner_perimeter_next = 0
+        self.show_runner_perimeter_laps = 0
+        self.last_perimeter_edge: str | None = None
+        self.vengance_mines_placed_this_round = 0
         self.player_role = "Survivor"
         self.round_time = ROUND_DURATION
         self.survivor_life_number = 1
@@ -802,8 +934,8 @@ class Game:
 
         self.menu_buttons = {
             "play": Button(pygame.Rect(390, 450, 220, 58), "Start"),
-            "reveal": Button(pygame.Rect(390, 520, 220, 58), "Reveal Role"),
-            "begin": Button(pygame.Rect(390, 520, 220, 58), "Begin Round"),
+            "reveal": Button(pygame.Rect(390, 585, 220, 58), "Reveal Role"),
+            "begin": Button(pygame.Rect(390, 622, 220, 58), "Begin Round"),
         }
         self.fullscreen_button = Button(pygame.Rect(WIDTH - 78, 10, 58, 28), "Full")
 
@@ -817,6 +949,8 @@ class Game:
         paths = {"survivor": SPRITE_DIR / "survivor.png"}
         for killer_id, data in KILLERS.items():
             paths[killer_id] = SPRITE_DIR / data["sprite"]
+        for skin in SKINS.values():
+            paths[skin["sprite_key"]] = SPRITE_DIR / f"{skin['sprite_key']}.png"
 
         for key, path in paths.items():
             if not path.exists():
@@ -834,6 +968,98 @@ class Game:
 
         return sprites
 
+    def load_save_data(self) -> dict[str, object]:
+        default_data = {
+            "total_wins": 0,
+            "unlocked_skins": [],
+            "challenge_progress": {
+                "show_runner_wins": 0,
+                "show_runner_kills": 0,
+                "vengance_bot_wins": 0,
+                "vengance_bot_survives": 0,
+                "ducky_losses": 0,
+            },
+        }
+
+        if not SAVE_FILE.exists():
+            return default_data
+
+        try:
+            data = json.loads(SAVE_FILE.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return default_data
+
+        wins = data.get("total_wins", 0)
+        if not isinstance(wins, int):
+            wins = 0
+
+        unlocked = data.get("unlocked_skins", [])
+        if not isinstance(unlocked, list):
+            unlocked = []
+
+        progress = data.get("challenge_progress", {})
+        if not isinstance(progress, dict):
+            progress = {}
+
+        clean_progress = dict(default_data["challenge_progress"])
+        for key, value in progress.items():
+            if isinstance(key, str) and isinstance(value, int):
+                clean_progress[key] = max(0, value)
+
+        clean_unlocked = {skin_id for skin_id in unlocked if skin_id in SKINS}
+        if wins >= FRIED_CHICKEN_UNLOCK_WINS:
+            clean_unlocked.add("fried_chicken")
+        show_runner_kills = clean_progress.get("show_runner_kills", 0)
+        if show_runner_kills >= SHOW_RUNNER_MASTERY_1_KILLS:
+            clean_unlocked.add("show_runner_mastery_1")
+        if show_runner_kills >= SHOW_RUNNER_MASTERY_2_KILLS:
+            clean_unlocked.add("show_runner_mastery_2")
+        if show_runner_kills >= SHOW_RUNNER_MASTERY_3_KILLS:
+            clean_unlocked.add("show_runner_mastery_3")
+        vengance_bot_wins = clean_progress.get("vengance_bot_wins", 0)
+        if vengance_bot_wins >= VENGANCE_BOT_MASTERY_1_WINS:
+            clean_unlocked.add("vengance_bot_mastery_1")
+        if vengance_bot_wins >= VENGANCE_BOT_MASTERY_2_WINS:
+            clean_unlocked.add("vengance_bot_mastery_2")
+        if vengance_bot_wins >= VENGANCE_BOT_MASTERY_3_WINS:
+            clean_unlocked.add("vengance_bot_mastery_3")
+
+        return {
+            "total_wins": max(0, wins),
+            "unlocked_skins": sorted(clean_unlocked),
+            "challenge_progress": clean_progress,
+        }
+
+    def save_progress(self) -> None:
+        try:
+            SAVE_FILE.write_text(
+                json.dumps(
+                    {
+                        "total_wins": self.total_wins,
+                        "unlocked_skins": sorted(self.unlocked_skins),
+                        "challenge_progress": self.challenge_progress,
+                    },
+                    indent=2,
+                ),
+                encoding="utf-8",
+            )
+        except OSError:
+            pass
+
+    def fried_chicken_unlocked(self) -> bool:
+        return self.skin_unlocked("fried_chicken")
+
+    def skin_unlocked(self, skin_id: str) -> bool:
+        return skin_id in self.unlocked_skins
+
+    def unlock_skin(self, skin_id: str, reason: str) -> None:
+        if skin_id not in SKINS or skin_id in self.unlocked_skins:
+            return
+
+        self.unlocked_skins.add(skin_id)
+        self.skin_notice = f"{SKINS[skin_id]['name']} unlocked: {reason}"
+        self.save_progress()
+
     def setup_audio(self) -> None:
         try:
             pygame.mixer.init()
@@ -850,9 +1076,33 @@ class Game:
         if ducky_music.exists():
             self.music_tracks["revenge_bot"] = ducky_music
 
+        subslasher_music = ASSET_DIR / "subslasher_chase_music.wav"
+        if subslasher_music.exists():
+            self.music_tracks["subslasher"] = subslasher_music
+
         malice_music = ASSET_DIR / "malice_chase_music.wav"
         if malice_music.exists():
             self.music_tracks["malice"] = malice_music
+
+        vengance_base_music = ASSET_DIR / "vengance_bot_base_chase_music.wav"
+        if vengance_base_music.exists():
+            self.music_tracks["vengance_bot"] = vengance_base_music
+
+        vengance_music = ASSET_DIR / "vengance_bot_chase_music.wav"
+        if vengance_music.exists():
+            self.music_tracks["skin:mlg"] = vengance_music
+
+        pack_runner_music = ASSET_DIR / "pack_runner_chase_music.wav"
+        if pack_runner_music.exists():
+            self.music_tracks["skin:pack_runner"] = pack_runner_music
+
+        mastery_3_music = ASSET_DIR / "show_runner_mastery_3_music.wav"
+        if mastery_3_music.exists():
+            self.music_tracks["skin:show_runner_mastery_3"] = mastery_3_music
+
+        vengance_mastery_3_music = ASSET_DIR / "vengance_bot_mastery_3_music.wav"
+        if vengance_mastery_3_music.exists():
+            self.music_tracks["skin:vengance_bot_mastery_3"] = vengance_mastery_3_music
 
         for sound_name in ("attack", "win", "lose", "malice_roar"):
             path = ASSET_DIR / f"{sound_name}.wav"
@@ -874,6 +1124,12 @@ class Game:
 
         pygame.mixer.music.stop()
         music_path = self.music_tracks.get(self.round_killer)
+        if self.player_role == "Killer":
+            selected_skin = self.selected_skins.get(self.round_killer, "classic")
+            skin_music = self.music_tracks.get(f"skin:{selected_skin}")
+            if skin_music is not None:
+                music_path = skin_music
+
         if music_path is None:
             return
 
@@ -945,7 +1201,10 @@ class Game:
                 self.reveal_role()
 
         elif self.state == GameState.ROLE_REVEAL:
-            if key in (pygame.K_RETURN, pygame.K_SPACE):
+            selected_skin = self.skin_index_from_key(key)
+            if self.player_role == "Killer" and selected_skin is not None:
+                self.select_skin_for_round(selected_skin)
+            elif key in (pygame.K_RETURN, pygame.K_SPACE):
                 self.begin_round()
 
         elif self.state == GameState.PLAYING:
@@ -1012,6 +1271,11 @@ class Game:
                 self.reveal_role()
 
         elif self.state == GameState.ROLE_REVEAL:
+            clicked_skin = self.skin_from_card_click(pos)
+            if self.player_role == "Killer" and clicked_skin is not None:
+                self.select_skin_for_round(clicked_skin)
+                return
+
             if self.menu_buttons["begin"].contains(pos):
                 self.begin_round()
 
@@ -1031,6 +1295,84 @@ class Game:
         self.survivor_stun_timer = 0.0
         self.survivor_slow_timer = 0.0
         self.state = GameState.ROLE_REVEAL
+
+    def skin_options_for_killer(self, killer_id: str) -> list[str]:
+        skins = ["classic"]
+        skins.extend(
+            skin_id
+            for skin_id, data in SKINS.items()
+            if data["killer_id"] == killer_id
+        )
+        return skins
+
+    def skin_name(self, killer_id: str, skin_id: str) -> str:
+        if skin_id == "classic":
+            return f"Classic {KILLERS[killer_id]['name']}"
+        return SKINS[skin_id]["name"]
+
+    def skin_sprite_key(self, killer_id: str, skin_id: str) -> str:
+        if skin_id == "classic":
+            return killer_id
+        return SKINS[skin_id]["sprite_key"]
+
+    def skin_index_from_key(self, key: int) -> str | None:
+        number_keys = (
+            pygame.K_1,
+            pygame.K_2,
+            pygame.K_3,
+            pygame.K_4,
+            pygame.K_5,
+            pygame.K_6,
+            pygame.K_7,
+            pygame.K_8,
+            pygame.K_9,
+        )
+        if key not in number_keys:
+            return None
+
+        options = self.skin_options_for_killer(self.round_killer)
+        index = number_keys.index(key)
+        if index >= len(options):
+            return None
+        return options[index]
+
+    def select_skin_for_round(self, skin_id: str) -> None:
+        if skin_id != "classic" and not self.skin_unlocked(skin_id):
+            self.skin_notice = (
+                f"{SKINS[skin_id]['name']} is locked. Challenge: "
+                f"{self.skin_challenge_detail(skin_id)}"
+            )
+            return
+
+        if skin_id != "classic" and SKINS[skin_id]["killer_id"] != self.round_killer:
+            return
+
+        self.selected_skins[self.round_killer] = skin_id
+        self.skin_notice = f"{self.skin_name(self.round_killer, skin_id)} selected."
+
+    def skin_card_rect(self, index: int) -> pygame.Rect:
+        card_width = 210
+        card_height = 70
+        card_gap = 18
+        row_gap = 8
+        options = self.skin_options_for_killer(self.round_killer)
+        columns = min(4, len(options))
+        row = index // columns
+        column = index % columns
+        total_width = columns * card_width + (columns - 1) * card_gap
+        start_x = (WIDTH - total_width) // 2
+        return pygame.Rect(
+            start_x + column * (card_width + card_gap),
+            430 + row * (card_height + row_gap),
+            card_width,
+            card_height,
+        )
+
+    def skin_from_card_click(self, pos: tuple[int, int]) -> str | None:
+        for index, skin_id in enumerate(self.skin_options_for_killer(self.round_killer)):
+            if self.skin_card_rect(index).collidepoint(pos):
+                return skin_id
+        return None
 
     def killer_index_from_key(self, key: int) -> int | None:
         number_keys = (pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4, pygame.K_5)
@@ -1063,10 +1405,14 @@ class Game:
         self.ducky_belts = []
         self.landmines = []
         self.survivor_slow_timer = 0.0
+        self.show_runner_perimeter_next = 0
+        self.show_runner_perimeter_laps = 0
+        self.last_perimeter_edge = None
+        self.vengance_mines_placed_this_round = 0
         self.walls = self.create_walls()
 
         survivor_sprite = self.sprites.get("survivor")
-        killer_sprite = self.sprites.get(self.round_killer)
+        killer_sprite = self.sprite_for_round_killer()
 
         if self.player_role == "Survivor":
             self.survivor = Survivor("You", (500, 560), survivor_sprite)
@@ -1091,6 +1437,15 @@ class Game:
 
         self.state = GameState.PLAYING
         self.start_round_music()
+
+    def sprite_for_round_killer(self) -> pygame.Surface | None:
+        if self.player_role == "Killer":
+            selected_skin = self.selected_skins.get(self.round_killer, "classic")
+            if selected_skin != "classic" and self.skin_unlocked(selected_skin):
+                skin_key = self.skin_sprite_key(self.round_killer, selected_skin)
+                return self.sprites.get(skin_key) or self.sprites.get(self.round_killer)
+
+        return self.sprites.get(self.round_killer)
 
     def reset_to_title(self) -> None:
         self.state = GameState.TITLE
@@ -1150,10 +1505,54 @@ class Game:
             if isinstance(self.player, Killer) and not self.player.is_wall_phasing():
                 self.resolve_wall_overlap(self.player)
 
+            self.update_movement_challenges()
+
         if self.player_role == "Survivor":
             self.update_survivor_mode(dt)
         else:
             self.update_killer_mode(dt)
+
+    def update_movement_challenges(self) -> None:
+        if not isinstance(self.player, Killer):
+            return
+        if self.player_role != "Killer" or self.round_killer != "show_runner":
+            return
+        if self.skin_unlocked("pack_runner"):
+            return
+
+        edge = self.current_perimeter_edge(self.player.rect)
+        if edge is None:
+            self.last_perimeter_edge = None
+            return
+        if edge == self.last_perimeter_edge:
+            return
+        self.last_perimeter_edge = edge
+
+        sequence = ("top", "right", "bottom", "left")
+        expected = sequence[self.show_runner_perimeter_next]
+        if edge != expected:
+            if edge == "top":
+                self.show_runner_perimeter_next = 1
+                self.show_runner_perimeter_laps = 0
+            return
+
+        self.show_runner_perimeter_next = (self.show_runner_perimeter_next + 1) % len(sequence)
+        if self.show_runner_perimeter_next == 0:
+            self.show_runner_perimeter_laps += 1
+            self.skin_notice = f"Pack Runner perimeter laps: {self.show_runner_perimeter_laps}/{PACK_RUNNER_LAPS}"
+            if self.show_runner_perimeter_laps >= PACK_RUNNER_LAPS:
+                self.unlock_skin("pack_runner", "3 perimeter laps completed")
+
+    def current_perimeter_edge(self, rect: pygame.Rect) -> str | None:
+        if rect.top <= ARENA_RECT.top + PERIMETER_MARGIN:
+            return "top"
+        if rect.right >= ARENA_RECT.right - PERIMETER_MARGIN:
+            return "right"
+        if rect.bottom >= ARENA_RECT.bottom - PERIMETER_MARGIN:
+            return "bottom"
+        if rect.left <= ARENA_RECT.left + PERIMETER_MARGIN:
+            return "left"
+        return None
 
     def use_malice_roar(self) -> None:
         if not isinstance(self.player, Killer) or not self.player.is_malice():
@@ -1237,7 +1636,9 @@ class Game:
         if self.player_role != "Killer" or self.survivor is None:
             return
 
-        self.landmines.append(VenganceLandmine(self.player.pos))
+        mine = VenganceLandmine(self.player.pos)
+        self.landmines.append(mine)
+        self.vengance_mines_placed_this_round += 1
         self.player.start_vengance_mine_cooldown()
         self.teleport_player_out_of_the_way()
         self.play_sound("attack")
@@ -1298,6 +1699,8 @@ class Game:
                         self.survivor_stun_timer,
                         SUBSLASHER_FREEZE_DURATION,
                     )
+                    if self.round_killer == "subslasher" and self.player_role == "Killer":
+                        self.unlock_skin("tennis_dude", "freeze shot hit the survivor")
                 else:
                     self.end_round(True, "Subslasher's ice caught the survivor.")
                     return
@@ -1332,6 +1735,12 @@ class Game:
         remaining: list[VenganceLandmine] = []
         for mine in self.landmines:
             if mine.rect.colliderect(self.survivor.rect):
+                if (
+                    self.round_killer == "vengance_bot"
+                    and self.player_role == "Killer"
+                    and self.vengance_mines_placed_this_round <= 2
+                ):
+                    self.unlock_skin("mlg", "landmine kill with 2 or fewer mines")
                 self.end_round(True, "Vengance Bot's landmine exploded.")
                 return
 
@@ -1407,6 +1816,9 @@ class Game:
             self.end_round(True, "You survived both survivor lives.")
             return
 
+        if self.round_killer == "vengance_bot":
+            self.record_vengance_bot_survive()
+
         self.survivor_life_number += 1
         self.survivor_status_message = "Final life - keep running!"
         self.round_killer = random.choice(KILLER_IDS)
@@ -1478,8 +1890,12 @@ class Game:
 
         # If the survivor has room, drift toward open space instead of a wall.
         center_pull = safe_normalize(pygame.Vector2(ARENA_RECT.center) - survivor.pos) * 0.25
-        desired = flee + center_pull + self.wall_avoidance(survivor) * 1.2
-        desired = survivor.apply_ai_nudge(desired, dt)
+        desired = (
+            flee
+            + center_pull
+            + self.wall_avoidance(survivor) * 1.2
+            + self.landmine_avoidance(survivor) * VENGANCE_MINE_AVOID_WEIGHT
+        )
 
         survivor_speed = survivor.speed
         if self.survivor_slow_timer > 0:
@@ -1487,9 +1903,52 @@ class Game:
         if isinstance(self.player, Killer) and self.player.is_ducky_hg_active():
             survivor_speed *= DUCKY_HG_SURVIVOR_SPEED_MULTIPLIER
 
+        # If the next step would walk into a mine, prioritize the mine-escape vector.
+        if self.landmines and self.projected_landmine_collision(survivor, desired, dt, survivor_speed):
+            desired = (
+                self.landmine_avoidance(survivor) * (VENGANCE_MINE_AVOID_WEIGHT + 1.5)
+                + self.wall_avoidance(survivor)
+                + center_pull
+            )
+
+        desired = survivor.apply_ai_nudge(desired, dt)
+
         blocked = survivor.move(desired, dt, self.walls, ARENA_RECT, survivor_speed)
         if blocked:
             survivor.choose_ai_nudge()
+
+    def landmine_avoidance(self, character: Character) -> pygame.Vector2:
+        avoid = pygame.Vector2()
+
+        for mine in self.landmines:
+            delta = character.pos - mine.pos
+            distance = delta.length()
+            if distance <= 0:
+                delta = character.facing if character.facing.length_squared() > 0 else pygame.Vector2(1, 0)
+                distance = 1
+            if distance < VENGANCE_MINE_AVOID_RADIUS:
+                danger = (VENGANCE_MINE_AVOID_RADIUS - distance) / VENGANCE_MINE_AVOID_RADIUS
+                avoid += delta.normalize() * danger
+
+        return avoid
+
+    def projected_landmine_collision(
+        self,
+        character: Character,
+        direction: pygame.Vector2,
+        dt: float,
+        speed: float,
+    ) -> bool:
+        if direction.length_squared() == 0:
+            return False
+
+        projected = character.rect.copy()
+        step = direction.normalize() * speed * dt
+        projected.center = (
+            round(character.pos.x + step.x),
+            round(character.pos.y + step.y),
+        )
+        return any(projected.colliderect(mine.rect.inflate(18, 18)) for mine in self.landmines)
 
     def wall_avoidance(self, character: Character) -> pygame.Vector2:
         avoid = pygame.Vector2()
@@ -1517,9 +1976,75 @@ class Game:
     def end_round(self, player_won: bool, reason: str) -> None:
         self.player_won = player_won
         self.end_reason = reason
+        if player_won:
+            self.record_win()
+        else:
+            self.record_loss()
         self.state = GameState.GAME_OVER
         self.stop_music()
         self.play_sound("win" if player_won else "lose")
+
+    def record_win(self) -> None:
+        was_locked = not self.fried_chicken_unlocked()
+        self.total_wins += 1
+        if was_locked and self.total_wins >= FRIED_CHICKEN_UNLOCK_WINS:
+            self.unlock_skin("fried_chicken", "5 wins completed")
+
+        if self.player_role == "Killer" and self.round_killer == "show_runner":
+            if self.selected_skins.get("show_runner") == "pack_runner":
+                self.unlock_skin("maldin_inverted", "won with Pack Runner")
+            wins = self.challenge_progress.get("show_runner_wins", 0) + 1
+            self.challenge_progress["show_runner_wins"] = wins
+            if wins >= OCEAN_RUNNER_UNLOCK_WINS:
+                self.unlock_skin("ocean_runner", "3 Show Runner wins completed")
+
+            kills = self.challenge_progress.get("show_runner_kills", 0) + 1
+            self.challenge_progress["show_runner_kills"] = kills
+            if kills >= SHOW_RUNNER_MASTERY_1_KILLS:
+                self.unlock_skin("show_runner_mastery_1", "20 Show Runner kills completed")
+            if kills >= SHOW_RUNNER_MASTERY_2_KILLS:
+                self.unlock_skin("show_runner_mastery_2", "40 Show Runner kills completed")
+            if kills >= SHOW_RUNNER_MASTERY_3_KILLS:
+                self.unlock_skin("show_runner_mastery_3", "61 Show Runner kills completed")
+
+        if (
+            self.player_role == "Killer"
+            and self.round_killer == "subslasher"
+            and self.selected_skins.get("subslasher") == "tennis_dude"
+        ):
+            self.unlock_skin("pickle_ball_bro", "won with Tennis Dude")
+
+        if self.player_role == "Killer" and self.round_killer == "vengance_bot":
+            wins = self.challenge_progress.get("vengance_bot_wins", 0) + 1
+            self.challenge_progress["vengance_bot_wins"] = wins
+            if wins >= VENGANCE_BOT_MASTERY_1_WINS:
+                self.unlock_skin("vengance_bot_mastery_1", "20 Vengance Bot wins completed")
+            if wins >= VENGANCE_BOT_MASTERY_2_WINS:
+                self.unlock_skin("vengance_bot_mastery_2", "50 Vengance Bot wins completed")
+            if wins >= VENGANCE_BOT_MASTERY_3_WINS:
+                self.unlock_skin("vengance_bot_mastery_3", "79 Vengance Bot wins completed")
+
+        if self.player_role == "Survivor" and self.round_killer == "vengance_bot":
+            self.record_vengance_bot_survive()
+
+        self.save_progress()
+
+    def record_loss(self) -> None:
+        if self.player_role == "Killer" and self.round_killer == "revenge_bot":
+            losses = self.challenge_progress.get("ducky_losses", 0) + 1
+            self.challenge_progress["ducky_losses"] = losses
+            if losses >= DUCKY_INVERTED_LOSSES:
+                self.unlock_skin("ducky_inverted", "lost twice as Ducky")
+            if losses >= DUCKY_OGEL_LOSSES:
+                self.unlock_skin("ducky_ogel", "lost 4 times as Ducky")
+
+        self.save_progress()
+
+    def record_vengance_bot_survive(self) -> None:
+        survives = self.challenge_progress.get("vengance_bot_survives", 0) + 1
+        self.challenge_progress["vengance_bot_survives"] = survives
+        if survives >= WICK_WONALDS_SURVIVES:
+            self.unlock_skin("wick_wonalds", "survived Vengance Bot twice")
 
     def draw(self) -> None:
         if self.state == GameState.TITLE:
@@ -1646,16 +2171,16 @@ class Game:
             self.font_small,
             f"Selected killer if you become Killer: {selected_name}",
             (248, 199, 88),
-            (WIDTH // 2, 500),
+            (WIDTH // 2, 492),
             True,
         )
         self.menu_buttons["reveal"].draw(self.screen, self.font_medium, True)
         draw_text(
             self.screen,
             self.font_small,
-            "Click a killer or press 1-5, then press Enter or Space to reveal your role.",
+            "Click a killer or press 1-5. Skin selection appears after you become Killer.",
             (203, 213, 225),
-            (WIDTH // 2, 625),
+            (WIDTH // 2, 660),
             True,
         )
 
@@ -1679,8 +2204,144 @@ class Game:
             prompt = "Survive two 60-second lives while the random killer hunts you."
         else:
             prompt = "Catch the AI survivor with your selected killer before time runs out."
-        draw_text(self.screen, self.font_medium, prompt, (203, 213, 225), (WIDTH // 2, 390), True)
+        draw_text(self.screen, self.font_medium, prompt, (203, 213, 225), (WIDTH // 2, 380), True)
+        if self.player_role == "Killer":
+            self.draw_skin_selection()
         self.menu_buttons["begin"].draw(self.screen, self.font_medium, True)
+
+    def draw_skin_selection(self) -> None:
+        draw_text(
+            self.screen,
+            self.font_medium,
+            "Choose Skin",
+            (248, 250, 252),
+            (WIDTH // 2, 420),
+            True,
+        )
+
+        for index, skin_id in enumerate(self.skin_options_for_killer(self.round_killer)):
+            rect = self.skin_card_rect(index)
+            selected = self.selected_skins.get(self.round_killer, "classic") == skin_id
+            unlocked = skin_id == "classic" or self.skin_unlocked(skin_id)
+            fill = (25, 42, 37) if unlocked else (35, 35, 42)
+            outline = (248, 199, 88) if selected else (88, 100, 116)
+            pygame.draw.rect(self.screen, fill, rect, border_radius=8)
+            pygame.draw.rect(self.screen, outline, rect, 3 if selected else 2, border_radius=8)
+
+            sprite_key = self.skin_sprite_key(self.round_killer, skin_id)
+            sprite = self.sprites.get(sprite_key)
+            preview_rect = pygame.Rect(rect.left + 8, rect.top + 13, 44, 44)
+            if sprite is not None:
+                preview = pygame.transform.smoothscale(sprite, preview_rect.size)
+                self.screen.blit(preview, preview_rect)
+            else:
+                pygame.draw.ellipse(self.screen, KILLERS[self.round_killer]["color"], preview_rect)
+
+            draw_text(
+                self.screen,
+                self.font_small,
+                f"{index + 1}. {self.skin_name(self.round_killer, skin_id)}",
+                (248, 250, 252) if unlocked else (148, 163, 184),
+                (rect.left + 60, rect.top + 9),
+            )
+
+            status = "Unlocked" if unlocked else f"Locked: {self.skin_challenge_text(skin_id)}"
+            draw_wrapped_text(
+                self.screen,
+                self.font_small,
+                status,
+                (134, 239, 172) if unlocked else (248, 199, 88),
+                pygame.Rect(rect.left + 60, rect.top + 32, rect.width - 68, 30),
+            )
+
+        if self.skin_notice:
+            draw_wrapped_text(
+                self.screen,
+                self.font_small,
+                self.skin_notice,
+                (203, 213, 225),
+                pygame.Rect(150, 582, 700, 36),
+            )
+
+    def skin_challenge_text(self, skin_id: str) -> str:
+        if skin_id == "fried_chicken":
+            remaining = max(0, FRIED_CHICKEN_UNLOCK_WINS - self.total_wins)
+            return f"win {remaining} more"
+        if skin_id in ("ducky_inverted", "ducky_ogel"):
+            target = DUCKY_INVERTED_LOSSES if skin_id == "ducky_inverted" else DUCKY_OGEL_LOSSES
+            losses = self.challenge_progress.get("ducky_losses", 0)
+            return f"Ducky losses {losses}/{target}"
+        if skin_id == "ocean_runner":
+            wins = self.challenge_progress.get("show_runner_wins", 0)
+            return f"Show Runner wins {wins}/{OCEAN_RUNNER_UNLOCK_WINS}"
+        if skin_id in ("show_runner_mastery_1", "show_runner_mastery_2", "show_runner_mastery_3"):
+            target = self.show_runner_mastery_kill_target(skin_id)
+            kills = self.challenge_progress.get("show_runner_kills", 0)
+            return f"Show Runner kills {kills}/{target}"
+        if skin_id == "wick_wonalds":
+            survives = self.challenge_progress.get("vengance_bot_survives", 0)
+            return f"survive Vengance Bot {survives}/{WICK_WONALDS_SURVIVES}"
+        if skin_id in ("vengance_bot_mastery_1", "vengance_bot_mastery_2", "vengance_bot_mastery_3"):
+            target = self.vengance_bot_mastery_win_target(skin_id)
+            wins = self.challenge_progress.get("vengance_bot_wins", 0)
+            return f"Vengance Bot wins {wins}/{target}"
+        return SKINS[skin_id]["challenge"]
+
+    def show_runner_mastery_kill_target(self, skin_id: str) -> int:
+        if skin_id == "show_runner_mastery_1":
+            return SHOW_RUNNER_MASTERY_1_KILLS
+        if skin_id == "show_runner_mastery_2":
+            return SHOW_RUNNER_MASTERY_2_KILLS
+        return SHOW_RUNNER_MASTERY_3_KILLS
+
+    def vengance_bot_mastery_win_target(self, skin_id: str) -> int:
+        if skin_id == "vengance_bot_mastery_1":
+            return VENGANCE_BOT_MASTERY_1_WINS
+        if skin_id == "vengance_bot_mastery_2":
+            return VENGANCE_BOT_MASTERY_2_WINS
+        return VENGANCE_BOT_MASTERY_3_WINS
+
+    def skin_challenge_detail(self, skin_id: str) -> str:
+        if skin_id == "fried_chicken":
+            remaining = max(0, FRIED_CHICKEN_UNLOCK_WINS - self.total_wins)
+            return f"Win {remaining} more round{'s' if remaining != 1 else ''} to unlock Fried Chicken."
+        if skin_id == "ducky_inverted":
+            losses = self.challenge_progress.get("ducky_losses", 0)
+            remaining = max(0, DUCKY_INVERTED_LOSSES - losses)
+            return f"Play as Ducky and lose {remaining} more round{'s' if remaining != 1 else ''}."
+        if skin_id == "ducky_ogel":
+            losses = self.challenge_progress.get("ducky_losses", 0)
+            remaining = max(0, DUCKY_OGEL_LOSSES - losses)
+            return f"Play as Ducky and lose {remaining} more round{'s' if remaining != 1 else ''}."
+        if skin_id == "tennis_dude":
+            return "Play as Subslasher and hit the survivor with Perpelling Shootdown, the freeze ice spike."
+        if skin_id == "pickle_ball_bro":
+            return "Play as Subslasher, select the Tennis Dude skin, then win the round."
+        if skin_id == "pack_runner":
+            return "Play as Show Runner and run around the arena perimeter 3 times in a row."
+        if skin_id == "maldin_inverted":
+            return "Play as Show Runner, select the Pack Runner skin, then win the round."
+        if skin_id == "ocean_runner":
+            wins = self.challenge_progress.get("show_runner_wins", 0)
+            remaining = max(0, OCEAN_RUNNER_UNLOCK_WINS - wins)
+            return f"Win {remaining} more round{'s' if remaining != 1 else ''} as Show Runner."
+        if skin_id in ("show_runner_mastery_1", "show_runner_mastery_2", "show_runner_mastery_3"):
+            target = self.show_runner_mastery_kill_target(skin_id)
+            kills = self.challenge_progress.get("show_runner_kills", 0)
+            remaining = max(0, target - kills)
+            return f"Kill {remaining} more survivor{'s' if remaining != 1 else ''} as Show Runner."
+        if skin_id == "wick_wonalds":
+            survives = self.challenge_progress.get("vengance_bot_survives", 0)
+            remaining = max(0, WICK_WONALDS_SURVIVES - survives)
+            return f"Survive Vengance Bot {remaining} more time{'s' if remaining != 1 else ''} as Survivor."
+        if skin_id == "mlg":
+            return "Play as Vengance Bot and kill the survivor with a landmine after placing 2 or fewer landmines that round."
+        if skin_id in ("vengance_bot_mastery_1", "vengance_bot_mastery_2", "vengance_bot_mastery_3"):
+            target = self.vengance_bot_mastery_win_target(skin_id)
+            wins = self.challenge_progress.get("vengance_bot_wins", 0)
+            remaining = max(0, target - wins)
+            return f"Win {remaining} more round{'s' if remaining != 1 else ''} as Vengance Bot."
+        return SKINS[skin_id]["challenge"]
 
     def draw_gameplay(self) -> None:
         self.screen.fill((12, 19, 32))
@@ -1861,14 +2522,25 @@ class Game:
         color = (74, 222, 128) if self.player_won else (248, 113, 113)
         draw_text(self.screen, self.font_title, result, color, (WIDTH // 2, 160), True)
         draw_text(self.screen, self.font_medium, self.end_reason, (226, 232, 240), (WIDTH // 2, 255), True)
+        skin_text = self.skin_progress_text()
+        draw_text(self.screen, self.font_small, skin_text, (248, 199, 88), (WIDTH // 2, 292), True)
+        if self.skin_notice:
+            draw_text(self.screen, self.font_small, self.skin_notice, (134, 239, 172), (WIDTH // 2, 320), True)
         draw_text(
             self.screen,
             self.font_small,
             "Press R to restart from the title screen. Press Escape to quit.",
             (203, 213, 225),
-            (WIDTH // 2, 325),
+            (WIDTH // 2, 355),
             True,
         )
+
+    def skin_progress_text(self) -> str:
+        unlocked_count = len(self.unlocked_skins)
+        total_count = len(SKINS)
+        if unlocked_count == total_count:
+            return "All killer cosmetics unlocked."
+        return f"Killer cosmetics unlocked: {unlocked_count}/{total_count}. Keep clearing challenges."
 
 
 def main() -> None:

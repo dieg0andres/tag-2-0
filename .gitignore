@@ -29,3 +29,5 @@ dist/
 *.tmp
 *.bak
 
+# Local player progress
+save_data.json
