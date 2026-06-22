@@ -68,6 +68,50 @@ VENGANCE_BOT_MASTERY_2_WINS = 50
 VENGANCE_BOT_MASTERY_3_WINS = 79
 PACK_RUNNER_LAPS = 3
 PERIMETER_MARGIN = 58
+ODD_FLASH_STUN_DURATION = 5.0
+ODD_FLASH_VISUAL_DURATION = 0.55
+ODD_FLASH_COOLDOWN = 5.0
+EXPLORER_ADRENALINE_DURATION = 5.0
+EXPLORER_ADRENALINE_SPEED_MULTIPLIER = 1.60
+EXPLORER_TAMING_DURATION = 5.0
+EXPLORER_TAMING_SPEED_MULTIPLIER = 0.50
+KITTY_TELEPORT_MARKER_RADIUS = 24
+QUEEN_GOOPY_KNIGHT_STUN_DURATION = 2.3
+QUEEN_GOOPY_KNIGHT_SPEED = 330
+QUEEN_GOOPY_KNIGHT_COOLDOWN = 10.0
+KEVIN_PUNCH_DURATION = 5.0
+KEVIN_PUNCH_COOLDOWN = 5.0
+KEVIN_PUNCH_STUN_DURATION = 2.0
+KEVIN_DOUBLE_SPEED_DURATION = 5.0
+KEVIN_DOUBLE_SPEED_MULTIPLIER = 1.89
+TRASHY_GUN_TARGET_HITS = 10
+TRASHY_GUN_STUN_DURATION = 4.0
+TRASHY_GUN_SHOT_SPEED = 720
+TRASHY_GUN_SHOT_LIFETIME = 1.2
+TRASHY_ABILITY_COOLDOWN = 5.0
+TRASHY_SHOCK_STUN_DURATION = 5.0
+TRASHY_SHOCK_SHOT_SPEED = 650
+TRASHY_SHOCK_SHOT_LIFETIME = 1.0
+TRASHY_SHOCK_KNOCKBACK = 120
+TRASHY_SHOCK_TIMER_DROP = 10.0
+TRASHY_TURRET_STUN_DURATION = 2.5
+TRASHY_TURRET_RANGE = 170
+TRASHY_TURRET_SHOT_SPEED = 520
+TRASHY_TURRET_SHOT_LIFETIME = 0.9
+TRASHY_TURRET_DURATION = 18.0
+TRASHY_TURRET_FIRE_COOLDOWN = 1.4
+TRASHY_MAX_TURRETS = 2
+TRASHY_MINIGAME_BAR = pygame.Rect(245, 642, 510, 28)
+TRASHY_MINIGAME_TARGET_SIZE = 26
+TRASHY_MINIGAME_CIRCLE_RADIUS = 12
+TRASHY_MINIGAME_CIRCLE_SPEED = 280
+SURVIVOR_ABILITY_COOLDOWN = 5.0
+SHOW_RUNNER_SLOW_COOLDOWN = 5.0
+SHOW_RUNNER_HOOK_COOLDOWN = 2.0
+SHOW_RUNNER_SPEED_COOLDOWN = 3.0
+SUBSLASHER_FREEZE_SPIKE_COOLDOWN = 5.0
+SUBSLASHER_KILL_SPIKE_COOLDOWN = 3.0
+SUBSLASHER_SUBZERO_COOLDOWN = 12.0
 
 SKINS = {
     "fried_chicken": {
@@ -87,6 +131,18 @@ SKINS = {
         "name": "Ogel",
         "sprite_key": "ducky_ogel",
         "challenge": "Lose 4 rounds as Ducky.",
+    },
+    "ducky_daddys_belt": {
+        "killer_id": "revenge_bot",
+        "name": "Daddy's Belt",
+        "sprite_key": "ducky_daddys_belt",
+        "challenge": "Kill the survivor with Ducky's C swing ability.",
+    },
+    "ducky_subject_5_png": {
+        "killer_id": "revenge_bot",
+        "name": "Subject 5 PNG",
+        "sprite_key": "ducky_subject_5_png",
+        "challenge": "Win with both the Daddy's Belt and Ogel skins.",
     },
     "tennis_dude": {
         "killer_id": "subslasher",
@@ -151,6 +207,24 @@ SKINS = {
         "sprite_key": "vengance_mlg",
         "challenge": "Kill the survivor with a landmine after placing 2 or fewer mines that round.",
     },
+    "vengance_scoreboard": {
+        "killer_id": "vengance_bot",
+        "name": "Scoreboard",
+        "sprite_key": "vengance_scoreboard",
+        "challenge": "Win as Vengance Bot without placing a landmine.",
+    },
+    "vengance_spinning": {
+        "killer_id": "vengance_bot",
+        "name": "Spinning",
+        "sprite_key": "vengance_spinning",
+        "challenge": "Run one full lap around the arena perimeter with any player character.",
+    },
+    "vengance_werewolf": {
+        "killer_id": "vengance_bot",
+        "name": "Werewolf",
+        "sprite_key": "vengance_werewolf",
+        "challenge": "Win 2 rounds as Vengance Bot while placing 3 or fewer landmines each round.",
+    },
     "vengance_bot_mastery_1": {
         "killer_id": "vengance_bot",
         "name": "Mastery 1",
@@ -171,6 +245,44 @@ SKINS = {
         "sprite_key": "vengance_bot_mastery_3",
         "challenge": "Win 79 rounds as Vengance Bot.",
         "type": "mastery",
+    },
+}
+
+SURVIVORS = {
+    "survivor": {
+        "name": "Runner",
+        "sprite": "survivor.png",
+        "description": "Fast classic runner.",
+    },
+    "survivor_odd": {
+        "name": "Odd 1 3 5 7 9",
+        "sprite": "survivor_odd.png",
+        "description": "F: flash the killer with Picture Taken.",
+    },
+    "survivor_explorer": {
+        "name": "Explorer",
+        "sprite": "survivor_explorer.png",
+        "description": "A: adrenaline and tame the killer.",
+    },
+    "survivor_kitty": {
+        "name": "Kitty",
+        "sprite": "survivor_kitty.png",
+        "description": "L then 2: place and use a teleport circle.",
+    },
+    "survivor_kevin": {
+        "name": "Kevin",
+        "sprite": "survivor_kevin.png",
+        "description": "P: punch. S: spin into double speed.",
+    },
+    "survivor_trashy": {
+        "name": "Trashy",
+        "sprite": "survivor_trashy.png",
+        "description": "G: Gun Maker. C: cannon. T: turret.",
+    },
+    "survivor_queen_goopy": {
+        "name": "Queen Goopy",
+        "sprite": "survivor_queen_goopy.png",
+        "description": "K: summon 2 stunning gray knights.",
     },
 }
 
@@ -263,6 +375,7 @@ KILLERS = {
 }
 
 KILLER_IDS = tuple(KILLERS.keys())
+SURVIVOR_IDS = tuple(SURVIVORS.keys())
 
 
 class GameState(Enum):
@@ -487,6 +600,7 @@ class DuckyBelt:
         direction: pygame.Vector2,
         speed: float,
         lifetime: float,
+        belt_only: bool = False,
     ) -> None:
         self.origin = pygame.Vector2(origin)
         self.pos = pygame.Vector2(origin)
@@ -496,6 +610,7 @@ class DuckyBelt:
 
         self.speed = speed
         self.lifetime = lifetime
+        self.belt_only = belt_only
         self.rect = pygame.Rect(0, 0, 30, 30)
         self.rect.center = (round(self.pos.x), round(self.pos.y))
 
@@ -517,10 +632,22 @@ class DuckyBelt:
         return True
 
     def draw(self, surface: pygame.Surface) -> None:
-        pygame.draw.line(surface, (170, 174, 184), self.origin, self.pos, 8)
-        pygame.draw.line(surface, (58, 63, 73), self.origin, self.pos, 2)
+        belt_color = (126, 87, 55) if self.belt_only else (170, 174, 184)
+        belt_edge = (69, 45, 31) if self.belt_only else (58, 63, 73)
+        buckle = (229, 198, 96) if self.belt_only else (226, 232, 240)
+
+        pygame.draw.line(surface, belt_color, self.origin, self.pos, 8)
+        pygame.draw.line(surface, belt_edge, self.origin, self.pos, 2)
+        if self.belt_only:
+            buckle_rect = pygame.Rect(0, 0, 22, 14)
+            buckle_rect.center = self.rect.center
+            pygame.draw.rect(surface, belt_color, buckle_rect, border_radius=3)
+            pygame.draw.rect(surface, buckle, buckle_rect, 3, border_radius=3)
+            pygame.draw.rect(surface, belt_edge, buckle_rect.inflate(-9, -6), 2, border_radius=2)
+            return
+
         pygame.draw.circle(surface, (116, 122, 134), self.rect.center, 15)
-        pygame.draw.circle(surface, (226, 232, 240), self.rect.center, 15, 3)
+        pygame.draw.circle(surface, buckle, self.rect.center, 15, 3)
         for angle in (0, math.pi / 2, math.pi, math.pi * 1.5):
             spike = pygame.Vector2(math.cos(angle), math.sin(angle))
             start = pygame.Vector2(self.rect.center) + spike * 10
@@ -542,6 +669,159 @@ class VenganceLandmine:
         pygame.draw.circle(surface, (250, 204, 21), self.rect.center, 7)
         pygame.draw.line(surface, (15, 23, 42), self.rect.midleft, self.rect.midright, 2)
         pygame.draw.line(surface, (15, 23, 42), self.rect.midtop, self.rect.midbottom, 2)
+
+
+class SurvivorShot:
+    """Trashy's earned gun shot. It stuns a killer instead of ending the round."""
+
+    def __init__(self, origin: pygame.Vector2, direction: pygame.Vector2) -> None:
+        self.pos = pygame.Vector2(origin)
+        self.direction = safe_normalize(direction)
+        if self.direction.length_squared() == 0:
+            self.direction = pygame.Vector2(0, -1)
+        self.lifetime = TRASHY_GUN_SHOT_LIFETIME
+        self.rect = pygame.Rect(0, 0, 22, 12)
+        self.rect.center = (round(self.pos.x), round(self.pos.y))
+
+    def update(self, dt: float, walls: list[Wall]) -> bool:
+        self.lifetime -= dt
+        if self.lifetime <= 0:
+            return False
+        self.pos += self.direction * TRASHY_GUN_SHOT_SPEED * dt
+        self.rect.center = (round(self.pos.x), round(self.pos.y))
+        if not ARENA_RECT.colliderect(self.rect):
+            return False
+        return not any(self.rect.colliderect(wall.rect) for wall in walls)
+
+    def draw(self, surface: pygame.Surface) -> None:
+        pygame.draw.rect(surface, (239, 68, 68), self.rect, border_radius=6)
+        pygame.draw.rect(surface, (254, 226, 226), self.rect, 2, border_radius=6)
+
+
+class TrashyShockWave:
+    """Trashy's cannon blast: stun, knock back, and burn down the timer."""
+
+    def __init__(self, origin: pygame.Vector2, direction: pygame.Vector2) -> None:
+        self.pos = pygame.Vector2(origin)
+        self.direction = safe_normalize(direction)
+        if self.direction.length_squared() == 0:
+            self.direction = pygame.Vector2(0, -1)
+        self.lifetime = TRASHY_SHOCK_SHOT_LIFETIME
+        self.rect = pygame.Rect(0, 0, 42, 30)
+        self.rect.center = (round(self.pos.x), round(self.pos.y))
+
+    def update(self, dt: float, walls: list[Wall]) -> bool:
+        self.lifetime -= dt
+        if self.lifetime <= 0:
+            return False
+        self.pos += self.direction * TRASHY_SHOCK_SHOT_SPEED * dt
+        self.rect.center = (round(self.pos.x), round(self.pos.y))
+        if not ARENA_RECT.colliderect(self.rect):
+            return False
+        return not any(self.rect.colliderect(wall.rect) for wall in walls)
+
+    def draw(self, surface: pygame.Surface) -> None:
+        pygame.draw.ellipse(surface, (248, 113, 113), self.rect)
+        pygame.draw.ellipse(surface, (254, 226, 226), self.rect, 3)
+        core = self.rect.inflate(-16, -10)
+        pygame.draw.ellipse(surface, (251, 191, 36), core)
+
+
+class TrashyTurretShot:
+    """A small turret bullet that stuns the killer on contact."""
+
+    def __init__(self, origin: pygame.Vector2, direction: pygame.Vector2) -> None:
+        self.pos = pygame.Vector2(origin)
+        self.direction = safe_normalize(direction)
+        if self.direction.length_squared() == 0:
+            self.direction = pygame.Vector2(0, -1)
+        self.lifetime = TRASHY_TURRET_SHOT_LIFETIME
+        self.rect = pygame.Rect(0, 0, 16, 16)
+        self.rect.center = (round(self.pos.x), round(self.pos.y))
+
+    def update(self, dt: float, walls: list[Wall]) -> bool:
+        self.lifetime -= dt
+        if self.lifetime <= 0:
+            return False
+        self.pos += self.direction * TRASHY_TURRET_SHOT_SPEED * dt
+        self.rect.center = (round(self.pos.x), round(self.pos.y))
+        if not ARENA_RECT.colliderect(self.rect):
+            return False
+        return not any(self.rect.colliderect(wall.rect) for wall in walls)
+
+    def draw(self, surface: pygame.Surface) -> None:
+        pygame.draw.circle(surface, (125, 211, 252), self.rect.center, 8)
+        pygame.draw.circle(surface, (224, 242, 254), self.rect.center, 8, 2)
+
+
+class TrashyTurret:
+    """Stationary turret placed by Trashy that fires when a killer enters range."""
+
+    def __init__(self, pos: pygame.Vector2) -> None:
+        self.pos = pygame.Vector2(pos)
+        self.rect = pygame.Rect(0, 0, 36, 36)
+        self.rect.center = (round(self.pos.x), round(self.pos.y))
+        self.lifetime = TRASHY_TURRET_DURATION
+        self.fire_cooldown = 0.25
+
+    def update(self, dt: float, killers: list[Killer]) -> TrashyTurretShot | None:
+        self.lifetime -= dt
+        self.fire_cooldown = max(0.0, self.fire_cooldown - dt)
+        if self.lifetime <= 0 or self.fire_cooldown > 0 or not killers:
+            return None
+
+        nearby = [
+            killer
+            for killer in killers
+            if killer.pos.distance_to(self.pos) <= TRASHY_TURRET_RANGE
+        ]
+        if not nearby:
+            return None
+
+        target = min(nearby, key=lambda killer: killer.pos.distance_to(self.pos))
+        self.fire_cooldown = TRASHY_TURRET_FIRE_COOLDOWN
+        return TrashyTurretShot(self.pos, target.pos - self.pos)
+
+    def alive(self) -> bool:
+        return self.lifetime > 0
+
+    def draw(self, surface: pygame.Surface) -> None:
+        pygame.draw.circle(surface, (30, 41, 59), self.rect.center, TRASHY_TURRET_RANGE, 1)
+        pygame.draw.rect(surface, (55, 65, 81), self.rect, border_radius=8)
+        pygame.draw.rect(surface, (203, 213, 225), self.rect, 2, border_radius=8)
+        barrel = pygame.Rect(0, 0, 12, 30)
+        barrel.center = (self.rect.centerx, self.rect.top + 4)
+        pygame.draw.rect(surface, (239, 68, 68), barrel, border_radius=4)
+        pygame.draw.circle(surface, (96, 165, 250), self.rect.center, 7)
+
+
+class GoopyKnight:
+    """Queen Goopy summon that runs to the nearest killer and stuns on contact."""
+
+    def __init__(self, pos: pygame.Vector2, offset: pygame.Vector2) -> None:
+        self.pos = pygame.Vector2(pos) + offset
+        self.rect = pygame.Rect(0, 0, 28, 34)
+        self.rect.center = (round(self.pos.x), round(self.pos.y))
+        self.lifetime = 7.0
+
+    def update(self, dt: float, killers: list[Killer]) -> bool:
+        self.lifetime -= dt
+        if self.lifetime <= 0 or not killers:
+            return False
+
+        nearest = min(killers, key=lambda killer: killer.pos.distance_to(self.pos))
+        direction = safe_normalize(nearest.pos - self.pos)
+        self.pos += direction * QUEEN_GOOPY_KNIGHT_SPEED * dt
+        self.rect.center = (round(self.pos.x), round(self.pos.y))
+        return ARENA_RECT.colliderect(self.rect)
+
+    def draw(self, surface: pygame.Surface) -> None:
+        body = pygame.Rect(0, 0, 22, 25)
+        body.center = (self.rect.centerx, self.rect.centery + 5)
+        pygame.draw.rect(surface, (148, 163, 184), body, border_radius=5)
+        pygame.draw.rect(surface, (51, 65, 85), body, 2, border_radius=5)
+        pygame.draw.circle(surface, (203, 213, 225), (self.rect.centerx, self.rect.top + 8), 9)
+        pygame.draw.circle(surface, (51, 65, 85), (self.rect.centerx, self.rect.top + 8), 9, 2)
 
 
 class Character:
@@ -676,8 +956,94 @@ class Survivor(Character):
         name: str,
         pos: tuple[int, int],
         sprite: pygame.Surface | None = None,
+        survivor_id: str = "survivor",
     ) -> None:
         super().__init__(name, pos, SURVIVOR_SPEED, (61, 145, 255), sprite)
+        self.survivor_id = survivor_id
+        self.odd_flash_used = False
+        self.odd_flash_cooldown = 0.0
+        self.explorer_adrenaline_used = False
+        self.explorer_adrenaline_timer = 0.0
+        self.explorer_ability_cooldown = 0.0
+        self.kitty_marker: pygame.Vector2 | None = None
+        self.kitty_teleport_used = False
+        self.queen_knights_used = False
+        self.queen_knights_cooldown = 0.0
+        self.trashy_minigame_active = False
+        self.trashy_gun_ready = False
+        self.trashy_gun_used = False
+        self.trashy_shock_cooldown = 0.0
+        self.trashy_turret_cooldown = 0.0
+        self.trashy_hits = 0
+        self.trashy_target_x = float(TRASHY_MINIGAME_BAR.centerx)
+        self.trashy_circle_x = float(TRASHY_MINIGAME_BAR.left + TRASHY_MINIGAME_CIRCLE_RADIUS)
+        self.trashy_circle_direction = 1
+        self.kevin_punch_used = False
+        self.kevin_punch_timer = 0.0
+        self.kevin_punch_cooldown = 0.0
+        self.kevin_speed_used = False
+        self.kevin_speed_timer = 0.0
+
+    def update_abilities(self, dt: float) -> None:
+        if self.odd_flash_cooldown > 0:
+            self.odd_flash_cooldown = max(0.0, self.odd_flash_cooldown - dt)
+        if self.explorer_adrenaline_timer > 0:
+            self.explorer_adrenaline_timer = max(0.0, self.explorer_adrenaline_timer - dt)
+        if self.explorer_ability_cooldown > 0:
+            self.explorer_ability_cooldown = max(0.0, self.explorer_ability_cooldown - dt)
+        if self.queen_knights_cooldown > 0:
+            self.queen_knights_cooldown = max(0.0, self.queen_knights_cooldown - dt)
+        if self.trashy_shock_cooldown > 0:
+            self.trashy_shock_cooldown = max(0.0, self.trashy_shock_cooldown - dt)
+        if self.trashy_turret_cooldown > 0:
+            self.trashy_turret_cooldown = max(0.0, self.trashy_turret_cooldown - dt)
+        if self.kevin_punch_timer > 0:
+            self.kevin_punch_timer = max(0.0, self.kevin_punch_timer - dt)
+        if self.kevin_punch_cooldown > 0:
+            self.kevin_punch_cooldown = max(0.0, self.kevin_punch_cooldown - dt)
+        if self.kevin_speed_timer > 0:
+            self.kevin_speed_timer = max(0.0, self.kevin_speed_timer - dt)
+
+        if self.trashy_minigame_active:
+            self.trashy_circle_x += (
+                self.trashy_circle_direction * TRASHY_MINIGAME_CIRCLE_SPEED * dt
+            )
+            left = TRASHY_MINIGAME_BAR.left + TRASHY_MINIGAME_CIRCLE_RADIUS
+            right = TRASHY_MINIGAME_BAR.right - TRASHY_MINIGAME_CIRCLE_RADIUS
+            if self.trashy_circle_x <= left:
+                self.trashy_circle_x = float(left)
+                self.trashy_circle_direction = 1
+            elif self.trashy_circle_x >= right:
+                self.trashy_circle_x = float(right)
+                self.trashy_circle_direction = -1
+
+    def current_speed(self) -> float:
+        speed = self.speed
+        if self.explorer_adrenaline_timer > 0:
+            speed *= EXPLORER_ADRENALINE_SPEED_MULTIPLIER
+        if self.kevin_speed_timer > 0:
+            speed *= KEVIN_DOUBLE_SPEED_MULTIPLIER
+        return speed
+
+    def is_invincible(self) -> bool:
+        return self.explorer_adrenaline_timer > 0
+
+    def set_trashy_target(self) -> None:
+        padding = TRASHY_MINIGAME_TARGET_SIZE // 2 + 4
+        self.trashy_target_x = float(
+            random.randint(TRASHY_MINIGAME_BAR.left + padding, TRASHY_MINIGAME_BAR.right - padding)
+        )
+
+    def trashy_target_rect(self) -> pygame.Rect:
+        rect = pygame.Rect(0, 0, TRASHY_MINIGAME_TARGET_SIZE, TRASHY_MINIGAME_TARGET_SIZE)
+        rect.center = (round(self.trashy_target_x), TRASHY_MINIGAME_BAR.centery)
+        return rect
+
+    def trashy_circle_rect(self) -> pygame.Rect:
+        radius = TRASHY_MINIGAME_CIRCLE_RADIUS
+        rect = pygame.Rect(0, 0, radius * 2, radius * 2)
+        rect.center = (round(self.trashy_circle_x), TRASHY_MINIGAME_BAR.centery)
+        return rect
 
 
 class Killer(Character):
@@ -687,9 +1053,11 @@ class Killer(Character):
         name: str,
         pos: tuple[int, int],
         sprite: pygame.Surface | None = None,
+        skin_id: str = "classic",
     ) -> None:
         self.killer_id = killer_id
         self.data = KILLERS[killer_id]
+        self.skin_id = skin_id
         super().__init__(name, pos, self.data["speed"], self.data["color"], sprite)
         self.attack_phase: str | None = None
         self.attack_timer = 0.0
@@ -697,6 +1065,12 @@ class Killer(Character):
         self.wall_phase_timer = 0.0
         self.wall_phase_cooldown = 0.0
         self.show_power_timer = 0.0
+        self.show_power_cooldown = 0.0
+        self.show_slow_cooldown = 0.0
+        self.show_hook_cooldown = 0.0
+        self.subslasher_freeze_cooldown = 0.0
+        self.subslasher_kill_cooldown = 0.0
+        self.subslasher_subzero_cooldown = 0.0
         self.ducky_swing_cooldown = 0.0
         self.ducky_hg_timer = 0.0
         self.ducky_hg_cooldown = 0.0
@@ -704,6 +1078,7 @@ class Killer(Character):
         self.vengance_dash_cooldown = 0.0
         self.vengance_dash_direction = pygame.Vector2(0, 1)
         self.vengance_mine_cooldown = 0.0
+        self.ai_stun_timer = 0.0
 
     def can_attack(self) -> bool:
         return self.attack_phase is None and self.cooldown_remaining <= 0
@@ -722,6 +1097,44 @@ class Killer(Character):
 
     def is_vengance_bot(self) -> bool:
         return self.killer_id == "vengance_bot"
+
+    def draw(self, surface: pygame.Surface, font: pygame.font.Font) -> None:
+        if self.skin_id != "vengance_spinning" or self.sprite is None:
+            super().draw(surface, font)
+            self.draw_stun_effect(surface, font)
+            return
+
+        draw_rect = pygame.Rect(0, 0, SPRITE_DRAW_SIZE, SPRITE_DRAW_SIZE)
+        draw_rect.center = self.rect.center
+        angle = (pygame.time.get_ticks() * 0.36) % 360
+        rotated = pygame.transform.rotozoom(self.sprite, angle, 1.0)
+        rotated_rect = rotated.get_rect(center=draw_rect.center)
+        surface.blit(rotated, rotated_rect)
+
+        pygame.draw.circle(surface, (226, 232, 240), self.rect.center, 34, 2)
+        for spin_angle in (angle, angle + 120, angle + 240):
+            direction = pygame.Vector2(1, 0).rotate(spin_angle)
+            start = pygame.Vector2(self.rect.center) + direction * 24
+            end = pygame.Vector2(self.rect.center) + direction * 35
+            pygame.draw.line(surface, (226, 232, 240), start, end, 3)
+
+        facing = safe_normalize(self.facing)
+        if facing.length_squared() > 0:
+            start = pygame.Vector2(self.rect.center)
+            end = start + facing * 31
+            pygame.draw.line(surface, (255, 255, 255), start, end, 3)
+
+        label = font.render(self.name, True, (226, 232, 240))
+        label_rect = label.get_rect(center=(self.rect.centerx, self.rect.top - 11))
+        surface.blit(label, label_rect)
+        self.draw_stun_effect(surface, font)
+
+    def draw_stun_effect(self, surface: pygame.Surface, font: pygame.font.Font) -> None:
+        if self.ai_stun_timer <= 0:
+            return
+        pygame.draw.circle(surface, (250, 204, 21), self.rect.center, 38, 3)
+        text = font.render(f"STUN {self.ai_stun_timer:.1f}", True, (254, 240, 138))
+        surface.blit(text, text.get_rect(center=(self.rect.centerx, self.rect.bottom + 14)))
 
     def is_wall_phasing(self) -> bool:
         return self.is_malice() and self.wall_phase_timer > 0
@@ -743,6 +1156,20 @@ class Killer(Character):
 
         if self.show_power_timer > 0:
             self.show_power_timer = max(0.0, self.show_power_timer - dt)
+            if self.show_power_timer == 0:
+                self.show_power_cooldown = SHOW_RUNNER_SPEED_COOLDOWN
+        elif self.show_power_cooldown > 0:
+            self.show_power_cooldown = max(0.0, self.show_power_cooldown - dt)
+        if self.show_slow_cooldown > 0:
+            self.show_slow_cooldown = max(0.0, self.show_slow_cooldown - dt)
+        if self.show_hook_cooldown > 0:
+            self.show_hook_cooldown = max(0.0, self.show_hook_cooldown - dt)
+        if self.subslasher_freeze_cooldown > 0:
+            self.subslasher_freeze_cooldown = max(0.0, self.subslasher_freeze_cooldown - dt)
+        if self.subslasher_kill_cooldown > 0:
+            self.subslasher_kill_cooldown = max(0.0, self.subslasher_kill_cooldown - dt)
+        if self.subslasher_subzero_cooldown > 0:
+            self.subslasher_subzero_cooldown = max(0.0, self.subslasher_subzero_cooldown - dt)
 
         if self.ducky_swing_cooldown > 0:
             self.ducky_swing_cooldown = max(0.0, self.ducky_swing_cooldown - dt)
@@ -774,7 +1201,7 @@ class Killer(Character):
         return "I: phase ready"
 
     def start_show_power(self) -> bool:
-        if not self.is_show_runner():
+        if not self.is_show_runner() or self.show_power_timer > 0 or self.show_power_cooldown > 0:
             return False
 
         self.show_power_timer = SHOW_RUNNER_SPEED_DURATION
@@ -903,6 +1330,7 @@ class Game:
         self.running = True
         self.round_killer = "revenge_bot"
         self.selected_player_killer = "revenge_bot"
+        self.selected_player_survivor = "survivor"
         self.save_data = self.load_save_data()
         self.total_wins = self.save_data["total_wins"]
         self.unlocked_skins: set[str] = set(self.save_data["unlocked_skins"])
@@ -912,6 +1340,9 @@ class Game:
         self.show_runner_perimeter_next = 0
         self.show_runner_perimeter_laps = 0
         self.last_perimeter_edge: str | None = None
+        self.spinning_perimeter_next: int | None = None
+        self.spinning_perimeter_edges = 0
+        self.last_spinning_perimeter_edge: str | None = None
         self.vengance_mines_placed_this_round = 0
         self.player_role = "Survivor"
         self.round_time = ROUND_DURATION
@@ -919,6 +1350,8 @@ class Game:
         self.survivor_status_message = ""
         self.survivor_stun_timer = 0.0
         self.survivor_slow_timer = 0.0
+        self.survivor_flash_timer = 0.0
+        self.explorer_taming_timer = 0.0
         self.player_won = False
         self.end_reason = ""
 
@@ -931,6 +1364,11 @@ class Game:
         self.projectiles: list[IceProjectile] = []
         self.ducky_belts: list[DuckyBelt] = []
         self.landmines: list[VenganceLandmine] = []
+        self.survivor_shots: list[SurvivorShot] = []
+        self.trashy_shockwaves: list[TrashyShockWave] = []
+        self.trashy_turrets: list[TrashyTurret] = []
+        self.trashy_turret_shots: list[TrashyTurretShot] = []
+        self.goopy_knights: list[GoopyKnight] = []
 
         self.menu_buttons = {
             "play": Button(pygame.Rect(390, 450, 220, 58), "Start"),
@@ -946,7 +1384,10 @@ class Game:
 
     def load_sprites(self) -> dict[str, pygame.Surface]:
         sprites: dict[str, pygame.Surface] = {}
-        paths = {"survivor": SPRITE_DIR / "survivor.png"}
+        paths = {
+            survivor_id: SPRITE_DIR / data["sprite"]
+            for survivor_id, data in SURVIVORS.items()
+        }
         for killer_id, data in KILLERS.items():
             paths[killer_id] = SPRITE_DIR / data["sprite"]
         for skin in SKINS.values():
@@ -977,7 +1418,10 @@ class Game:
                 "show_runner_kills": 0,
                 "vengance_bot_wins": 0,
                 "vengance_bot_survives": 0,
+                "vengance_bot_low_mine_wins": 0,
                 "ducky_losses": 0,
+                "ducky_daddys_belt_wins": 0,
+                "ducky_ogel_wins": 0,
             },
         }
 
@@ -1023,6 +1467,13 @@ class Game:
             clean_unlocked.add("vengance_bot_mastery_2")
         if vengance_bot_wins >= VENGANCE_BOT_MASTERY_3_WINS:
             clean_unlocked.add("vengance_bot_mastery_3")
+        if clean_progress.get("vengance_bot_low_mine_wins", 0) >= 2:
+            clean_unlocked.add("vengance_werewolf")
+        if (
+            clean_progress.get("ducky_daddys_belt_wins", 0) >= 1
+            and clean_progress.get("ducky_ogel_wins", 0) >= 1
+        ):
+            clean_unlocked.add("ducky_subject_5_png")
 
         return {
             "total_wins": max(0, wins),
@@ -1201,6 +1652,10 @@ class Game:
                 self.reveal_role()
 
         elif self.state == GameState.ROLE_REVEAL:
+            if self.player_role == "Survivor":
+                selected_survivor = self.survivor_index_from_key(key)
+                if selected_survivor is not None:
+                    self.selected_player_survivor = selected_survivor
             selected_skin = self.skin_index_from_key(key)
             if self.player_role == "Killer" and selected_skin is not None:
                 self.select_skin_for_round(selected_skin)
@@ -1208,6 +1663,10 @@ class Game:
                 self.begin_round()
 
         elif self.state == GameState.PLAYING:
+            if self.player_role == "Survivor" and isinstance(self.player, Survivor):
+                self.handle_survivor_keydown(key)
+                return
+
             if self.player_role != "Killer" or not isinstance(self.player, Killer):
                 return
 
@@ -1271,6 +1730,11 @@ class Game:
                 self.reveal_role()
 
         elif self.state == GameState.ROLE_REVEAL:
+            clicked_survivor = self.survivor_from_card_click(pos)
+            if self.player_role == "Survivor" and clicked_survivor is not None:
+                self.selected_player_survivor = clicked_survivor
+                return
+
             clicked_skin = self.skin_from_card_click(pos)
             if self.player_role == "Killer" and clicked_skin is not None:
                 self.select_skin_for_round(clicked_skin)
@@ -1278,6 +1742,212 @@ class Game:
 
             if self.menu_buttons["begin"].contains(pos):
                 self.begin_round()
+
+        elif self.state == GameState.PLAYING:
+            if self.player_role == "Survivor" and isinstance(self.player, Survivor):
+                self.handle_survivor_click(pos)
+
+    def handle_survivor_keydown(self, key: int) -> None:
+        if not isinstance(self.player, Survivor):
+            return
+
+        survivor = self.player
+        if survivor.survivor_id == "survivor_odd" and key == pygame.K_f:
+            self.use_odd_picture_taken(survivor)
+        elif survivor.survivor_id == "survivor_explorer" and key == pygame.K_a:
+            self.use_explorer_adrenaline_and_taming(survivor)
+        elif survivor.survivor_id == "survivor_kitty":
+            if key == pygame.K_l:
+                self.use_kitty_marker(survivor)
+            elif key == pygame.K_2:
+                self.use_kitty_teleport(survivor)
+        elif survivor.survivor_id == "survivor_queen_goopy" and key == pygame.K_k:
+            self.use_queen_goopy_knights(survivor)
+        elif survivor.survivor_id == "survivor_trashy" and key == pygame.K_g:
+            self.use_trashy_gun_maker(survivor)
+        elif survivor.survivor_id == "survivor_trashy" and key == pygame.K_c:
+            self.use_trashy_shock_wave_cannon(survivor)
+        elif survivor.survivor_id == "survivor_trashy" and key == pygame.K_t:
+            self.use_trashy_turret(survivor)
+        elif survivor.survivor_id == "survivor_kevin":
+            if key == pygame.K_p:
+                self.use_kevin_punch(survivor)
+            elif key == pygame.K_s:
+                self.use_kevin_double_speed(survivor)
+
+    def handle_survivor_click(self, pos: tuple[int, int]) -> None:
+        if not isinstance(self.player, Survivor):
+            return
+        survivor = self.player
+        if survivor.survivor_id == "survivor_trashy" and survivor.trashy_minigame_active:
+            self.handle_trashy_minigame_click(survivor, pos)
+
+    def use_odd_picture_taken(self, survivor: Survivor) -> None:
+        if survivor.odd_flash_cooldown > 0:
+            self.survivor_status_message = (
+                f"Picture Taken cooldown {survivor.odd_flash_cooldown:.1f}s."
+            )
+            return
+
+        survivor.odd_flash_used = True
+        survivor.odd_flash_cooldown = ODD_FLASH_COOLDOWN
+        self.survivor_flash_timer = ODD_FLASH_VISUAL_DURATION
+        for killer in self.killers:
+            self.stun_killer(killer, ODD_FLASH_STUN_DURATION)
+        self.survivor_status_message = "Picture Taken! Killer stunned."
+
+    def use_explorer_adrenaline_and_taming(self, survivor: Survivor) -> None:
+        if survivor.explorer_ability_cooldown > 0:
+            self.survivor_status_message = (
+                f"Explorer ability cooldown {survivor.explorer_ability_cooldown:.1f}s."
+            )
+            return
+
+        survivor.explorer_adrenaline_used = True
+        survivor.explorer_adrenaline_timer = EXPLORER_ADRENALINE_DURATION
+        survivor.explorer_ability_cooldown = SURVIVOR_ABILITY_COOLDOWN
+        self.explorer_taming_timer = EXPLORER_TAMING_DURATION
+        self.survivor_status_message = "Adrenaline and Taming! You speed up, killer slows."
+
+    def use_kitty_marker(self, survivor: Survivor) -> None:
+        if survivor.kitty_marker is not None or survivor.kitty_teleport_used:
+            self.survivor_status_message = "Kitty marker already set."
+            return
+
+        survivor.kitty_marker = pygame.Vector2(survivor.pos)
+        self.survivor_status_message = "Blue circle placed. Press 2 to teleport."
+
+    def use_kitty_teleport(self, survivor: Survivor) -> None:
+        if survivor.kitty_marker is None:
+            self.survivor_status_message = "Press L first to place the blue circle."
+            return
+        if survivor.kitty_teleport_used:
+            self.survivor_status_message = "Kitty teleport already used."
+            return
+
+        survivor.pos = pygame.Vector2(survivor.kitty_marker)
+        survivor.update_rect()
+        self.resolve_wall_overlap(survivor)
+        survivor.kitty_teleport_used = True
+        survivor.kitty_marker = None
+        self.survivor_status_message = "Teleported to the blue circle."
+
+    def use_queen_goopy_knights(self, survivor: Survivor) -> None:
+        if survivor.queen_knights_cooldown > 0:
+            self.survivor_status_message = (
+                f"Knights cooldown {survivor.queen_knights_cooldown:.1f}s."
+            )
+            return
+
+        survivor.queen_knights_used = True
+        survivor.queen_knights_cooldown = QUEEN_GOOPY_KNIGHT_COOLDOWN
+        self.goopy_knights.extend(
+            [
+                GoopyKnight(survivor.pos, pygame.Vector2(-24, 18)),
+                GoopyKnight(survivor.pos, pygame.Vector2(24, 18)),
+            ]
+        )
+        self.survivor_status_message = "Knights summoned."
+
+    def use_trashy_gun_maker(self, survivor: Survivor) -> None:
+        if survivor.trashy_gun_ready and not survivor.trashy_gun_used:
+            self.fire_trashy_gun(survivor)
+            return
+        if survivor.trashy_gun_used:
+            self.survivor_status_message = "Trashy's gun already fired."
+            return
+        if survivor.trashy_minigame_active:
+            self.survivor_status_message = "Click when the white circle overlaps green."
+            return
+
+        survivor.trashy_minigame_active = True
+        survivor.trashy_hits = 0
+        survivor.trashy_circle_x = float(TRASHY_MINIGAME_BAR.left + TRASHY_MINIGAME_CIRCLE_RADIUS)
+        survivor.trashy_circle_direction = 1
+        survivor.set_trashy_target()
+        self.survivor_status_message = "Gun Maker started. Click the overlap 10 times."
+
+    def handle_trashy_minigame_click(self, survivor: Survivor, pos: tuple[int, int]) -> None:
+        circle = survivor.trashy_circle_rect()
+        target = survivor.trashy_target_rect()
+        if circle.colliderect(target) and circle.collidepoint(pos):
+            survivor.trashy_hits += 1
+            if survivor.trashy_hits >= TRASHY_GUN_TARGET_HITS:
+                survivor.trashy_minigame_active = False
+                survivor.trashy_gun_ready = True
+                self.survivor_status_message = "Gun ready. Press G to fire."
+            else:
+                survivor.set_trashy_target()
+                self.survivor_status_message = f"Gun Maker {survivor.trashy_hits}/{TRASHY_GUN_TARGET_HITS}"
+            return
+
+        survivor.trashy_hits = 0
+        survivor.set_trashy_target()
+        self.survivor_status_message = "Missed. Gun Maker reset to 0."
+
+    def fire_trashy_gun(self, survivor: Survivor) -> None:
+        direction = safe_normalize(survivor.facing)
+        if direction.length_squared() == 0:
+            direction = pygame.Vector2(0, -1)
+        self.survivor_shots.append(SurvivorShot(survivor.pos + direction * 35, direction))
+        survivor.trashy_gun_ready = False
+        survivor.trashy_gun_used = True
+        self.survivor_status_message = "Trashy fired the gun."
+
+    def use_trashy_shock_wave_cannon(self, survivor: Survivor) -> None:
+        if survivor.trashy_shock_cooldown > 0:
+            self.survivor_status_message = (
+                f"Shock Wave Cannon cooldown {survivor.trashy_shock_cooldown:.1f}s."
+            )
+            return
+
+        direction = safe_normalize(survivor.facing)
+        if direction.length_squared() == 0:
+            direction = pygame.Vector2(0, -1)
+
+        self.trashy_shockwaves.append(TrashyShockWave(survivor.pos + direction * 42, direction))
+        survivor.trashy_shock_cooldown = TRASHY_ABILITY_COOLDOWN
+        self.survivor_status_message = "Shock Wave Cannon fired."
+
+    def use_trashy_turret(self, survivor: Survivor) -> None:
+        if len(self.trashy_turrets) >= TRASHY_MAX_TURRETS:
+            self.survivor_status_message = "Devils Work limit reached: 2 turrets."
+            return
+        if survivor.trashy_turret_cooldown > 0:
+            self.survivor_status_message = (
+                f"Devils Work cooldown {survivor.trashy_turret_cooldown:.1f}s."
+            )
+            return
+
+        turret = TrashyTurret(survivor.pos)
+        if any(turret.rect.colliderect(wall.rect) for wall in self.walls):
+            self.survivor_status_message = "Move away from the wall before placing a turret."
+            return
+
+        self.trashy_turrets.append(turret)
+        survivor.trashy_turret_cooldown = TRASHY_ABILITY_COOLDOWN
+        self.survivor_status_message = "Devils Work turret placed."
+
+    def use_kevin_punch(self, survivor: Survivor) -> None:
+        if survivor.kevin_punch_cooldown > 0:
+            self.survivor_status_message = (
+                f"Punch cooldown {survivor.kevin_punch_cooldown:.1f}s."
+            )
+            return
+
+        survivor.kevin_punch_used = True
+        survivor.kevin_punch_timer = KEVIN_PUNCH_DURATION
+        survivor.kevin_punch_cooldown = KEVIN_PUNCH_COOLDOWN
+        self.survivor_status_message = "Punch active. Face the killer."
+
+    def use_kevin_double_speed(self, survivor: Survivor) -> None:
+        if survivor.kevin_speed_used:
+            self.survivor_status_message = "Double speed already used."
+            return
+
+        survivor.kevin_speed_used = True
+        survivor.kevin_speed_timer = KEVIN_DOUBLE_SPEED_DURATION
+        self.survivor_status_message = "Double speed!"
 
     def toggle_fullscreen(self) -> None:
         self.fullscreen = not self.fullscreen
@@ -1294,7 +1964,49 @@ class Game:
         self.survivor_status_message = ""
         self.survivor_stun_timer = 0.0
         self.survivor_slow_timer = 0.0
+        self.explorer_taming_timer = 0.0
         self.state = GameState.ROLE_REVEAL
+
+    def survivor_index_from_key(self, key: int) -> str | None:
+        number_keys = (
+            pygame.K_1,
+            pygame.K_2,
+            pygame.K_3,
+            pygame.K_4,
+            pygame.K_5,
+            pygame.K_6,
+            pygame.K_7,
+        )
+        if key not in number_keys:
+            return None
+
+        index = number_keys.index(key)
+        if index >= len(SURVIVOR_IDS):
+            return None
+        return SURVIVOR_IDS[index]
+
+    def survivor_card_rect(self, index: int) -> pygame.Rect:
+        card_width = 210
+        card_height = 70
+        card_gap = 18
+        row_gap = 8
+        columns = min(4, len(SURVIVOR_IDS))
+        row = index // columns
+        column = index % columns
+        total_width = columns * card_width + (columns - 1) * card_gap
+        start_x = (WIDTH - total_width) // 2
+        return pygame.Rect(
+            start_x + column * (card_width + card_gap),
+            430 + row * (card_height + row_gap),
+            card_width,
+            card_height,
+        )
+
+    def survivor_from_card_click(self, pos: tuple[int, int]) -> str | None:
+        for index, survivor_id in enumerate(SURVIVOR_IDS):
+            if self.survivor_card_rect(index).collidepoint(pos):
+                return survivor_id
+        return None
 
     def skin_options_for_killer(self, killer_id: str) -> list[str]:
         skins = ["classic"]
@@ -1404,18 +2116,29 @@ class Game:
         self.projectiles = []
         self.ducky_belts = []
         self.landmines = []
+        self.survivor_shots = []
+        self.trashy_shockwaves = []
+        self.trashy_turrets = []
+        self.trashy_turret_shots = []
+        self.goopy_knights = []
         self.survivor_slow_timer = 0.0
+        self.survivor_flash_timer = 0.0
+        self.explorer_taming_timer = 0.0
         self.show_runner_perimeter_next = 0
         self.show_runner_perimeter_laps = 0
         self.last_perimeter_edge = None
+        self.spinning_perimeter_next = None
+        self.spinning_perimeter_edges = 0
+        self.last_spinning_perimeter_edge = None
         self.vengance_mines_placed_this_round = 0
         self.walls = self.create_walls()
 
-        survivor_sprite = self.sprites.get("survivor")
         killer_sprite = self.sprite_for_round_killer()
+        player_killer_skin = self.selected_skins.get(self.round_killer, "classic")
 
         if self.player_role == "Survivor":
-            self.survivor = Survivor("You", (500, 560), survivor_sprite)
+            survivor_sprite = self.sprites.get(self.selected_player_survivor) or self.sprites.get("survivor")
+            self.survivor = Survivor("You", (500, 560), survivor_sprite, self.selected_player_survivor)
             self.player = self.survivor
             self.killers = [
                 Killer(
@@ -1426,13 +2149,16 @@ class Game:
                 )
             ]
         else:
+            ai_survivor_id = random.choice(SURVIVOR_IDS)
+            survivor_sprite = self.sprites.get(ai_survivor_id) or self.sprites.get("survivor")
             self.player = Killer(
                 self.round_killer,
                 "You",
                 (500, 555),
                 killer_sprite,
+                player_killer_skin if self.skin_unlocked(player_killer_skin) else "classic",
             )
-            self.survivor = Survivor("AI Survivor", (500, 150), survivor_sprite)
+            self.survivor = Survivor("AI Survivor", (500, 150), survivor_sprite, ai_survivor_id)
             self.killers = [self.player]
 
         self.state = GameState.PLAYING
@@ -1456,11 +2182,21 @@ class Game:
         self.projectiles = []
         self.ducky_belts = []
         self.landmines = []
+        self.survivor_shots = []
+        self.trashy_shockwaves = []
+        self.trashy_turrets = []
+        self.trashy_turret_shots = []
+        self.goopy_knights = []
         self.round_time = ROUND_DURATION
         self.survivor_life_number = 1
         self.survivor_status_message = ""
         self.survivor_stun_timer = 0.0
         self.survivor_slow_timer = 0.0
+        self.survivor_flash_timer = 0.0
+        self.explorer_taming_timer = 0.0
+        self.spinning_perimeter_next = None
+        self.spinning_perimeter_edges = 0
+        self.last_spinning_perimeter_edge = None
         self.stop_music()
 
     def update(self, dt: float) -> None:
@@ -1474,11 +2210,17 @@ class Game:
 
         if isinstance(self.player, Killer):
             self.player.update_abilities(dt)
+        elif isinstance(self.player, Survivor):
+            self.player.update_abilities(dt)
 
         if self.survivor_stun_timer > 0:
             self.survivor_stun_timer = max(0.0, self.survivor_stun_timer - dt)
         if self.survivor_slow_timer > 0:
             self.survivor_slow_timer = max(0.0, self.survivor_slow_timer - dt)
+        if self.survivor_flash_timer > 0:
+            self.survivor_flash_timer = max(0.0, self.survivor_flash_timer - dt)
+        if self.explorer_taming_timer > 0:
+            self.explorer_taming_timer = max(0.0, self.explorer_taming_timer - dt)
 
         if self.player is not None:
             player_walls = self.walls
@@ -1493,6 +2235,8 @@ class Game:
             elif isinstance(self.player, Killer) and self.player.is_vengance_dash_active():
                 player_direction = self.player.vengance_dash_direction
                 player_speed = VENGANCE_DASH_SPEED
+            elif isinstance(self.player, Survivor):
+                player_speed = self.player.current_speed()
 
             blocked = self.player.move(player_direction, dt, player_walls, ARENA_RECT, player_speed)
             if (
@@ -1513,6 +2257,8 @@ class Game:
             self.update_killer_mode(dt)
 
     def update_movement_challenges(self) -> None:
+        self.update_spinning_perimeter_challenge()
+
         if not isinstance(self.player, Killer):
             return
         if self.player_role != "Killer" or self.round_killer != "show_runner":
@@ -1543,6 +2289,37 @@ class Game:
             if self.show_runner_perimeter_laps >= PACK_RUNNER_LAPS:
                 self.unlock_skin("pack_runner", "3 perimeter laps completed")
 
+    def update_spinning_perimeter_challenge(self) -> None:
+        if self.player is None or self.skin_unlocked("vengance_spinning"):
+            return
+
+        edge = self.current_perimeter_edge(self.player.rect)
+        if edge is None:
+            self.last_spinning_perimeter_edge = None
+            return
+        if edge == self.last_spinning_perimeter_edge:
+            return
+        self.last_spinning_perimeter_edge = edge
+
+        sequence = ("top", "right", "bottom", "left")
+        edge_index = sequence.index(edge)
+        if self.spinning_perimeter_next is None:
+            self.spinning_perimeter_next = (edge_index + 1) % len(sequence)
+            self.spinning_perimeter_edges = 1
+            self.skin_notice = "Spinning perimeter lap: 1/4 edges"
+            return
+
+        if edge_index != self.spinning_perimeter_next:
+            self.spinning_perimeter_next = (edge_index + 1) % len(sequence)
+            self.spinning_perimeter_edges = 1
+            return
+
+        self.spinning_perimeter_edges += 1
+        self.spinning_perimeter_next = (edge_index + 1) % len(sequence)
+        self.skin_notice = f"Spinning perimeter lap: {self.spinning_perimeter_edges}/4 edges"
+        if self.spinning_perimeter_edges >= 4:
+            self.unlock_skin("vengance_spinning", "one perimeter lap completed")
+
     def current_perimeter_edge(self, rect: pygame.Rect) -> str | None:
         if rect.top <= ARENA_RECT.top + PERIMETER_MARGIN:
             return "top"
@@ -1568,6 +2345,14 @@ class Game:
             return
         if self.player_role != "Killer":
             return
+        if effect == "freeze":
+            if self.player.subslasher_freeze_cooldown > 0:
+                return
+            self.player.subslasher_freeze_cooldown = SUBSLASHER_FREEZE_SPIKE_COOLDOWN
+        elif effect == "kill":
+            if self.player.subslasher_kill_cooldown > 0:
+                return
+            self.player.subslasher_kill_cooldown = SUBSLASHER_KILL_SPIKE_COOLDOWN
 
         direction = safe_normalize(self.player.facing)
         if direction.length_squared() == 0:
@@ -1589,6 +2374,10 @@ class Game:
             return
         if self.player_role != "Killer":
             return
+        if self.player.subslasher_subzero_cooldown > 0:
+            return
+
+        self.player.subslasher_subzero_cooldown = SUBSLASHER_SUBZERO_COOLDOWN
 
         direction = safe_normalize(self.player.facing)
         if direction.length_squared() == 0:
@@ -1619,12 +2408,14 @@ class Game:
             direction = pygame.Vector2(0, 1)
 
         start_pos = self.player.pos + direction * 38
+        belt_only = self.selected_skins.get("revenge_bot") == "ducky_daddys_belt"
         self.ducky_belts.append(
             DuckyBelt(
                 start_pos,
                 direction,
                 DUCKY_CRYING_SWING_SPEED,
                 DUCKY_CRYING_SWING_LIFETIME,
+                belt_only,
             )
         )
         self.player.start_ducky_swing_cooldown()
@@ -1648,13 +2439,18 @@ class Game:
             return
         if self.player_role != "Killer" or self.survivor is None:
             return
+        if self.player.show_slow_cooldown > 0:
+            return
 
         self.survivor_slow_timer = SHOW_RUNNER_SLOW_DURATION
+        self.player.show_slow_cooldown = SHOW_RUNNER_SLOW_COOLDOWN
 
     def use_show_runner_hook(self) -> None:
         if not isinstance(self.player, Killer) or not self.player.is_show_runner():
             return
         if self.player_role != "Killer" or self.survivor is None:
+            return
+        if self.player.show_hook_cooldown > 0:
             return
 
         self.survivor.pos = self.survivor.pos.lerp(
@@ -1663,6 +2459,7 @@ class Game:
         )
         self.survivor.update_rect()
         self.resolve_wall_overlap(self.survivor)
+        self.player.show_hook_cooldown = SHOW_RUNNER_HOOK_COOLDOWN
 
     def resolve_wall_overlap(self, character: Character) -> None:
         for wall in self.walls:
@@ -1720,6 +2517,8 @@ class Game:
                 continue
 
             if belt.rect.colliderect(self.survivor.rect):
+                if self.round_killer == "revenge_bot" and self.player_role == "Killer":
+                    self.unlock_skin("ducky_daddys_belt", "C swing hit the survivor")
                 self.end_round(True, "Ducky's crying swing hit the survivor.")
                 return
 
@@ -1784,9 +2583,127 @@ class Game:
 
         return None
 
+    def stun_killer(self, killer: Killer, duration: float) -> None:
+        killer.ai_stun_timer = max(killer.ai_stun_timer, duration)
+        killer.attack_phase = None
+        killer.attack_timer = 0.0
+
+    def knockback_killer(self, killer: Killer, direction: pygame.Vector2, distance: float) -> None:
+        direction = safe_normalize(direction)
+        if direction.length_squared() == 0:
+            direction = safe_normalize(killer.pos - self.survivor.pos) if self.survivor else pygame.Vector2(1, 0)
+        if direction.length_squared() == 0:
+            direction = pygame.Vector2(1, 0)
+
+        steps = 8
+        for _ in range(steps):
+            killer.move(direction, 1.0, self.walls, ARENA_RECT, distance / steps)
+        self.resolve_wall_overlap(killer)
+
+    def update_survivor_shots(self, dt: float) -> None:
+        remaining: list[SurvivorShot] = []
+        for shot in self.survivor_shots:
+            if not shot.update(dt, self.walls):
+                continue
+            hit_killer = next((killer for killer in self.killers if shot.rect.colliderect(killer.rect)), None)
+            if hit_killer is not None:
+                self.stun_killer(hit_killer, TRASHY_GUN_STUN_DURATION)
+                self.survivor_status_message = "Gun shot stunned the killer."
+                continue
+            remaining.append(shot)
+        self.survivor_shots = remaining
+
+    def update_trashy_shockwaves(self, dt: float) -> None:
+        remaining: list[TrashyShockWave] = []
+        for shockwave in self.trashy_shockwaves:
+            if not shockwave.update(dt, self.walls):
+                continue
+
+            hit_killer = next(
+                (killer for killer in self.killers if shockwave.rect.colliderect(killer.rect)),
+                None,
+            )
+            if hit_killer is not None:
+                self.stun_killer(hit_killer, TRASHY_SHOCK_STUN_DURATION)
+                self.knockback_killer(hit_killer, shockwave.direction, TRASHY_SHOCK_KNOCKBACK)
+                self.round_time = max(0.0, self.round_time - TRASHY_SHOCK_TIMER_DROP)
+                self.survivor_status_message = "Shock Wave hit! Killer stunned and timer dropped."
+                continue
+
+            remaining.append(shockwave)
+
+        self.trashy_shockwaves = remaining
+
+    def update_trashy_turrets(self, dt: float) -> None:
+        remaining: list[TrashyTurret] = []
+        for turret in self.trashy_turrets:
+            shot = turret.update(dt, self.killers)
+            if shot is not None:
+                self.trashy_turret_shots.append(shot)
+            if turret.alive():
+                remaining.append(turret)
+        self.trashy_turrets = remaining
+
+        remaining_shots: list[TrashyTurretShot] = []
+        for shot in self.trashy_turret_shots:
+            if not shot.update(dt, self.walls):
+                continue
+
+            hit_killer = next(
+                (killer for killer in self.killers if shot.rect.colliderect(killer.rect)),
+                None,
+            )
+            if hit_killer is not None:
+                self.stun_killer(hit_killer, TRASHY_TURRET_STUN_DURATION)
+                self.survivor_status_message = "Devils Work turret stunned the killer."
+                continue
+
+            remaining_shots.append(shot)
+        self.trashy_turret_shots = remaining_shots
+
+    def update_goopy_knights(self, dt: float) -> None:
+        remaining: list[GoopyKnight] = []
+        for knight in self.goopy_knights:
+            if not knight.update(dt, self.killers):
+                continue
+            hit_killer = next((killer for killer in self.killers if knight.rect.colliderect(killer.rect)), None)
+            if hit_killer is not None:
+                self.stun_killer(hit_killer, QUEEN_GOOPY_KNIGHT_STUN_DURATION)
+                self.survivor_status_message = "A knight stunned the killer."
+                continue
+            remaining.append(knight)
+        self.goopy_knights = remaining
+
+    def update_kevin_punch(self) -> None:
+        if not isinstance(self.player, Survivor) or self.player.survivor_id != "survivor_kevin":
+            return
+        if self.player.kevin_punch_timer <= 0:
+            return
+
+        hitbox = self.kevin_punch_hitbox(self.player)
+        for killer in self.killers:
+            if hitbox.colliderect(killer.rect):
+                self.stun_killer(killer, KEVIN_PUNCH_STUN_DURATION)
+                self.survivor_status_message = "Kevin punched the killer."
+
+    def kevin_punch_hitbox(self, survivor: Survivor) -> pygame.Rect:
+        facing = safe_normalize(survivor.facing)
+        if facing.length_squared() == 0:
+            facing = pygame.Vector2(0, -1)
+        center = survivor.pos + facing * 42
+        rect = pygame.Rect(0, 0, 46, 46)
+        rect.center = (round(center.x), round(center.y))
+        return rect
+
     def update_survivor_mode(self, dt: float) -> None:
         if self.survivor is None:
             return
+
+        self.update_survivor_shots(dt)
+        self.update_trashy_shockwaves(dt)
+        self.update_trashy_turrets(dt)
+        self.update_goopy_knights(dt)
+        self.update_kevin_punch()
 
         self.active_hitboxes = []
         for killer in self.killers:
@@ -1794,7 +2711,7 @@ class Game:
             hitbox = killer.current_hitbox()
             if hitbox is not None:
                 self.active_hitboxes.append(hitbox)
-                if hitbox.rect.colliderect(self.survivor.rect):
+                if hitbox.rect.colliderect(self.survivor.rect) and not self.survivor.is_invincible():
                     self.handle_survivor_hit(killer.data["name"])
                     return
 
@@ -1857,6 +2774,12 @@ class Game:
             self.end_round(False, "The survivor escaped until the timer ended.")
 
     def update_ai_killer(self, killer: Killer, target: Survivor, dt: float) -> None:
+        if killer.ai_stun_timer > 0:
+            killer.ai_stun_timer = max(0.0, killer.ai_stun_timer - dt)
+            killer.attack_phase = None
+            killer.attack_timer = 0.0
+            return
+
         distance = killer.pos.distance_to(target.pos)
 
         if killer.attack_phase is None:
@@ -1868,6 +2791,8 @@ class Game:
                 desired += self.wall_avoidance(killer) * 0.95
                 desired = killer.apply_ai_nudge(desired, dt)
                 ai_speed = killer.speed * AI_KILLER_SPEED_MULTIPLIER
+                if self.explorer_taming_timer > 0:
+                    ai_speed *= EXPLORER_TAMING_SPEED_MULTIPLIER
                 blocked = killer.move(desired, dt, self.walls, ARENA_RECT, ai_speed)
                 if blocked:
                     killer.choose_ai_nudge()
@@ -1990,6 +2915,25 @@ class Game:
         if was_locked and self.total_wins >= FRIED_CHICKEN_UNLOCK_WINS:
             self.unlock_skin("fried_chicken", "5 wins completed")
 
+        if self.player_role == "Killer" and self.round_killer == "revenge_bot":
+            selected_ducky_skin = self.selected_skins.get("revenge_bot")
+            if selected_ducky_skin == "ducky_daddys_belt":
+                self.challenge_progress["ducky_daddys_belt_wins"] = max(
+                    1,
+                    self.challenge_progress.get("ducky_daddys_belt_wins", 0),
+                )
+            elif selected_ducky_skin == "ducky_ogel":
+                self.challenge_progress["ducky_ogel_wins"] = max(
+                    1,
+                    self.challenge_progress.get("ducky_ogel_wins", 0),
+                )
+
+            if (
+                self.challenge_progress.get("ducky_daddys_belt_wins", 0) >= 1
+                and self.challenge_progress.get("ducky_ogel_wins", 0) >= 1
+            ):
+                self.unlock_skin("ducky_subject_5_png", "won with Daddy's Belt and Ogel")
+
         if self.player_role == "Killer" and self.round_killer == "show_runner":
             if self.selected_skins.get("show_runner") == "pack_runner":
                 self.unlock_skin("maldin_inverted", "won with Pack Runner")
@@ -2015,6 +2959,15 @@ class Game:
             self.unlock_skin("pickle_ball_bro", "won with Tennis Dude")
 
         if self.player_role == "Killer" and self.round_killer == "vengance_bot":
+            if self.vengance_mines_placed_this_round <= 3:
+                low_mine_wins = self.challenge_progress.get("vengance_bot_low_mine_wins", 0) + 1
+                self.challenge_progress["vengance_bot_low_mine_wins"] = low_mine_wins
+                if low_mine_wins >= 2:
+                    self.unlock_skin("vengance_werewolf", "2 wins with 3 or fewer landmines")
+
+            if self.vengance_mines_placed_this_round == 0:
+                self.unlock_skin("vengance_scoreboard", "won without landmines")
+
             wins = self.challenge_progress.get("vengance_bot_wins", 0) + 1
             self.challenge_progress["vengance_bot_wins"] = wins
             if wins >= VENGANCE_BOT_MASTERY_1_WINS:
@@ -2207,7 +3160,51 @@ class Game:
         draw_text(self.screen, self.font_medium, prompt, (203, 213, 225), (WIDTH // 2, 380), True)
         if self.player_role == "Killer":
             self.draw_skin_selection()
+        else:
+            self.draw_survivor_selection()
         self.menu_buttons["begin"].draw(self.screen, self.font_medium, True)
+
+    def draw_survivor_selection(self) -> None:
+        draw_text(
+            self.screen,
+            self.font_medium,
+            "Choose Survivor",
+            (248, 250, 252),
+            (WIDTH // 2, 420),
+            True,
+        )
+
+        for index, survivor_id in enumerate(SURVIVOR_IDS):
+            data = SURVIVORS[survivor_id]
+            rect = self.survivor_card_rect(index)
+            selected = survivor_id == self.selected_player_survivor
+            fill = (24, 41, 58)
+            outline = (96, 165, 250) if selected else (88, 100, 116)
+            pygame.draw.rect(self.screen, fill, rect, border_radius=8)
+            pygame.draw.rect(self.screen, outline, rect, 3 if selected else 2, border_radius=8)
+
+            sprite = self.sprites.get(survivor_id)
+            preview_rect = pygame.Rect(rect.left + 8, rect.top + 13, 44, 44)
+            if sprite is not None:
+                preview = pygame.transform.smoothscale(sprite, preview_rect.size)
+                self.screen.blit(preview, preview_rect)
+            else:
+                pygame.draw.ellipse(self.screen, (96, 165, 250), preview_rect)
+
+            draw_text(
+                self.screen,
+                self.font_small,
+                f"{index + 1}. {data['name']}",
+                (248, 250, 252),
+                (rect.left + 60, rect.top + 9),
+            )
+            draw_wrapped_text(
+                self.screen,
+                self.font_small,
+                data["description"],
+                (203, 213, 225),
+                pygame.Rect(rect.left + 60, rect.top + 32, rect.width - 68, 30),
+            )
 
     def draw_skin_selection(self) -> None:
         draw_text(
@@ -2271,6 +3268,12 @@ class Game:
             target = DUCKY_INVERTED_LOSSES if skin_id == "ducky_inverted" else DUCKY_OGEL_LOSSES
             losses = self.challenge_progress.get("ducky_losses", 0)
             return f"Ducky losses {losses}/{target}"
+        if skin_id == "ducky_daddys_belt":
+            return "C swing survivor kill"
+        if skin_id == "ducky_subject_5_png":
+            belt_win = self.challenge_progress.get("ducky_daddys_belt_wins", 0)
+            ogel_win = self.challenge_progress.get("ducky_ogel_wins", 0)
+            return f"Belt win {belt_win}/1, Ogel win {ogel_win}/1"
         if skin_id == "ocean_runner":
             wins = self.challenge_progress.get("show_runner_wins", 0)
             return f"Show Runner wins {wins}/{OCEAN_RUNNER_UNLOCK_WINS}"
@@ -2281,6 +3284,11 @@ class Game:
         if skin_id == "wick_wonalds":
             survives = self.challenge_progress.get("vengance_bot_survives", 0)
             return f"survive Vengance Bot {survives}/{WICK_WONALDS_SURVIVES}"
+        if skin_id == "vengance_spinning":
+            return "one perimeter lap"
+        if skin_id == "vengance_werewolf":
+            wins = self.challenge_progress.get("vengance_bot_low_mine_wins", 0)
+            return f"low-mine wins {wins}/2"
         if skin_id in ("vengance_bot_mastery_1", "vengance_bot_mastery_2", "vengance_bot_mastery_3"):
             target = self.vengance_bot_mastery_win_target(skin_id)
             wins = self.challenge_progress.get("vengance_bot_wins", 0)
@@ -2313,6 +3321,17 @@ class Game:
             losses = self.challenge_progress.get("ducky_losses", 0)
             remaining = max(0, DUCKY_OGEL_LOSSES - losses)
             return f"Play as Ducky and lose {remaining} more round{'s' if remaining != 1 else ''}."
+        if skin_id == "ducky_daddys_belt":
+            return "Play as Ducky and kill the survivor with the C swing ability."
+        if skin_id == "ducky_subject_5_png":
+            belt_done = self.challenge_progress.get("ducky_daddys_belt_wins", 0) >= 1
+            ogel_done = self.challenge_progress.get("ducky_ogel_wins", 0) >= 1
+            missing = []
+            if not belt_done:
+                missing.append("win a round using Daddy's Belt")
+            if not ogel_done:
+                missing.append("win a round using Ogel")
+            return "Unlock by completing: " + " and ".join(missing) + "."
         if skin_id == "tennis_dude":
             return "Play as Subslasher and hit the survivor with Perpelling Shootdown, the freeze ice spike."
         if skin_id == "pickle_ball_bro":
@@ -2336,6 +3355,14 @@ class Game:
             return f"Survive Vengance Bot {remaining} more time{'s' if remaining != 1 else ''} as Survivor."
         if skin_id == "mlg":
             return "Play as Vengance Bot and kill the survivor with a landmine after placing 2 or fewer landmines that round."
+        if skin_id == "vengance_scoreboard":
+            return "Play as Vengance Bot and win the round without placing any landmines."
+        if skin_id == "vengance_spinning":
+            return "Run clockwise around all 4 arena edges once with any player character."
+        if skin_id == "vengance_werewolf":
+            wins = self.challenge_progress.get("vengance_bot_low_mine_wins", 0)
+            remaining = max(0, 2 - wins)
+            return f"Win {remaining} more Vengance Bot round{'s' if remaining != 1 else ''} while placing 3 or fewer landmines."
         if skin_id in ("vengance_bot_mastery_1", "vengance_bot_mastery_2", "vengance_bot_mastery_3"):
             target = self.vengance_bot_mastery_win_target(skin_id)
             wins = self.challenge_progress.get("vengance_bot_wins", 0)
@@ -2359,6 +3386,23 @@ class Game:
         for mine in self.landmines:
             mine.draw(self.screen)
 
+        self.draw_survivor_ability_effects()
+
+        for shot in self.survivor_shots:
+            shot.draw(self.screen)
+
+        for shockwave in self.trashy_shockwaves:
+            shockwave.draw(self.screen)
+
+        for turret in self.trashy_turrets:
+            turret.draw(self.screen)
+
+        for turret_shot in self.trashy_turret_shots:
+            turret_shot.draw(self.screen)
+
+        for knight in self.goopy_knights:
+            knight.draw(self.screen)
+
         if self.survivor is not None:
             self.survivor.draw(self.screen, self.font_small)
 
@@ -2367,6 +3411,82 @@ class Game:
                 killer.draw(self.screen, self.font_small)
 
         self.draw_hud()
+        self.draw_survivor_ability_ui()
+
+    def draw_survivor_ability_effects(self) -> None:
+        if not isinstance(self.player, Survivor):
+            return
+
+        survivor = self.player
+        if survivor.kitty_marker is not None:
+            pygame.draw.circle(
+                self.screen,
+                (59, 130, 246),
+                (round(survivor.kitty_marker.x), round(survivor.kitty_marker.y)),
+                KITTY_TELEPORT_MARKER_RADIUS,
+                4,
+            )
+            pygame.draw.circle(
+                self.screen,
+                (191, 219, 254),
+                (round(survivor.kitty_marker.x), round(survivor.kitty_marker.y)),
+                8,
+            )
+
+        if self.survivor_flash_timer > 0:
+            alpha = int(190 * (self.survivor_flash_timer / ODD_FLASH_VISUAL_DURATION))
+            overlay = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+            pygame.draw.circle(
+                overlay,
+                (255, 255, 210, alpha),
+                survivor.rect.center,
+                220,
+            )
+            self.screen.blit(overlay, (0, 0))
+
+        if survivor.explorer_adrenaline_timer > 0:
+            pygame.draw.circle(self.screen, (34, 197, 94), survivor.rect.center, 39, 3)
+
+        if self.explorer_taming_timer > 0:
+            for killer in self.killers:
+                pygame.draw.circle(self.screen, (45, 212, 191), killer.rect.center, 43, 3)
+
+        if survivor.kevin_speed_timer > 0:
+            angle = (pygame.time.get_ticks() * 0.6) % 360
+            for offset in (0, 120, 240):
+                direction = pygame.Vector2(1, 0).rotate(angle + offset)
+                pygame.draw.line(
+                    self.screen,
+                    (96, 165, 250),
+                    pygame.Vector2(survivor.rect.center) + direction * 24,
+                    pygame.Vector2(survivor.rect.center) + direction * 38,
+                    3,
+                )
+
+        if survivor.kevin_punch_timer > 0:
+            hitbox = self.kevin_punch_hitbox(survivor)
+            pygame.draw.rect(self.screen, (250, 204, 21), hitbox, 3, border_radius=8)
+
+    def draw_survivor_ability_ui(self) -> None:
+        if not isinstance(self.player, Survivor) or not self.player.trashy_minigame_active:
+            return
+
+        survivor = self.player
+        pygame.draw.rect(self.screen, (127, 29, 29), TRASHY_MINIGAME_BAR, border_radius=10)
+        pygame.draw.rect(self.screen, (254, 202, 202), TRASHY_MINIGAME_BAR, 2, border_radius=10)
+        target = survivor.trashy_target_rect()
+        circle = survivor.trashy_circle_rect()
+        pygame.draw.rect(self.screen, (34, 197, 94), target, border_radius=4)
+        pygame.draw.circle(self.screen, (248, 250, 252), circle.center, TRASHY_MINIGAME_CIRCLE_RADIUS)
+        pygame.draw.circle(self.screen, (15, 23, 42), circle.center, TRASHY_MINIGAME_CIRCLE_RADIUS, 2)
+        draw_text(
+            self.screen,
+            self.font_small,
+            f"Gun Maker {survivor.trashy_hits}/{TRASHY_GUN_TARGET_HITS}",
+            (248, 250, 252),
+            (TRASHY_MINIGAME_BAR.centerx, TRASHY_MINIGAME_BAR.top - 20),
+            True,
+        )
 
     def draw_arena_preview(self) -> None:
         preview = pygame.Rect(145, 355, 710, 210)
@@ -2426,7 +3546,12 @@ class Game:
 
         if self.player_role == "Survivor":
             status = "Survive!"
-            detail = self.survivor_status_message or "WASD / Arrows move"
+            survivor_ability = self.survivor_ability_status()
+            detail = (
+                f"{self.survivor_status_message} | {survivor_ability}"
+                if self.survivor_status_message
+                else survivor_ability
+            )
         else:
             status = "Catch the survivor!"
             detail = "Space attacks"
@@ -2456,6 +3581,59 @@ class Game:
             text += f"  |  Life: {self.survivor_life_number}/{SURVIVOR_TOTAL_LIVES}"
         return text
 
+    def survivor_ability_status(self) -> str:
+        if not isinstance(self.player, Survivor):
+            return "WASD / Arrows move"
+
+        survivor = self.player
+        if survivor.survivor_id == "survivor_odd":
+            if survivor.odd_flash_cooldown > 0:
+                return f"F cooldown {survivor.odd_flash_cooldown:.1f}s"
+            return "F Picture Taken"
+        if survivor.survivor_id == "survivor_explorer":
+            if survivor.explorer_adrenaline_timer > 0 or self.explorer_taming_timer > 0:
+                return f"A ability {max(survivor.explorer_adrenaline_timer, self.explorer_taming_timer):.1f}s"
+            if survivor.explorer_ability_cooldown > 0:
+                return f"A cooldown {survivor.explorer_ability_cooldown:.1f}s"
+            return "A Adrenaline + Taming"
+        if survivor.survivor_id == "survivor_kitty":
+            if survivor.kitty_marker is not None:
+                return "2 teleport to blue circle"
+            return "L place blue circle" if not survivor.kitty_teleport_used else "Teleport used"
+        if survivor.survivor_id == "survivor_queen_goopy":
+            if survivor.queen_knights_cooldown > 0:
+                return f"K cooldown {survivor.queen_knights_cooldown:.1f}s"
+            return "K Knights"
+        if survivor.survivor_id == "survivor_trashy":
+            if survivor.trashy_minigame_active:
+                return f"Click overlap {survivor.trashy_hits}/{TRASHY_GUN_TARGET_HITS}"
+            if survivor.trashy_gun_ready:
+                gun = "G fire gun"
+            else:
+                gun = "G Gun Maker" if not survivor.trashy_gun_used else "Gun used"
+            shock = (
+                f"C cooldown {survivor.trashy_shock_cooldown:.1f}s"
+                if survivor.trashy_shock_cooldown > 0
+                else "C cannon"
+            )
+            turret = (
+                f"T cooldown {survivor.trashy_turret_cooldown:.1f}s"
+                if survivor.trashy_turret_cooldown > 0
+                else f"T turret {len(self.trashy_turrets)}/{TRASHY_MAX_TURRETS}"
+            )
+            return f"{gun} | {shock} | {turret}"
+        if survivor.survivor_id == "survivor_kevin":
+            punch = "P punch"
+            speed = "S speed" if not survivor.kevin_speed_used else "Speed used"
+            if survivor.kevin_punch_timer > 0:
+                punch = f"Punch {survivor.kevin_punch_timer:.1f}s"
+            elif survivor.kevin_punch_cooldown > 0:
+                punch = f"P cooldown {survivor.kevin_punch_cooldown:.1f}s"
+            if survivor.kevin_speed_timer > 0:
+                speed = f"Speed {survivor.kevin_speed_timer:.1f}s"
+            return f"{punch} | {speed}"
+        return "WASD / Arrows move"
+
     def malice_ability_status(self, malice: Killer) -> str:
         roar = "H: roar"
         if self.survivor_stun_timer > 0:
@@ -2463,9 +3641,21 @@ class Game:
         return f"{malice.wall_phase_status()} | {roar}"
 
     def subslasher_ability_status(self) -> str:
+        if not isinstance(self.player, Killer):
+            return "I freeze | E kill | Q cubes"
+
+        freeze = "I freeze"
+        kill = "E kill"
+        cubes = "Q cubes"
         if self.survivor_stun_timer > 0:
-            return f"Frozen {self.survivor_stun_timer:.1f}s | E kill | Q cubes"
-        return "I freeze | E kill | Q cubes"
+            freeze = f"Frozen {self.survivor_stun_timer:.1f}s"
+        elif self.player.subslasher_freeze_cooldown > 0:
+            freeze = f"I cooldown {self.player.subslasher_freeze_cooldown:.1f}s"
+        if self.player.subslasher_kill_cooldown > 0:
+            kill = f"E cooldown {self.player.subslasher_kill_cooldown:.1f}s"
+        if self.player.subslasher_subzero_cooldown > 0:
+            cubes = f"Q cooldown {self.player.subslasher_subzero_cooldown:.1f}s"
+        return f"{freeze} | {kill} | {cubes}"
 
     def ducky_ability_status(self, ducky: Killer) -> str:
         swing = "C swing"
@@ -2480,12 +3670,19 @@ class Game:
 
     def show_runner_ability_status(self, show_runner: Killer) -> str:
         slow = "9 slow"
+        hook = "U hook"
         speed = "A speed"
         if self.survivor_slow_timer > 0:
             slow = f"Slow {self.survivor_slow_timer:.1f}s"
+        elif show_runner.show_slow_cooldown > 0:
+            slow = f"9 cooldown {show_runner.show_slow_cooldown:.1f}s"
+        if show_runner.show_hook_cooldown > 0:
+            hook = f"U cooldown {show_runner.show_hook_cooldown:.1f}s"
         if show_runner.show_power_timer > 0:
             speed = f"Speed {show_runner.show_power_timer:.1f}s"
-        return f"{slow} | U hook | {speed}"
+        elif show_runner.show_power_cooldown > 0:
+            speed = f"A cooldown {show_runner.show_power_cooldown:.1f}s"
+        return f"{slow} | {hook} | {speed}"
 
     def vengance_ability_status(self, vengance_bot: Killer) -> str:
         dash = "R dash"

@@ -23,8 +23,18 @@ python tools/generate_assets.py
 - WASD or arrow keys: move
 - 1-5 on setup screen: choose the killer you will play if your random role is Killer
 - Mouse click on setup screen: choose the killer you will play if your random role is Killer
-- 1-3 or mouse click on role reveal screen: choose an unlocked skin after your role is revealed as Killer
+- 1-7 or mouse click on role reveal screen: choose a survivor after your role is revealed as Survivor
+- Number key or mouse click on role reveal screen: choose an unlocked skin after your role is revealed as Killer
 - Mouse click on a locked skin: show the challenge needed to unlock it
+- F: Odd 1 3 5 7 9 only, activate Picture Taken
+- A: Explorer only, activate Adrenaline and Taming
+- L then 2: Kitty only, place a blue circle and teleport to it
+- K: Queen Goopy only, summon Knights
+- G: Trashy only, start Gun Maker or fire the earned gun
+- C: Trashy only, fire Shock Wave Cannon
+- T: Trashy only, place Devils Work turret
+- P: Kevin only, activate Punch
+- S: Kevin only, activate Double Speed
 - Spacebar: attack when you are the killer
 - C: Ducky only, activate crying swing
 - Y: Ducky only, activate HG
@@ -48,7 +58,8 @@ python tools/generate_assets.py
 - Each round has one killer: Ducky, Subslasher, Show Runner, Malice, or Vengance Bot.
 - Your role is randomly assigned.
 - If your role is Killer, you play as the killer you selected on the setup screen.
-- If your role is Survivor, the AI killer is still chosen randomly.
+- If your role is Survivor, the AI killer is still chosen randomly and you choose your survivor character.
+- If your role is Killer, the AI survivor character is chosen randomly.
 - Killer skins are selected only after your role is revealed as Killer.
 - Skins are killer-specific and must be unlocked by completing challenges.
 - Survivor mode: survive two 60-second lives. A hit ends the current life and starts the next one; a hit on the final life loses.
@@ -73,12 +84,32 @@ python tools/generate_assets.py
   - robot slash: press R to dash forward for up to 5 seconds. If the dash touches the survivor, Vengance Bot wins.
   - explosion: press C to place a landmine where Vengance Bot is standing, then teleport to a random open spot away from the survivor. If the survivor steps on the landmine, Vengance Bot wins.
 
+## Survivor Abilities
+
+- Odd 1 3 5 7 9:
+  - Picture Taken: press F to flash a giant light that stuns the killer for 5 seconds.
+- Explorer:
+  - Adrenaline and Taming: press A to become invincible for 5 seconds, move 60% faster, and slow the killer by 50%. This has a 5-second cooldown.
+- Kitty:
+  - 2 Lives: press L to place a blue circle, then press 2 to teleport back to it one time.
+- Queen Goopy:
+  - Knights: press K to summon 2 gray helpers that chase the killer and stun on contact for 2.3 seconds.
+- Trashy:
+  - Gun Maker: press G to start a timing challenge at the bottom of the screen. Click when the white circle overlaps the green square 10 times in a row to earn a gun, then press G again to fire a stunning shot.
+  - Shock Wave Cannon: press C to fire a cannon blast. If it hits the killer, it stuns for 5 seconds, knocks the killer back, and removes 10 seconds from the round timer. This has a 5-second cooldown.
+  - Devils Work: press T to place a turret. When the killer gets close, it shoots and stuns the killer for 2.5 seconds. This has a 5-second cooldown and a maximum of 2 active turrets.
+- Kevin:
+  - Punch: press P to punch in front of Kevin for 5 seconds and stun the killer on contact.
+  - Double Speed: press S to spin and move 89% faster for 5 seconds.
+
 ## Killer Skins
 
 - Ducky:
   - Fried Chicken: unlocks after 5 player wins.
   - Inverted: unlocks after the player loses 2 rounds as Ducky.
   - Ogel: unlocks after the player loses 4 rounds as Ducky.
+  - Daddy's Belt: unlocks when Ducky kills the survivor with the C swing ability. When selected, the C swing uses a belt visual with the same behavior.
+  - Subject 5 PNG: unlocks after the player wins one round with Daddy's Belt and one round with Ogel.
 - Subslasher:
   - Tennis Dude: unlocks when Subslasher hits the survivor with Perpelling Shootdown, the freeze ice spike.
   - Pickle Ball Bro: unlocks when the player wins a round using the Tennis Dude skin.
@@ -92,6 +123,9 @@ python tools/generate_assets.py
 - Vengance Bot:
   - Wick Wonalds: unlocks after the player survives Vengance Bot 2 times as Survivor. The survives do not need to be in a row.
   - MLG: unlocks when Vengance Bot kills the survivor with a landmine after placing 2 or fewer landmines that round.
+  - Scoreboard: unlocks when Vengance Bot wins without placing a landmine.
+  - Spinning: unlocks when the player completes one lap around the arena perimeter with any Survivor or Killer. When selected, Vengance Bot spins in place visually during gameplay.
+  - Werewolf: unlocks after winning 2 Vengance Bot rounds while placing 3 or fewer landmines in each qualifying round.
   - Mastery 1: unlocks after winning 20 rounds as Vengance Bot.
   - Mastery 2: unlocks after winning 50 rounds as Vengance Bot.
   - Mastery 3: unlocks after winning 79 rounds as Vengance Bot.
@@ -122,6 +156,8 @@ The reference pictures were translated into simple 64 x 64 transparent top-down 
 - `ducky_fried_chicken.png`: based on the Fried Chicken skin drawing. It keeps Ducky's silhouette but changes the body to brown fried-chicken colors with pale eyes, open mouth, belt detail, and blade arm.
 - `ducky_inverted.png`: based on the Inverted drawing. It keeps Ducky's simple body but changes it to blue with a green beak, green shoes, and small blade arms.
 - `ducky_ogel.png`: based on the Ogel drawing. It keeps the yellow-white head, red body, blue legs, and axe arm.
+- `ducky_daddys_belt.png`: based on the Daddy's Belt drawing. It keeps Ducky's yellow body and duck face while adding brown belt wraps across the head, body, and arms.
+- `ducky_subject_5_png.png`: based on the Subject 5 PNG drawing. It keeps the plain gray rounded Ducky-like body, dark eyes, simple beak, and darker feet.
 - `subslasher.png`: based on the blue/purple drawing. It keeps the rounded blue-purple body, pale eyes, curved grin, chest markings, and pink popsicle sword.
 - `subslasher_tennis_dude.png`: based on the Tennis Dude drawing. It keeps Subslasher's blue body with a headband, tennis balls, and a racket.
 - `subslasher_pickle_ball_bro.png`: based on the Pickle Ball Bro drawing. It keeps the blue Subslasher body, yellow headband, pickleball patches, and paddle.
@@ -136,9 +172,18 @@ The reference pictures were translated into simple 64 x 64 transparent top-down 
 - `vengance_bot.png`: based on the gray robot drawing. It keeps the box head, red eyes, green mouth mark, thin arms, and tall gray body.
 - `vengance_wick_wonalds.png`: based on the Wick Wonalds drawing. It keeps the menu-board head, gray body, and yellow W detail.
 - `vengance_mlg.png`: based on the MLG drawing. It keeps the green body, white MLG head, green cap, and purple launcher.
+- `vengance_scoreboard.png`: based on the Scoreboard drawing. It keeps the black scoreboard head, yellow score marks, basketball hand, red uniform body, and white number detail.
+- `vengance_spinning.png`: based on the Spinning drawing. It keeps the pale robot body, large head, smile circles, and spinning motion marks.
+- `vengance_werewolf.png`: based on the Werewolf drawing. It keeps the Vengance Bot box body while adding a wolf head, ears, sharp teeth, and a gray tail.
 - `vengance_bot_mastery_1.png`: based on the first Vengance Bot Mastery drawing. It keeps the gray box body, red jagged mouth, single eye, and scratched metal look.
 - `vengance_bot_mastery_2.png`: based on the second Vengance Bot Mastery drawing. It keeps the wider tilted head, crystal-like eyes, red mouth, and gray robot body.
 - `vengance_bot_mastery_3.png`: based on the third Vengance Bot Mastery drawing. It keeps the dark head, huge red teeth, small cap, and green body crack.
 - `survivor.png`: based on the runner photo. It uses a readable blue player marker with runner posture cues, dark shirt/hair, light shorts, and skin-tone limbs.
+- `survivor_odd.png`: based on the Odd 1 3 5 7 9 drawing. It keeps the gray mask, cape shape, dark gloves, and odd-number badge.
+- `survivor_explorer.png`: based on the Explorer drawing. It keeps the yellow face, brown outfit, red gloves, and friendly rounded silhouette.
+- `survivor_kitty.png`: based on the Kitty drawing. It keeps the cat head, toothy mask, purple clothes, and teal legs.
+- `survivor_kevin.png`: based on the Kevin drawing. It keeps the yellow hair, dark face covering, brown shirt, and clawed feet.
+- `survivor_trashy.png`: based on the Trashy drawing. It keeps the pumpkin-like head, leafy marks, patched body, and worn-down shape.
+- `survivor_queen_goopy.png`: based on the Queen Goopy drawing. It keeps the green goo body, sheet-like head, and purple belt shape.
 
 The sprites face downward by default. In game, they stay fixed for readability and a small white direction marker shows current facing.
