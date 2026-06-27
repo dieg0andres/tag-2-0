@@ -5,6 +5,7 @@ import sys
 
 import pygame
 
+import tag.config.settings as settings
 from tag.ai.behaviors import AIMixin
 from tag.assets.manager import AssetMixin
 from tag.config.settings import *
@@ -25,9 +26,9 @@ class Game(AssetMixin, PersistenceMixin, WorldMixin, InputMixin, SurvivorAbiliti
     def __init__(self) -> None:
         pygame.init()
         pygame.display.set_caption("Tag 2.0")
-        self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
+        settings.resize_layout(WIDTH, HEIGHT)
+        self.screen = pygame.display.set_mode((settings.WIDTH, settings.HEIGHT), WINDOW_FLAGS)
         self.clock = pygame.time.Clock()
-        self.fullscreen = False
 
         self.font_small = pygame.font.SysFont("arial", 18)
         self.font_medium = pygame.font.SysFont("arial", 26)
@@ -84,18 +85,102 @@ class Game(AssetMixin, PersistenceMixin, WorldMixin, InputMixin, SurvivorAbiliti
         self.dinosaur_shockwave_timer = 0.0
         self.dinosaur_shockwave_pos = pygame.Vector2()
 
-        button_x = WIDTH // 2 - 110
         self.menu_buttons = {
-            "play": Button(pygame.Rect(button_x, 450, 220, 58), "Start"),
-            "reveal": Button(pygame.Rect(button_x, 585, 220, 58), "Reveal Role"),
-            "begin": Button(pygame.Rect(button_x, 622, 220, 58), "Begin Round"),
+            "play": Button(pygame.Rect(0, 0, 220, 58), "Start"),
+            "reveal": Button(pygame.Rect(0, 0, 220, 58), "Reveal Role"),
+            "begin": Button(pygame.Rect(0, 0, 220, 58), "Begin Round"),
         }
-        self.fullscreen_button = Button(pygame.Rect(WIDTH - 78, 10, 58, 28), "Full")
+        self.update_menu_buttons()
 
         self.audio_enabled = False
         self.music_tracks: dict[str, Path] = {}
         self.sounds: dict[str, pygame.mixer.Sound] = {}
         self.setup_audio()
+
+    def window_width(self) -> int:
+        return self.screen.get_width()
+
+    def window_height(self) -> int:
+        return self.screen.get_height()
+
+    def window_center_x(self) -> int:
+        return self.window_width() // 2
+
+    def update_menu_buttons(self) -> None:
+        width = self.window_width()
+        height = self.window_height()
+        center_x = width // 2
+        self.menu_buttons["play"].rect.center = (center_x, min(max(420, height - 300), 490))
+        self.menu_buttons["reveal"].rect.center = (center_x, min(max(540, height - 205), height - 150))
+        self.menu_buttons["begin"].rect.center = (center_x, min(max(560, height - 170), height - 105))
+
+    def handle_window_resize(self, width: int, height: int) -> None:
+        old_arena = ARENA_RECT.copy()
+        new_width, new_height = settings.resize_layout(width, height)
+        self.screen = pygame.display.set_mode((new_width, new_height), WINDOW_FLAGS)
+        self.update_menu_buttons()
+        self.walls = self.create_walls()
+        self.rescale_world_for_resize(old_arena, ARENA_RECT)
+
+    def rescale_world_for_resize(self, old_arena: pygame.Rect, new_arena: pygame.Rect) -> None:
+        if old_arena.width <= 0 or old_arena.height <= 0:
+            return
+
+        def scale_point(point: pygame.Vector2 | tuple[float, float]) -> pygame.Vector2:
+            source = pygame.Vector2(point)
+            x_ratio = (source.x - old_arena.left) / old_arena.width
+            y_ratio = (source.y - old_arena.top) / old_arena.height
+            return pygame.Vector2(
+                new_arena.left + x_ratio * new_arena.width,
+                new_arena.top + y_ratio * new_arena.height,
+            )
+
+        moved: set[int] = set()
+        objects: list[object] = []
+        for value in (
+            self.player,
+            self.survivor,
+            *self.killers,
+            *self.active_hitboxes,
+            *self.projectiles,
+            *self.ducky_belts,
+            *self.landmines,
+            *self.survivor_shots,
+            *self.trashy_shockwaves,
+            *self.trashy_turrets,
+            *self.trashy_turret_shots,
+            *self.goopy_knights,
+            *self.malice_bird_poops,
+            *self.malice_helper_birds,
+        ):
+            if value is not None and id(value) not in moved:
+                moved.add(id(value))
+                objects.append(value)
+
+        for item in objects:
+            rect = getattr(item, "rect", None)
+            pos = getattr(item, "pos", None)
+            if pos is not None:
+                new_pos = scale_point(pos)
+                pos.update(new_pos)
+                if isinstance(rect, pygame.Rect):
+                    rect.center = (round(new_pos.x), round(new_pos.y))
+            elif isinstance(rect, pygame.Rect):
+                new_center = scale_point(rect.center)
+                rect.center = (round(new_center.x), round(new_center.y))
+
+            if isinstance(item, Character):
+                item.rect.clamp_ip(new_arena)
+                item.pos.update(item.rect.center)
+                self.resolve_wall_overlap(item)
+
+        if isinstance(self.player, Survivor) and self.player.kitty_marker is not None:
+            self.player.kitty_marker.update(scale_point(self.player.kitty_marker))
+        if self.dinosaur_shockwave_timer > 0:
+            self.dinosaur_shockwave_pos.update(scale_point(self.dinosaur_shockwave_pos))
+        if isinstance(self.player, Survivor) and self.player.trashy_minigame_active:
+            self.player.trashy_circle_x = float(TRASHY_MINIGAME_BAR.left + TRASHY_MINIGAME_CIRCLE_RADIUS)
+            self.player.choose_new_trashy_target()
 
     def run(self) -> None:
         while self.running:
@@ -114,4 +199,3 @@ class Game(AssetMixin, PersistenceMixin, WorldMixin, InputMixin, SurvivorAbiliti
             self.update(1 / FPS)
             self.draw()
         pygame.quit()
-

@@ -18,7 +18,8 @@ from tag.utils.vector import facing_axis, safe_normalize, vector_from_keys
 
 class WorldMixin:
     def create_walls(self) -> list[Wall]:
-        wall_rects = [
+        base_arena = pygame.Rect(24, 112, 884, 664)
+        base_wall_rects = [
             pygame.Rect(145, 205, 245, 30),
             pygame.Rect(610, 185, 250, 30),
             pygame.Rect(475, 295, 44, 190),
@@ -29,6 +30,21 @@ class WorldMixin:
             pygame.Rect(865, 300, 34, 125),
             pygame.Rect(90, 325, 34, 135),
         ]
+
+        wall_rects = []
+        for rect in base_wall_rects:
+            x_ratio = (rect.left - base_arena.left) / base_arena.width
+            y_ratio = (rect.top - base_arena.top) / base_arena.height
+            width_ratio = rect.width / base_arena.width
+            height_ratio = rect.height / base_arena.height
+            wall_rects.append(
+                pygame.Rect(
+                    ARENA_RECT.left + round(x_ratio * ARENA_RECT.width),
+                    ARENA_RECT.top + round(y_ratio * ARENA_RECT.height),
+                    max(26, round(width_ratio * ARENA_RECT.width)),
+                    max(22, round(height_ratio * ARENA_RECT.height)),
+                )
+            )
         return [Wall(rect) for rect in wall_rects]
 
     def current_perimeter_edge(self, rect: pygame.Rect) -> str | None:
@@ -86,8 +102,9 @@ class WorldMixin:
         return None
 
     def draw_arena_preview(self) -> None:
-        preview = pygame.Rect(0, 0, 760, 230)
-        preview.center = (WIDTH // 2, 475)
+        width, height = self.screen.get_size()
+        preview = pygame.Rect(0, 0, min(760, width - 120), min(230, max(180, int(height * 0.28))))
+        preview.center = (width // 2, min(475, height - 220))
         pygame.draw.rect(self.screen, (20, 31, 48), preview, border_radius=18)
         pygame.draw.rect(self.screen, (64, 77, 98), preview, 2, border_radius=18)
         for x in range(preview.left + 28, preview.right, 58):
@@ -118,4 +135,3 @@ class WorldMixin:
 
         for wall in self.walls:
             wall.draw(self.screen)
-

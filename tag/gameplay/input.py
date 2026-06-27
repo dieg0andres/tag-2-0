@@ -21,10 +21,21 @@ class InputMixin:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
+            elif self.is_resize_event(event):
+                width = getattr(event, "w", None) or getattr(event, "x", None) or self.window_width()
+                height = getattr(event, "h", None) or getattr(event, "y", None) or self.window_height()
+                self.handle_window_resize(width, height)
             elif event.type == pygame.KEYDOWN:
                 self.handle_keydown(event.key)
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 self.handle_click(event.pos)
+
+    def is_resize_event(self, event: pygame.event.Event) -> bool:
+        resize_types = {pygame.VIDEORESIZE}
+        for name in ("WINDOWRESIZED", "WINDOWSIZECHANGED"):
+            if hasattr(pygame, name):
+                resize_types.add(getattr(pygame, name))
+        return event.type in resize_types
 
     def handle_keydown(self, key: int) -> None:
         if key == pygame.K_ESCAPE:
@@ -116,10 +127,6 @@ class InputMixin:
                 self.reset_to_title()
 
     def handle_click(self, pos: tuple[int, int]) -> None:
-        if self.fullscreen_button.contains(pos):
-            self.toggle_fullscreen()
-            return
-
         if self.state == GameState.TITLE:
             if self.menu_buttons["play"].contains(pos):
                 self.state = GameState.ROUND_SETUP
@@ -186,11 +193,6 @@ class InputMixin:
         if survivor.survivor_id == "survivor_trashy" and survivor.trashy_minigame_active:
             self.handle_trashy_minigame_click(survivor, pos)
 
-    def toggle_fullscreen(self) -> None:
-        self.fullscreen = not self.fullscreen
-        flags = pygame.FULLSCREEN if self.fullscreen else 0
-        self.screen = pygame.display.set_mode((WIDTH, HEIGHT), flags)
-
     def survivor_index_from_key(self, key: int) -> str | None:
         number_keys = (
             pygame.K_1,
@@ -210,15 +212,16 @@ class InputMixin:
         return SURVIVOR_IDS[index]
 
     def survivor_card_rect(self, index: int) -> pygame.Rect:
+        window_width = self.window_width()
         card_width = 210
         card_height = 70
         card_gap = 18
         row_gap = 8
-        columns = min(4, len(SURVIVOR_IDS))
+        columns = min(4, len(SURVIVOR_IDS), max(2, (window_width - 80) // (card_width + card_gap)))
         row = index // columns
         column = index % columns
         total_width = columns * card_width + (columns - 1) * card_gap
-        start_x = (WIDTH - total_width) // 2
+        start_x = (window_width - total_width) // 2
         return pygame.Rect(
             start_x + column * (card_width + card_gap),
             430 + row * (card_height + row_gap),
@@ -287,16 +290,17 @@ class InputMixin:
         self.skin_notice = f"{self.skin_name(self.round_killer, skin_id)} selected."
 
     def skin_card_rect(self, index: int) -> pygame.Rect:
+        window_width = self.window_width()
         card_width = 210
         card_height = 70
         card_gap = 18
         row_gap = 8
         options = self.skin_options_for_killer(self.round_killer)
-        columns = min(4, len(options))
+        columns = min(4, len(options), max(2, (window_width - 80) // (card_width + card_gap)))
         row = index // columns
         column = index % columns
         total_width = columns * card_width + (columns - 1) * card_gap
-        start_x = (WIDTH - total_width) // 2
+        start_x = (window_width - total_width) // 2
         return pygame.Rect(
             start_x + column * (card_width + card_gap),
             430 + row * (card_height + row_gap),
@@ -321,10 +325,11 @@ class InputMixin:
         return index
 
     def killer_card_rect(self, index: int) -> pygame.Rect:
-        card_width = 172
+        window_width = self.window_width()
         card_gap = 16
+        card_width = min(172, max(140, (window_width - 96 - (len(KILLER_IDS) - 1) * card_gap) // len(KILLER_IDS)))
         total_width = len(KILLER_IDS) * card_width + (len(KILLER_IDS) - 1) * card_gap
-        start_x = (WIDTH - total_width) // 2
+        start_x = (window_width - total_width) // 2
         return pygame.Rect(start_x + index * (card_width + card_gap), 170, card_width, 305)
 
     def killer_from_card_click(self, pos: tuple[int, int]) -> str | None:
@@ -332,4 +337,3 @@ class InputMixin:
             if self.killer_card_rect(index).collidepoint(pos):
                 return killer_id
         return None
-

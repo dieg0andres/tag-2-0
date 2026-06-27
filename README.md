@@ -51,7 +51,7 @@ python tools/generate_assets.py
 - A: Show Runner only, activate shows power
 - R: Vengance Bot only, activate robot slash during play
 - C: Vengance Bot only, place explosion landmine during play
-- Click `Full` in the top-right corner: toggle fullscreen
+- Drag the window corners or use the OS maximize button to resize the game
 - Escape: quit
 - R: restart from the win/loss screen
 

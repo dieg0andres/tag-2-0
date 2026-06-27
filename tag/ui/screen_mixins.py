@@ -29,23 +29,19 @@ class UIMixin:
         elif self.state == GameState.GAME_OVER:
             self.draw_game_over()
 
-        self.draw_fullscreen_button()
         pygame.display.flip()
-
-    def draw_fullscreen_button(self) -> None:
-        self.fullscreen_button.text = "Exit" if self.fullscreen else "Full"
-        self.fullscreen_button.draw(self.screen, self.font_small, self.fullscreen)
 
     def draw_title(self) -> None:
         self.screen.fill((10, 16, 30))
         self.draw_arena_preview()
-        draw_text(self.screen, self.font_title, "Tag 2.0", (248, 250, 252), (WIDTH // 2, 160), True)
+        center_x = self.window_center_x()
+        draw_text(self.screen, self.font_title, "Tag 2.0", (248, 250, 252), (center_x, 160), True)
         draw_text(
             self.screen,
             self.font_medium,
             "Random role. Survive twice or catch.",
             (203, 213, 225),
-            (WIDTH // 2, 245),
+            (center_x, 245),
             True,
         )
         draw_text(
@@ -53,7 +49,7 @@ class UIMixin:
             self.font_small,
             "WASD / Arrows move  |  Space attacks as killer  |  Escape quits",
             (148, 163, 184),
-            (WIDTH // 2, 305),
+            (center_x, 305),
             True,
         )
         self.menu_buttons["play"].draw(self.screen, self.font_medium, True)
@@ -62,18 +58,19 @@ class UIMixin:
             self.font_small,
             "Press Enter or click Start",
             (203, 213, 225),
-            (WIDTH // 2, 528),
+            (center_x, self.menu_buttons["play"].rect.bottom + 20),
             True,
         )
 
     def draw_round_setup(self) -> None:
         self.screen.fill((13, 22, 36))
+        center_x = self.window_center_x()
         draw_text(
             self.screen,
             self.font_large,
             "Round Setup",
             (248, 250, 252),
-            (WIDTH // 2, 78),
+            (center_x, 78),
             True,
         )
         draw_text(
@@ -81,7 +78,7 @@ class UIMixin:
             self.font_small,
             "Choose your killer if your random role is Killer. Survivor rounds still use a random AI killer.",
             (203, 213, 225),
-            (WIDTH // 2, 123),
+            (center_x, 123),
             True,
         )
 
@@ -142,7 +139,7 @@ class UIMixin:
             self.font_small,
             f"Selected killer if you become Killer: {selected_name}",
             (248, 199, 88),
-            (WIDTH // 2, 492),
+            (center_x, 492),
             True,
         )
         self.menu_buttons["reveal"].draw(self.screen, self.font_medium, True)
@@ -151,7 +148,7 @@ class UIMixin:
             self.font_small,
             "Click a killer or press 1-5. Skin selection appears after you become Killer.",
             (203, 213, 225),
-            (WIDTH // 2, 660),
+            (center_x, self.menu_buttons["reveal"].rect.bottom + 18),
             True,
         )
 
@@ -159,15 +156,16 @@ class UIMixin:
         self.screen.fill((10, 16, 30))
         selected = KILLERS[self.round_killer]
         role_color = (96, 165, 250) if self.player_role == "Survivor" else (248, 113, 113)
+        center_x = self.window_center_x()
 
-        draw_text(self.screen, self.font_large, "Role Reveal", (248, 250, 252), (WIDTH // 2, 125), True)
-        draw_text(self.screen, self.font_title, self.player_role, role_color, (WIDTH // 2, 240), True)
+        draw_text(self.screen, self.font_large, "Role Reveal", (248, 250, 252), (center_x, 125), True)
+        draw_text(self.screen, self.font_title, self.player_role, role_color, (center_x, 240), True)
         draw_text(
             self.screen,
             self.font_medium,
             f"Round killer: {selected['name']}",
             (226, 232, 240),
-            (WIDTH // 2, 330),
+            (center_x, 330),
             True,
         )
 
@@ -175,7 +173,7 @@ class UIMixin:
             prompt = "Survive two 60-second lives while the random killer hunts you."
         else:
             prompt = "Catch the AI survivor with your selected killer before time runs out."
-        draw_text(self.screen, self.font_medium, prompt, (203, 213, 225), (WIDTH // 2, 380), True)
+        draw_text(self.screen, self.font_medium, prompt, (203, 213, 225), (center_x, 380), True)
         if self.player_role == "Killer":
             self.draw_skin_selection()
         else:
@@ -183,12 +181,13 @@ class UIMixin:
         self.menu_buttons["begin"].draw(self.screen, self.font_medium, True)
 
     def draw_survivor_selection(self) -> None:
+        center_x = self.window_center_x()
         draw_text(
             self.screen,
             self.font_medium,
             "Choose Survivor",
             (248, 250, 252),
-            (WIDTH // 2, 420),
+            (center_x, 420),
             True,
         )
 
@@ -225,12 +224,13 @@ class UIMixin:
             )
 
     def draw_skin_selection(self) -> None:
+        center_x = self.window_center_x()
         draw_text(
             self.screen,
             self.font_medium,
             "Choose Skin",
             (248, 250, 252),
-            (WIDTH // 2, 420),
+            (center_x, 420),
             True,
         )
 
@@ -275,7 +275,7 @@ class UIMixin:
                 self.font_small,
                 self.skin_notice,
                 (203, 213, 225),
-                pygame.Rect(WIDTH // 2 - 350, 582, 700, 36),
+                pygame.Rect(center_x - 350, 582, 700, 36),
             )
 
     def draw_gameplay(self) -> None:
@@ -352,7 +352,7 @@ class UIMixin:
 
         if self.survivor_flash_timer > 0:
             alpha = int(190 * (self.survivor_flash_timer / ODD_FLASH_VISUAL_DURATION))
-            overlay = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+            overlay = pygame.Surface(self.screen.get_size(), pygame.SRCALPHA)
             pygame.draw.circle(
                 overlay,
                 (255, 255, 210, alpha),
@@ -414,7 +414,7 @@ class UIMixin:
         )
         radius = int(34 + MALICE_DINOSAUR_SHOCKWAVE_RADIUS * elapsed_ratio)
         alpha = int(190 * (self.dinosaur_shockwave_timer / MALICE_DINOSAUR_SHOCKWAVE_VISUAL_DURATION))
-        overlay = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+        overlay = pygame.Surface(self.screen.get_size(), pygame.SRCALPHA)
         center = (round(self.dinosaur_shockwave_pos.x), round(self.dinosaur_shockwave_pos.y))
         pygame.draw.circle(overlay, (248, 250, 252, alpha), center, radius, 5)
         pygame.draw.circle(overlay, (59, 130, 246, max(50, alpha // 2)), center, radius // 2, 2)
@@ -621,8 +621,9 @@ class UIMixin:
         return ["Space: attack", "Catch the survivor before time ends"]
 
     def draw_hud(self) -> None:
-        pygame.draw.rect(self.screen, (5, 10, 20), pygame.Rect(0, 0, WIDTH, TOP_BAR_HEIGHT))
-        pygame.draw.line(self.screen, (51, 65, 85), (0, TOP_BAR_HEIGHT), (WIDTH, TOP_BAR_HEIGHT), 2)
+        width = self.window_width()
+        pygame.draw.rect(self.screen, (5, 10, 20), pygame.Rect(0, 0, width, TOP_BAR_HEIGHT))
+        pygame.draw.line(self.screen, (51, 65, 85), (0, TOP_BAR_HEIGHT), (width, TOP_BAR_HEIGHT), 2)
 
         selected = KILLERS[self.round_killer]
         draw_text(self.screen, self.font_medium, "Tag 2.0", (248, 250, 252), (24, 14))
@@ -636,9 +637,9 @@ class UIMixin:
         draw_text(
             self.screen,
             self.font_small,
-            "WASD / Arrows move  |  Escape quits",
+            "WASD / Arrows move  |  Escape quits" if width >= 1080 else "Esc quits",
             (148, 163, 184),
-            (WIDTH - 420, 50),
+            (width - 420 if width >= 1080 else width - 100, 50),
         )
 
     def hud_role_text(self, killer_name: str) -> str:
@@ -810,18 +811,18 @@ class UIMixin:
 
         result = "YOU WIN" if self.player_won else "YOU LOSE"
         color = (74, 222, 128) if self.player_won else (248, 113, 113)
-        draw_text(self.screen, self.font_title, result, color, (WIDTH // 2, 160), True)
-        draw_text(self.screen, self.font_medium, self.end_reason, (226, 232, 240), (WIDTH // 2, 255), True)
+        center_x = self.window_center_x()
+        draw_text(self.screen, self.font_title, result, color, (center_x, 160), True)
+        draw_text(self.screen, self.font_medium, self.end_reason, (226, 232, 240), (center_x, 255), True)
         skin_text = self.skin_progress_text()
-        draw_text(self.screen, self.font_small, skin_text, (248, 199, 88), (WIDTH // 2, 292), True)
+        draw_text(self.screen, self.font_small, skin_text, (248, 199, 88), (center_x, 292), True)
         if self.skin_notice:
-            draw_text(self.screen, self.font_small, self.skin_notice, (134, 239, 172), (WIDTH // 2, 320), True)
+            draw_text(self.screen, self.font_small, self.skin_notice, (134, 239, 172), (center_x, 320), True)
         draw_text(
             self.screen,
             self.font_small,
             "Press R to restart from the title screen. Press Escape to quit.",
             (203, 213, 225),
-            (WIDTH // 2, 355),
+            (center_x, 355),
             True,
         )
-
