@@ -1,0 +1,1 @@
+from .content import KILLER_IDS, KILLERS, SKINS, SURVIVOR_IDS, SURVIVORS
