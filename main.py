@@ -11,8 +11,8 @@ from pathlib import Path
 import pygame
 
 
-WIDTH = 1000
-HEIGHT = 700
+WIDTH = 1280
+HEIGHT = 800
 FPS = 60
 ROUND_DURATION = 60.0
 SURVIVOR_TOTAL_LIVES = 2
@@ -20,17 +20,73 @@ SURVIVOR_TOTAL_LIVES = 2
 ROOT_DIR = Path(__file__).resolve().parent
 ASSET_DIR = ROOT_DIR / "assets"
 SPRITE_DIR = ASSET_DIR / "sprites"
+ANIMATION_DIR = SPRITE_DIR / "animations"
 SAVE_FILE = ROOT_DIR / "save_data.json"
 
-ARENA_RECT = pygame.Rect(30, 100, 940, 570)
+UI_MARGIN = 24
+TOP_BAR_HEIGHT = 88
+SIDE_PANEL_WIDTH = 330
+PANEL_GAP = 18
+PANEL_RADIUS = 8
+
+ARENA_RECT = pygame.Rect(
+    UI_MARGIN,
+    TOP_BAR_HEIGHT + UI_MARGIN,
+    WIDTH - SIDE_PANEL_WIDTH - PANEL_GAP - UI_MARGIN * 2,
+    HEIGHT - TOP_BAR_HEIGHT - UI_MARGIN * 2,
+)
+SIDE_PANEL_RECT = pygame.Rect(
+    ARENA_RECT.right + PANEL_GAP,
+    ARENA_RECT.top,
+    SIDE_PANEL_WIDTH,
+    ARENA_RECT.height,
+)
+TIMER_PANEL_RECT = pygame.Rect(
+    SIDE_PANEL_RECT.left,
+    SIDE_PANEL_RECT.top,
+    SIDE_PANEL_RECT.width,
+    122,
+)
+STATUS_PANEL_RECT = pygame.Rect(
+    SIDE_PANEL_RECT.left,
+    TIMER_PANEL_RECT.bottom + 14,
+    SIDE_PANEL_RECT.width,
+    118,
+)
+ABILITY_PANEL_RECT = pygame.Rect(
+    SIDE_PANEL_RECT.left,
+    STATUS_PANEL_RECT.bottom + 14,
+    SIDE_PANEL_RECT.width,
+    258,
+)
+COMBAT_PANEL_RECT = pygame.Rect(
+    SIDE_PANEL_RECT.left,
+    ABILITY_PANEL_RECT.bottom + 14,
+    SIDE_PANEL_RECT.width,
+    SIDE_PANEL_RECT.bottom - (ABILITY_PANEL_RECT.bottom + 14),
+)
 CHARACTER_COLLISION_SIZE = 44
 SPRITE_DRAW_SIZE = 64
+WALK_ANIMATION_SPEED = 0.10
 
 SURVIVOR_SPEED = 260
 AI_KILLER_SPEED_MULTIPLIER = 0.90
 MALICE_WALL_PHASE_DURATION = 4.0
 MALICE_WALL_PHASE_COOLDOWN = 20.0
-MALICE_ROAR_STUN_DURATION = 2.1
+MALICE_HUNTER_RAGE_DURATION = 20.0
+MALICE_HUNTER_RAGE_COOLDOWN = 5.0
+MALICE_TIGER_SPEED_MULTIPLIER = 1.69
+MALICE_TIGER_INVISIBLE_DURATION = 5.0
+MALICE_FORM_ABILITY_COOLDOWN = 5.0
+MALICE_BIRD_HELPER_SLOW_DURATION = 5.0
+MALICE_BIRD_POOP_STUN_DURATION = 2.5
+MALICE_BIRD_POOP_SPEED = 560
+MALICE_BIRD_POOP_LIFETIME = 1.25
+MALICE_DINOSAUR_SPEED_MULTIPLIER = 0.90
+MALICE_DINOSAUR_SHOCKWAVE_RADIUS = 130
+MALICE_DINOSAUR_SHOCKWAVE_VISUAL_DURATION = 0.45
+MALICE_DINOSAUR_ROAR_STUN_DURATION = 16.0
+MALICE_FORM_ANIMATION_SPEED = 0.16
 SUBSLASHER_FREEZE_DURATION = 3.0
 SUBSLASHER_SPIKE_SPEED = 540
 SUBSLASHER_SPIKE_LIFETIME = 1.6
@@ -101,7 +157,12 @@ TRASHY_TURRET_SHOT_LIFETIME = 0.9
 TRASHY_TURRET_DURATION = 18.0
 TRASHY_TURRET_FIRE_COOLDOWN = 1.4
 TRASHY_MAX_TURRETS = 2
-TRASHY_MINIGAME_BAR = pygame.Rect(245, 642, 510, 28)
+TRASHY_MINIGAME_BAR = pygame.Rect(
+    ARENA_RECT.left + 170,
+    ARENA_RECT.bottom - 42,
+    ARENA_RECT.width - 340,
+    28,
+)
 TRASHY_MINIGAME_TARGET_SIZE = 26
 TRASHY_MINIGAME_CIRCLE_RADIUS = 12
 TRASHY_MINIGAME_CIRCLE_SPEED = 280
@@ -475,6 +536,42 @@ def draw_wrapped_text(
         y += font.get_height() + line_spacing
 
 
+def draw_wrapped_text_left(
+    surface: pygame.Surface,
+    font: pygame.font.Font,
+    text: str,
+    color: tuple[int, int, int],
+    rect: pygame.Rect,
+    line_spacing: int = 3,
+) -> int:
+    """Draw wrapped HUD text from the left edge and return the next y position."""
+    words = text.split()
+    lines: list[str] = []
+    current = ""
+
+    for word in words:
+        test = word if not current else f"{current} {word}"
+        if font.size(test)[0] <= rect.width:
+            current = test
+        else:
+            if current:
+                lines.append(current)
+            current = word
+
+    if current:
+        lines.append(current)
+
+    y = rect.top
+    for line in lines:
+        if y + font.get_height() > rect.bottom:
+            break
+        image = font.render(line, True, color)
+        surface.blit(image, (rect.left, y))
+        y += font.get_height() + line_spacing
+
+    return y
+
+
 @dataclass
 class Wall:
     rect: pygame.Rect
@@ -795,6 +892,89 @@ class TrashyTurret:
         pygame.draw.circle(surface, (96, 165, 250), self.rect.center, 7)
 
 
+class MaliceBirdPoop:
+    """Bird-form projectile that briefly stuns the survivor on hit."""
+
+    def __init__(self, origin: pygame.Vector2, direction: pygame.Vector2) -> None:
+        self.pos = pygame.Vector2(origin)
+        self.direction = safe_normalize(direction)
+        if self.direction.length_squared() == 0:
+            self.direction = pygame.Vector2(0, 1)
+        self.lifetime = MALICE_BIRD_POOP_LIFETIME
+        self.rect = pygame.Rect(0, 0, 18, 18)
+        self.rect.center = (round(self.pos.x), round(self.pos.y))
+
+    def update(self, dt: float, walls: list[Wall]) -> bool:
+        self.lifetime -= dt
+        if self.lifetime <= 0:
+            return False
+
+        self.pos += self.direction * MALICE_BIRD_POOP_SPEED * dt
+        self.rect.center = (round(self.pos.x), round(self.pos.y))
+        if not ARENA_RECT.colliderect(self.rect):
+            return False
+        return not any(self.rect.colliderect(wall.rect) for wall in walls)
+
+    def draw(self, surface: pygame.Surface) -> None:
+        pygame.draw.circle(surface, (248, 250, 252), self.rect.center, 9)
+        pygame.draw.circle(surface, (148, 163, 184), self.rect.center, 9, 2)
+        pygame.draw.circle(surface, (255, 255, 255), (self.rect.centerx - 3, self.rect.centery - 3), 3)
+
+
+class MaliceHelperBird:
+    """Small bird helper that flies randomly and slows the survivor on contact."""
+
+    def __init__(self, pos: pygame.Vector2, offset: pygame.Vector2) -> None:
+        self.pos = pygame.Vector2(pos) + offset
+        self.rect = pygame.Rect(0, 0, 28, 22)
+        self.rect.center = (round(self.pos.x), round(self.pos.y))
+        self.lifetime = MALICE_HUNTER_RAGE_DURATION
+        self.direction = pygame.Vector2(1, 0).rotate(random.uniform(0, 360))
+        self.turn_timer = random.uniform(0.35, 0.85)
+
+    def update(self, dt: float) -> bool:
+        self.lifetime -= dt
+        if self.lifetime <= 0:
+            return False
+
+        self.turn_timer -= dt
+        if self.turn_timer <= 0:
+            self.direction = pygame.Vector2(1, 0).rotate(random.uniform(0, 360))
+            self.turn_timer = random.uniform(0.35, 0.85)
+
+        self.pos += safe_normalize(self.direction) * 245 * dt
+        if self.pos.x < ARENA_RECT.left or self.pos.x > ARENA_RECT.right:
+            self.direction.x *= -1
+        if self.pos.y < ARENA_RECT.top or self.pos.y > ARENA_RECT.bottom:
+            self.direction.y *= -1
+        self.pos.x = max(ARENA_RECT.left + 10, min(ARENA_RECT.right - 10, self.pos.x))
+        self.pos.y = max(ARENA_RECT.top + 10, min(ARENA_RECT.bottom - 10, self.pos.y))
+        self.rect.center = (round(self.pos.x), round(self.pos.y))
+        return True
+
+    def draw(self, surface: pygame.Surface) -> None:
+        pygame.draw.ellipse(surface, (57, 169, 216), self.rect)
+        pygame.draw.ellipse(surface, (15, 23, 42), self.rect, 2)
+        pygame.draw.polygon(
+            surface,
+            (201, 119, 63),
+            [
+                (self.rect.centerx - 4, self.rect.top),
+                (self.rect.centerx - 18, self.rect.top - 10),
+                (self.rect.centerx - 8, self.rect.centery),
+            ],
+        )
+        pygame.draw.polygon(
+            surface,
+            (250, 204, 21),
+            [
+                self.rect.midright,
+                (self.rect.right + 9, self.rect.centery - 4),
+                (self.rect.right + 9, self.rect.centery + 4),
+            ],
+        )
+
+
 class GoopyKnight:
     """Queen Goopy summon that runs to the nearest killer and stuns on contact."""
 
@@ -832,12 +1012,19 @@ class Character:
         speed: float,
         color: tuple[int, int, int],
         sprite: pygame.Surface | None = None,
+        walk_frames: list[pygame.Surface] | None = None,
     ) -> None:
         self.name = name
         self.pos = pygame.Vector2(pos)
         self.speed = speed
         self.color = color
         self.sprite = sprite
+        self.base_sprite = sprite
+        self.walk_frames = walk_frames or []
+        self.walk_animation_timer = 0.0
+        self.walk_animation_index = 0
+        self.is_moving = False
+        self.sprite_alpha = 255
         self.facing = pygame.Vector2(0, 1)
         self.rect = pygame.Rect(0, 0, CHARACTER_COLLISION_SIZE, CHARACTER_COLLISION_SIZE)
         self.rect.center = (round(self.pos.x), round(self.pos.y))
@@ -861,12 +1048,25 @@ class Character:
 
         direction = direction.normalize()
         self.facing = direction
+        self.is_moving = True
+        self.advance_walk_animation(dt)
 
         move_speed = speed if speed is not None else self.speed
         delta = direction * move_speed * dt
         blocked_x = self._move_axis(delta.x, 0, walls, arena)
         blocked_y = self._move_axis(0, delta.y, walls, arena)
         return blocked_x or blocked_y
+
+    def advance_walk_animation(self, dt: float) -> None:
+        if not self.walk_frames:
+            return
+
+        self.walk_animation_timer += dt
+        if self.walk_animation_timer < WALK_ANIMATION_SPEED:
+            return
+
+        self.walk_animation_timer = 0.0
+        self.walk_animation_index = (self.walk_animation_index + 1) % len(self.walk_frames)
 
     def _move_axis(
         self,
@@ -931,8 +1131,17 @@ class Character:
         draw_rect = pygame.Rect(0, 0, SPRITE_DRAW_SIZE, SPRITE_DRAW_SIZE)
         draw_rect.center = self.rect.center
 
-        if self.sprite is not None:
-            surface.blit(self.sprite, draw_rect)
+        sprite = self.sprite
+        if self.walk_frames and self.is_moving and self.sprite is self.base_sprite:
+            sprite = self.walk_frames[self.walk_animation_index % len(self.walk_frames)]
+
+        if sprite is not None:
+            if self.sprite_alpha < 255:
+                faded = sprite.copy()
+                faded.set_alpha(self.sprite_alpha)
+                surface.blit(faded, draw_rect)
+            else:
+                surface.blit(sprite, draw_rect)
         else:
             pygame.draw.ellipse(surface, self.color, draw_rect)
             pygame.draw.ellipse(surface, (15, 23, 42), draw_rect, 3)
@@ -948,6 +1157,7 @@ class Character:
         label = font.render(self.name, True, (226, 232, 240))
         label_rect = label.get_rect(center=(self.rect.centerx, self.rect.top - 11))
         surface.blit(label, label_rect)
+        self.is_moving = False
 
 
 class Survivor(Character):
@@ -957,8 +1167,9 @@ class Survivor(Character):
         pos: tuple[int, int],
         sprite: pygame.Surface | None = None,
         survivor_id: str = "survivor",
+        walk_frames: list[pygame.Surface] | None = None,
     ) -> None:
-        super().__init__(name, pos, SURVIVOR_SPEED, (61, 145, 255), sprite)
+        super().__init__(name, pos, SURVIVOR_SPEED, (61, 145, 255), sprite, walk_frames)
         self.survivor_id = survivor_id
         self.odd_flash_used = False
         self.odd_flash_cooldown = 0.0
@@ -1054,11 +1265,12 @@ class Killer(Character):
         pos: tuple[int, int],
         sprite: pygame.Surface | None = None,
         skin_id: str = "classic",
+        walk_frames: list[pygame.Surface] | None = None,
     ) -> None:
         self.killer_id = killer_id
         self.data = KILLERS[killer_id]
         self.skin_id = skin_id
-        super().__init__(name, pos, self.data["speed"], self.data["color"], sprite)
+        super().__init__(name, pos, self.data["speed"], self.data["color"], sprite, walk_frames)
         self.attack_phase: str | None = None
         self.attack_timer = 0.0
         self.cooldown_remaining = 0.0
@@ -1079,6 +1291,17 @@ class Killer(Character):
         self.vengance_dash_direction = pygame.Vector2(0, 1)
         self.vengance_mine_cooldown = 0.0
         self.ai_stun_timer = 0.0
+        self.malice_form: str | None = None
+        self.malice_form_timer = 0.0
+        self.malice_hunter_cooldown = 0.0
+        self.malice_animation_index = 0
+        self.malice_animation_timer = 0.0
+        self.tiger_invisible_timer = 0.0
+        self.tiger_invisible_cooldown = 0.0
+        self.bird_summon_cooldown = 0.0
+        self.bird_poop_cooldown = 0.0
+        self.dinosaur_stomp_cooldown = 0.0
+        self.dinosaur_roar_cooldown = 0.0
 
     def can_attack(self) -> bool:
         return self.attack_phase is None and self.cooldown_remaining <= 0
@@ -1088,6 +1311,18 @@ class Killer(Character):
 
     def is_malice(self) -> bool:
         return self.killer_id == "malice"
+
+    def is_hunter_rage_active(self) -> bool:
+        return self.is_malice() and self.malice_form is not None and self.malice_form_timer > 0
+
+    def is_malice_tiger(self) -> bool:
+        return self.is_hunter_rage_active() and self.malice_form == "tiger"
+
+    def is_malice_bird(self) -> bool:
+        return self.is_hunter_rage_active() and self.malice_form == "bird"
+
+    def is_malice_dinosaur(self) -> bool:
+        return self.is_hunter_rage_active() and self.malice_form == "dinosaur"
 
     def is_subslasher(self) -> bool:
         return self.killer_id == "subslasher"
@@ -1147,6 +1382,31 @@ class Killer(Character):
         return True
 
     def update_abilities(self, dt: float) -> None:
+        if self.malice_hunter_cooldown > 0:
+            self.malice_hunter_cooldown = max(0.0, self.malice_hunter_cooldown - dt)
+
+        if self.malice_form_timer > 0:
+            self.malice_form_timer = max(0.0, self.malice_form_timer - dt)
+            if self.malice_form_timer == 0:
+                self.end_hunter_rage()
+
+        if self.tiger_invisible_timer > 0:
+            self.tiger_invisible_timer = max(0.0, self.tiger_invisible_timer - dt)
+            if self.tiger_invisible_timer == 0:
+                self.tiger_invisible_cooldown = MALICE_FORM_ABILITY_COOLDOWN
+                self.sprite_alpha = 255
+        elif self.tiger_invisible_cooldown > 0:
+            self.tiger_invisible_cooldown = max(0.0, self.tiger_invisible_cooldown - dt)
+
+        if self.bird_summon_cooldown > 0:
+            self.bird_summon_cooldown = max(0.0, self.bird_summon_cooldown - dt)
+        if self.bird_poop_cooldown > 0:
+            self.bird_poop_cooldown = max(0.0, self.bird_poop_cooldown - dt)
+        if self.dinosaur_stomp_cooldown > 0:
+            self.dinosaur_stomp_cooldown = max(0.0, self.dinosaur_stomp_cooldown - dt)
+        if self.dinosaur_roar_cooldown > 0:
+            self.dinosaur_roar_cooldown = max(0.0, self.dinosaur_roar_cooldown - dt)
+
         if self.wall_phase_timer > 0:
             self.wall_phase_timer = max(0.0, self.wall_phase_timer - dt)
             if self.wall_phase_timer == 0:
@@ -1199,6 +1459,41 @@ class Killer(Character):
         if self.wall_phase_cooldown > 0:
             return f"I: cooldown {self.wall_phase_cooldown:.0f}s"
         return "I: phase ready"
+
+    def start_hunter_rage(self) -> str | None:
+        if not self.is_malice() or self.is_hunter_rage_active() or self.malice_hunter_cooldown > 0:
+            return None
+
+        self.malice_form = random.choice(("tiger", "bird", "dinosaur"))
+        self.malice_form_timer = MALICE_HUNTER_RAGE_DURATION
+        self.malice_animation_index = 0
+        self.malice_animation_timer = 0.0
+        self.sprite_alpha = 255
+        self.tiger_invisible_timer = 0.0
+        self.tiger_invisible_cooldown = 0.0
+        self.bird_summon_cooldown = 0.0
+        self.bird_poop_cooldown = 0.0
+        self.dinosaur_stomp_cooldown = 0.0
+        self.dinosaur_roar_cooldown = 0.0
+        return self.malice_form
+
+    def end_hunter_rage(self) -> None:
+        if self.malice_form is None:
+            return
+
+        self.malice_form = None
+        self.malice_form_timer = 0.0
+        self.malice_hunter_cooldown = MALICE_HUNTER_RAGE_COOLDOWN
+        self.sprite_alpha = 255
+        self.tiger_invisible_timer = 0.0
+
+    def start_tiger_invisibility(self) -> bool:
+        if not self.is_malice_tiger() or self.tiger_invisible_timer > 0 or self.tiger_invisible_cooldown > 0:
+            return False
+
+        self.tiger_invisible_timer = MALICE_TIGER_INVISIBLE_DURATION
+        self.sprite_alpha = 78
+        return True
 
     def start_show_power(self) -> bool:
         if not self.is_show_runner() or self.show_power_timer > 0 or self.show_power_cooldown > 0:
@@ -1356,6 +1651,8 @@ class Game:
         self.end_reason = ""
 
         self.sprites = self.load_sprites()
+        self.walk_sprites = self.load_walk_sprites()
+        self.animation_sprites = self.load_animation_sprites()
         self.walls = self.create_walls()
         self.player: Character | None = None
         self.survivor: Survivor | None = None
@@ -1369,11 +1666,16 @@ class Game:
         self.trashy_turrets: list[TrashyTurret] = []
         self.trashy_turret_shots: list[TrashyTurretShot] = []
         self.goopy_knights: list[GoopyKnight] = []
+        self.malice_bird_poops: list[MaliceBirdPoop] = []
+        self.malice_helper_birds: list[MaliceHelperBird] = []
+        self.dinosaur_shockwave_timer = 0.0
+        self.dinosaur_shockwave_pos = pygame.Vector2()
 
+        button_x = WIDTH // 2 - 110
         self.menu_buttons = {
-            "play": Button(pygame.Rect(390, 450, 220, 58), "Start"),
-            "reveal": Button(pygame.Rect(390, 585, 220, 58), "Reveal Role"),
-            "begin": Button(pygame.Rect(390, 622, 220, 58), "Begin Round"),
+            "play": Button(pygame.Rect(button_x, 450, 220, 58), "Start"),
+            "reveal": Button(pygame.Rect(button_x, 585, 220, 58), "Reveal Role"),
+            "begin": Button(pygame.Rect(button_x, 622, 220, 58), "Begin Round"),
         }
         self.fullscreen_button = Button(pygame.Rect(WIDTH - 78, 10, 58, 28), "Full")
 
@@ -1384,16 +1686,7 @@ class Game:
 
     def load_sprites(self) -> dict[str, pygame.Surface]:
         sprites: dict[str, pygame.Surface] = {}
-        paths = {
-            survivor_id: SPRITE_DIR / data["sprite"]
-            for survivor_id, data in SURVIVORS.items()
-        }
-        for killer_id, data in KILLERS.items():
-            paths[killer_id] = SPRITE_DIR / data["sprite"]
-        for skin in SKINS.values():
-            paths[skin["sprite_key"]] = SPRITE_DIR / f"{skin['sprite_key']}.png"
-
-        for key, path in paths.items():
+        for key, path in self.sprite_paths().items():
             if not path.exists():
                 continue
             try:
@@ -1408,6 +1701,62 @@ class Game:
                 continue
 
         return sprites
+
+    def sprite_paths(self) -> dict[str, Path]:
+        paths = {
+            survivor_id: SPRITE_DIR / data["sprite"]
+            for survivor_id, data in SURVIVORS.items()
+        }
+        for killer_id, data in KILLERS.items():
+            paths[killer_id] = SPRITE_DIR / data["sprite"]
+        for skin in SKINS.values():
+            paths[skin["sprite_key"]] = SPRITE_DIR / f"{skin['sprite_key']}.png"
+        return paths
+
+    def load_walk_sprites(self) -> dict[str, list[pygame.Surface]]:
+        animations: dict[str, list[pygame.Surface]] = {}
+        for key in self.sprite_paths():
+            frames: list[pygame.Surface] = []
+            for index in range(4):
+                path = ANIMATION_DIR / f"{key}_walk_{index}.png"
+                if not path.exists():
+                    continue
+                try:
+                    image = pygame.image.load(str(path)).convert_alpha()
+                    frames.append(
+                        pygame.transform.smoothscale(
+                            image,
+                            (SPRITE_DRAW_SIZE, SPRITE_DRAW_SIZE),
+                        )
+                    )
+                except pygame.error:
+                    continue
+            if len(frames) >= 2:
+                animations[key] = frames
+
+        return animations
+
+    def load_animation_sprites(self) -> dict[str, list[pygame.Surface]]:
+        animations: dict[str, list[pygame.Surface]] = {}
+        for form in ("tiger", "bird", "dinosaur"):
+            frames: list[pygame.Surface] = []
+            for index in range(3):
+                path = SPRITE_DIR / f"malice_{form}_{index}.png"
+                if not path.exists():
+                    continue
+                try:
+                    image = pygame.image.load(str(path)).convert_alpha()
+                    frames.append(
+                        pygame.transform.smoothscale(
+                            image,
+                            (SPRITE_DRAW_SIZE, SPRITE_DRAW_SIZE),
+                        )
+                    )
+                except pygame.error:
+                    continue
+            if frames:
+                animations[f"malice_{form}"] = frames
+        return animations
 
     def load_save_data(self) -> dict[str, object]:
         default_data = {
@@ -1555,7 +1904,7 @@ class Game:
         if vengance_mastery_3_music.exists():
             self.music_tracks["skin:vengance_bot_mastery_3"] = vengance_mastery_3_music
 
-        for sound_name in ("attack", "win", "lose", "malice_roar"):
+        for sound_name in ("attack", "win", "lose", "malice_roar", "dinosaur_roar"):
             path = ASSET_DIR / f"{sound_name}.wav"
             if not path.exists():
                 continue
@@ -1675,11 +2024,17 @@ class Game:
                     self.play_sound("attack")
             elif key == pygame.K_i:
                 if self.player.is_malice():
-                    self.player.start_wall_phase()
+                    if self.player.is_malice_tiger():
+                        self.use_malice_tiger_invisibility()
+                    elif self.player.is_malice_bird():
+                        self.use_malice_bird_summon()
+                    elif not self.player.is_hunter_rage_active():
+                        self.player.start_wall_phase()
                 elif self.player.is_subslasher():
                     self.fire_subslasher_spike("freeze")
             elif key == pygame.K_h:
-                self.use_malice_roar()
+                if self.player.is_malice():
+                    self.use_malice_hunters_rage()
             elif key == pygame.K_e:
                 if self.player.is_subslasher():
                     self.fire_subslasher_spike("kill")
@@ -1697,6 +2052,8 @@ class Game:
             elif key == pygame.K_r:
                 if self.player.is_vengance_bot():
                     self.player.start_vengance_dash()
+                elif self.player.is_malice_dinosaur():
+                    self.use_malice_dinosaur_roar()
             elif key == pygame.K_9:
                 if self.player.is_show_runner():
                     self.use_show_runner_laugh()
@@ -1706,6 +2063,11 @@ class Game:
             elif key == pygame.K_a:
                 if self.player.is_show_runner():
                     self.player.start_show_power()
+                elif self.player.is_malice_bird():
+                    self.fire_malice_bird_poop()
+            elif key == pygame.K_s:
+                if self.player.is_malice_dinosaur():
+                    self.use_malice_dinosaur_stomp()
 
         elif self.state == GameState.GAME_OVER:
             if key == pygame.K_r:
@@ -2099,7 +2461,8 @@ class Game:
     def killer_card_rect(self, index: int) -> pygame.Rect:
         card_width = 172
         card_gap = 16
-        start_x = 36
+        total_width = len(KILLER_IDS) * card_width + (len(KILLER_IDS) - 1) * card_gap
+        start_x = (WIDTH - total_width) // 2
         return pygame.Rect(start_x + index * (card_width + card_gap), 170, card_width, 305)
 
     def killer_from_card_click(self, pos: tuple[int, int]) -> str | None:
@@ -2121,6 +2484,10 @@ class Game:
         self.trashy_turrets = []
         self.trashy_turret_shots = []
         self.goopy_knights = []
+        self.malice_bird_poops = []
+        self.malice_helper_birds = []
+        self.dinosaur_shockwave_timer = 0.0
+        self.dinosaur_shockwave_pos = pygame.Vector2()
         self.survivor_slow_timer = 0.0
         self.survivor_flash_timer = 0.0
         self.explorer_taming_timer = 0.0
@@ -2133,12 +2500,22 @@ class Game:
         self.vengance_mines_placed_this_round = 0
         self.walls = self.create_walls()
 
-        killer_sprite = self.sprite_for_round_killer()
+        killer_sprite_key = self.sprite_key_for_round_killer()
+        killer_sprite = self.sprites.get(killer_sprite_key) or self.sprites.get(self.round_killer)
+        killer_walk_frames = self.walk_sprites.get(killer_sprite_key) or self.walk_sprites.get(self.round_killer, [])
         player_killer_skin = self.selected_skins.get(self.round_killer, "classic")
 
         if self.player_role == "Survivor":
-            survivor_sprite = self.sprites.get(self.selected_player_survivor) or self.sprites.get("survivor")
-            self.survivor = Survivor("You", (500, 560), survivor_sprite, self.selected_player_survivor)
+            survivor_key = self.selected_player_survivor if self.selected_player_survivor in self.sprites else "survivor"
+            survivor_sprite = self.sprites.get(survivor_key)
+            survivor_walk_frames = self.walk_sprites.get(survivor_key, [])
+            self.survivor = Survivor(
+                "You",
+                (500, 560),
+                survivor_sprite,
+                self.selected_player_survivor,
+                survivor_walk_frames,
+            )
             self.player = self.survivor
             self.killers = [
                 Killer(
@@ -2146,32 +2523,45 @@ class Game:
                     KILLERS[self.round_killer]["name"],
                     (820, 145),
                     killer_sprite,
+                    "classic",
+                    killer_walk_frames,
                 )
             ]
         else:
             ai_survivor_id = random.choice(SURVIVOR_IDS)
-            survivor_sprite = self.sprites.get(ai_survivor_id) or self.sprites.get("survivor")
+            ai_survivor_key = ai_survivor_id if ai_survivor_id in self.sprites else "survivor"
+            survivor_sprite = self.sprites.get(ai_survivor_key)
+            survivor_walk_frames = self.walk_sprites.get(ai_survivor_key, [])
             self.player = Killer(
                 self.round_killer,
                 "You",
                 (500, 555),
                 killer_sprite,
                 player_killer_skin if self.skin_unlocked(player_killer_skin) else "classic",
+                killer_walk_frames,
             )
-            self.survivor = Survivor("AI Survivor", (500, 150), survivor_sprite, ai_survivor_id)
+            self.survivor = Survivor(
+                "AI Survivor",
+                (500, 150),
+                survivor_sprite,
+                ai_survivor_id,
+                survivor_walk_frames,
+            )
             self.killers = [self.player]
 
         self.state = GameState.PLAYING
         self.start_round_music()
 
     def sprite_for_round_killer(self) -> pygame.Surface | None:
+        return self.sprites.get(self.sprite_key_for_round_killer()) or self.sprites.get(self.round_killer)
+
+    def sprite_key_for_round_killer(self) -> str:
         if self.player_role == "Killer":
             selected_skin = self.selected_skins.get(self.round_killer, "classic")
             if selected_skin != "classic" and self.skin_unlocked(selected_skin):
-                skin_key = self.skin_sprite_key(self.round_killer, selected_skin)
-                return self.sprites.get(skin_key) or self.sprites.get(self.round_killer)
+                return self.skin_sprite_key(self.round_killer, selected_skin)
 
-        return self.sprites.get(self.round_killer)
+        return self.round_killer
 
     def reset_to_title(self) -> None:
         self.state = GameState.TITLE
@@ -2187,6 +2577,10 @@ class Game:
         self.trashy_turrets = []
         self.trashy_turret_shots = []
         self.goopy_knights = []
+        self.malice_bird_poops = []
+        self.malice_helper_birds = []
+        self.dinosaur_shockwave_timer = 0.0
+        self.dinosaur_shockwave_pos = pygame.Vector2()
         self.round_time = ROUND_DURATION
         self.survivor_life_number = 1
         self.survivor_status_message = ""
@@ -2210,6 +2604,7 @@ class Game:
 
         if isinstance(self.player, Killer):
             self.player.update_abilities(dt)
+            self.update_malice_transform_animation(dt)
         elif isinstance(self.player, Survivor):
             self.player.update_abilities(dt)
 
@@ -2221,10 +2616,15 @@ class Game:
             self.survivor_flash_timer = max(0.0, self.survivor_flash_timer - dt)
         if self.explorer_taming_timer > 0:
             self.explorer_taming_timer = max(0.0, self.explorer_taming_timer - dt)
+        if self.dinosaur_shockwave_timer > 0:
+            self.dinosaur_shockwave_timer = max(0.0, self.dinosaur_shockwave_timer - dt)
 
         if self.player is not None:
             player_walls = self.walls
-            if isinstance(self.player, Killer) and self.player.is_wall_phasing():
+            if (
+                isinstance(self.player, Killer)
+                and (self.player.is_wall_phasing() or self.player.is_malice_bird())
+            ):
                 player_walls = []
 
             player_speed = None
@@ -2232,6 +2632,10 @@ class Game:
                 player_speed = self.player.speed * SHOW_RUNNER_SPEED_MULTIPLIER
             elif isinstance(self.player, Killer) and self.player.is_ducky_hg_active():
                 player_speed = self.player.speed * DUCKY_HG_KILLER_SPEED_MULTIPLIER
+            elif isinstance(self.player, Killer) and self.player.is_malice_tiger():
+                player_speed = self.player.speed * MALICE_TIGER_SPEED_MULTIPLIER
+            elif isinstance(self.player, Killer) and self.player.is_malice_dinosaur():
+                player_speed = self.player.speed * MALICE_DINOSAUR_SPEED_MULTIPLIER
             elif isinstance(self.player, Killer) and self.player.is_vengance_dash_active():
                 player_direction = self.player.vengance_dash_direction
                 player_speed = VENGANCE_DASH_SPEED
@@ -2246,7 +2650,11 @@ class Game:
             ):
                 self.player.stop_vengance_dash()
 
-            if isinstance(self.player, Killer) and not self.player.is_wall_phasing():
+            if (
+                isinstance(self.player, Killer)
+                and not self.player.is_wall_phasing()
+                and not self.player.is_malice_bird()
+            ):
                 self.resolve_wall_overlap(self.player)
 
             self.update_movement_challenges()
@@ -2255,6 +2663,35 @@ class Game:
             self.update_survivor_mode(dt)
         else:
             self.update_killer_mode(dt)
+
+    def update_malice_transform_animation(self, dt: float) -> None:
+        if not isinstance(self.player, Killer) or not self.player.is_malice():
+            return
+
+        if not self.player.is_hunter_rage_active():
+            self.player.sprite = self.sprites.get("malice")
+            self.player.sprite_alpha = 255
+            self.malice_bird_poops = []
+            self.malice_helper_birds = []
+            return
+
+        form = self.player.malice_form
+        frames = self.animation_sprites.get(f"malice_{form}") if form is not None else None
+        if frames:
+            self.player.malice_animation_timer += dt
+            if self.player.malice_animation_timer >= MALICE_FORM_ANIMATION_SPEED:
+                self.player.malice_animation_timer = 0.0
+                self.player.malice_animation_index = (
+                    self.player.malice_animation_index + 1
+                ) % len(frames)
+            self.player.sprite = frames[self.player.malice_animation_index % len(frames)]
+        else:
+            self.player.sprite = self.sprites.get("malice")
+
+        if self.player.is_malice_tiger() and self.player.tiger_invisible_timer > 0:
+            self.player.sprite_alpha = 78
+        else:
+            self.player.sprite_alpha = 255
 
     def update_movement_challenges(self) -> None:
         self.update_spinning_perimeter_challenge()
@@ -2331,14 +2768,94 @@ class Game:
             return "left"
         return None
 
-    def use_malice_roar(self) -> None:
+    def use_malice_hunters_rage(self) -> None:
         if not isinstance(self.player, Killer) or not self.player.is_malice():
             return
         if self.player_role != "Killer" or self.survivor is None:
             return
 
-        self.survivor_stun_timer = MALICE_ROAR_STUN_DURATION
+        form = self.player.start_hunter_rage()
+        if form is None:
+            return
+
+        self.malice_bird_poops = []
+        self.malice_helper_birds = []
+        self.dinosaur_shockwave_timer = 0.0
         self.play_sound("malice_roar")
+        self.update_malice_transform_animation(0.0)
+
+        if form == "bird":
+            self.spawn_malice_helper_birds(set_cooldown=True)
+
+    def use_malice_tiger_invisibility(self) -> None:
+        if not isinstance(self.player, Killer):
+            return
+        if self.player.start_tiger_invisibility():
+            self.play_sound("attack")
+
+    def spawn_malice_helper_birds(self, set_cooldown: bool) -> bool:
+        if not isinstance(self.player, Killer) or not self.player.is_malice_bird():
+            return False
+        if len(self.malice_helper_birds) >= 2:
+            return False
+
+        offsets = [pygame.Vector2(-44, -18), pygame.Vector2(44, -18)]
+        while len(self.malice_helper_birds) < 2:
+            offset = offsets[len(self.malice_helper_birds)]
+            self.malice_helper_birds.append(MaliceHelperBird(self.player.pos, offset))
+
+        if set_cooldown:
+            self.player.bird_summon_cooldown = MALICE_FORM_ABILITY_COOLDOWN
+        return True
+
+    def use_malice_bird_summon(self) -> None:
+        if not isinstance(self.player, Killer) or not self.player.is_malice_bird():
+            return
+        if self.player.bird_summon_cooldown > 0:
+            return
+        if self.spawn_malice_helper_birds(set_cooldown=True):
+            self.play_sound("attack")
+
+    def fire_malice_bird_poop(self) -> None:
+        if not isinstance(self.player, Killer) or not self.player.is_malice_bird():
+            return
+        if self.player.bird_poop_cooldown > 0:
+            return
+
+        direction = safe_normalize(self.player.facing)
+        if direction.length_squared() == 0:
+            direction = pygame.Vector2(0, 1)
+
+        self.malice_bird_poops.append(MaliceBirdPoop(self.player.pos + direction * 36, direction))
+        self.player.bird_poop_cooldown = MALICE_FORM_ABILITY_COOLDOWN
+        self.play_sound("attack")
+
+    def use_malice_dinosaur_stomp(self) -> None:
+        if not isinstance(self.player, Killer) or not self.player.is_malice_dinosaur():
+            return
+        if self.player.dinosaur_stomp_cooldown > 0 or self.survivor is None:
+            return
+
+        self.player.dinosaur_stomp_cooldown = MALICE_FORM_ABILITY_COOLDOWN
+        self.dinosaur_shockwave_timer = MALICE_DINOSAUR_SHOCKWAVE_VISUAL_DURATION
+        self.dinosaur_shockwave_pos = pygame.Vector2(self.player.pos)
+        self.play_sound("attack")
+
+        if self.survivor.pos.distance_to(self.player.pos) <= MALICE_DINOSAUR_SHOCKWAVE_RADIUS:
+            self.end_round(True, "Dinosaur stomp shockwave crushed the survivor.")
+
+    def use_malice_dinosaur_roar(self) -> None:
+        if not isinstance(self.player, Killer) or not self.player.is_malice_dinosaur():
+            return
+        if self.player.dinosaur_roar_cooldown > 0 or self.survivor is None:
+            return
+
+        self.player.dinosaur_roar_cooldown = MALICE_FORM_ABILITY_COOLDOWN
+        self.survivor_stun_timer = max(
+            self.survivor_stun_timer,
+            MALICE_DINOSAUR_ROAR_STUN_DURATION,
+        )
+        self.play_sound("dinosaur_roar")
 
     def fire_subslasher_spike(self, effect: str) -> None:
         if not isinstance(self.player, Killer) or not self.player.is_subslasher():
@@ -2505,6 +3022,48 @@ class Game:
                 remaining.append(projectile)
 
         self.projectiles = remaining
+
+    def update_malice_bird_poops(self, dt: float) -> None:
+        if self.survivor is None:
+            self.malice_bird_poops = []
+            return
+
+        remaining: list[MaliceBirdPoop] = []
+        for poop in self.malice_bird_poops:
+            if not poop.update(dt, self.walls):
+                continue
+
+            if poop.rect.colliderect(self.survivor.rect):
+                self.survivor_stun_timer = max(
+                    self.survivor_stun_timer,
+                    MALICE_BIRD_POOP_STUN_DURATION,
+                )
+                continue
+
+            remaining.append(poop)
+
+        self.malice_bird_poops = remaining
+
+    def update_malice_helper_birds(self, dt: float) -> None:
+        if self.survivor is None:
+            self.malice_helper_birds = []
+            return
+
+        remaining: list[MaliceHelperBird] = []
+        for bird in self.malice_helper_birds:
+            if not bird.update(dt):
+                continue
+
+            if bird.rect.colliderect(self.survivor.rect):
+                self.survivor_slow_timer = max(
+                    self.survivor_slow_timer,
+                    MALICE_BIRD_HELPER_SLOW_DURATION,
+                )
+                continue
+
+            remaining.append(bird)
+
+        self.malice_helper_birds = remaining
 
     def update_ducky_belts(self, dt: float) -> None:
         if self.survivor is None:
@@ -2754,6 +3313,12 @@ class Game:
         self.update_landmines()
         if self.state != GameState.PLAYING:
             return
+        self.update_malice_bird_poops(dt)
+        if self.state != GameState.PLAYING:
+            return
+        self.update_malice_helper_birds(dt)
+        if self.state != GameState.PLAYING:
+            return
 
         if self.player.is_vengance_dash_active() and self.player.rect.colliderect(self.survivor.rect):
             self.end_round(True, "Vengance Bot's robot slash hit the survivor.")
@@ -2810,7 +3375,15 @@ class Game:
         if not threats:
             return
 
-        nearest = min(threats, key=lambda killer: killer.pos.distance_to(survivor.pos))
+        visible_threats = [
+            killer
+            for killer in threats
+            if not (killer.is_malice_tiger() and killer.tiger_invisible_timer > 0)
+        ]
+        if not visible_threats:
+            return
+
+        nearest = min(visible_threats, key=lambda killer: killer.pos.distance_to(survivor.pos))
         flee = safe_normalize(survivor.pos - nearest.pos)
 
         # If the survivor has room, drift toward open space instead of a wall.
@@ -3257,7 +3830,7 @@ class Game:
                 self.font_small,
                 self.skin_notice,
                 (203, 213, 225),
-                pygame.Rect(150, 582, 700, 36),
+                pygame.Rect(WIDTH // 2 - 350, 582, 700, 36),
             )
 
     def skin_challenge_text(self, skin_id: str) -> str:
@@ -3380,6 +3953,9 @@ class Game:
         for projectile in self.projectiles:
             projectile.draw(self.screen)
 
+        for poop in self.malice_bird_poops:
+            poop.draw(self.screen)
+
         for belt in self.ducky_belts:
             belt.draw(self.screen)
 
@@ -3403,6 +3979,11 @@ class Game:
         for knight in self.goopy_knights:
             knight.draw(self.screen)
 
+        for bird in self.malice_helper_birds:
+            bird.draw(self.screen)
+
+        self.draw_dinosaur_shockwave()
+
         if self.survivor is not None:
             self.survivor.draw(self.screen, self.font_small)
 
@@ -3411,6 +3992,7 @@ class Game:
                 killer.draw(self.screen, self.font_small)
 
         self.draw_hud()
+        self.draw_side_panel()
         self.draw_survivor_ability_ui()
 
     def draw_survivor_ability_effects(self) -> None:
@@ -3488,8 +4070,224 @@ class Game:
             True,
         )
 
+    def draw_dinosaur_shockwave(self) -> None:
+        if self.dinosaur_shockwave_timer <= 0:
+            return
+
+        elapsed_ratio = 1.0 - (
+            self.dinosaur_shockwave_timer / MALICE_DINOSAUR_SHOCKWAVE_VISUAL_DURATION
+        )
+        radius = int(34 + MALICE_DINOSAUR_SHOCKWAVE_RADIUS * elapsed_ratio)
+        alpha = int(190 * (self.dinosaur_shockwave_timer / MALICE_DINOSAUR_SHOCKWAVE_VISUAL_DURATION))
+        overlay = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+        center = (round(self.dinosaur_shockwave_pos.x), round(self.dinosaur_shockwave_pos.y))
+        pygame.draw.circle(overlay, (248, 250, 252, alpha), center, radius, 5)
+        pygame.draw.circle(overlay, (59, 130, 246, max(50, alpha // 2)), center, radius // 2, 2)
+        self.screen.blit(overlay, (0, 0))
+
+    def draw_panel_shell(self, rect: pygame.Rect, title: str) -> None:
+        pygame.draw.rect(self.screen, (12, 19, 32), rect, border_radius=PANEL_RADIUS)
+        pygame.draw.rect(self.screen, (51, 65, 85), rect, 2, border_radius=PANEL_RADIUS)
+        draw_text(self.screen, self.font_small, title, (248, 250, 252), (rect.left + 16, rect.top + 12))
+        pygame.draw.line(
+            self.screen,
+            (51, 65, 85),
+            (rect.left + 14, rect.top + 37),
+            (rect.right - 14, rect.top + 37),
+            1,
+        )
+
+    def draw_side_panel(self) -> None:
+        pygame.draw.rect(self.screen, (8, 13, 24), SIDE_PANEL_RECT, border_radius=10)
+        self.draw_timer_panel()
+        self.draw_status_panel()
+        self.draw_ability_guide_panel()
+        self.draw_combat_panel()
+
+    def draw_timer_panel(self) -> None:
+        self.draw_panel_shell(TIMER_PANEL_RECT, "Time")
+        draw_text(
+            self.screen,
+            self.font_large,
+            f"{math.ceil(self.round_time):02d}",
+            (248, 250, 252),
+            (TIMER_PANEL_RECT.centerx, TIMER_PANEL_RECT.top + 73),
+            True,
+        )
+        draw_text(
+            self.screen,
+            self.font_small,
+            "seconds left",
+            (148, 163, 184),
+            (TIMER_PANEL_RECT.centerx, TIMER_PANEL_RECT.bottom - 24),
+            True,
+        )
+
+    def gameplay_status_text(self) -> tuple[str, str]:
+        if self.player_role == "Survivor":
+            status = "Survive!"
+            survivor_ability = self.survivor_ability_status()
+            detail = (
+                f"{self.survivor_status_message} | {survivor_ability}"
+                if self.survivor_status_message
+                else survivor_ability
+            )
+            return status, detail
+
+        status = "Catch the survivor!"
+        detail = "Space attacks"
+        if isinstance(self.player, Killer):
+            if self.player.is_ducky():
+                detail = self.ducky_ability_status(self.player)
+            elif self.player.is_malice():
+                detail = self.malice_ability_status(self.player)
+            elif self.player.is_subslasher():
+                detail = self.subslasher_ability_status()
+            elif self.player.is_show_runner():
+                detail = self.show_runner_ability_status(self.player)
+            elif self.player.is_vengance_bot():
+                detail = self.vengance_ability_status(self.player)
+        return status, detail
+
+    def draw_status_panel(self) -> None:
+        self.draw_panel_shell(STATUS_PANEL_RECT, "Round Status")
+        status, detail = self.gameplay_status_text()
+        draw_text(
+            self.screen,
+            self.font_small,
+            status,
+            (248, 199, 88),
+            (STATUS_PANEL_RECT.left + 16, STATUS_PANEL_RECT.top + 47),
+        )
+        draw_wrapped_text_left(
+            self.screen,
+            self.font_small,
+            detail,
+            (203, 213, 225),
+            pygame.Rect(
+                STATUS_PANEL_RECT.left + 16,
+                STATUS_PANEL_RECT.top + 73,
+                STATUS_PANEL_RECT.width - 32,
+                STATUS_PANEL_RECT.bottom - STATUS_PANEL_RECT.top - 86,
+            ),
+            2,
+        )
+
+    def draw_combat_panel(self) -> None:
+        self.draw_panel_shell(COMBAT_PANEL_RECT, "Action")
+        if isinstance(self.player, Killer):
+            draw_text(
+                self.screen,
+                self.font_small,
+                self.player.cooldown_status(),
+                (226, 232, 240),
+                (COMBAT_PANEL_RECT.left + 16, COMBAT_PANEL_RECT.top + 47),
+            )
+            bar = pygame.Rect(
+                COMBAT_PANEL_RECT.left + 16,
+                COMBAT_PANEL_RECT.top + 78,
+                COMBAT_PANEL_RECT.width - 32,
+                16,
+            )
+            self.draw_cooldown_bar(self.player, bar)
+            draw_text(
+                self.screen,
+                self.font_small,
+                "Space: basic attack",
+                (148, 163, 184),
+                (COMBAT_PANEL_RECT.left + 16, COMBAT_PANEL_RECT.top + 98),
+            )
+            return
+
+        draw_wrapped_text_left(
+            self.screen,
+            self.font_small,
+            self.survivor_ability_status(),
+            (226, 232, 240),
+            pygame.Rect(
+                COMBAT_PANEL_RECT.left + 16,
+                COMBAT_PANEL_RECT.top + 47,
+                COMBAT_PANEL_RECT.width - 32,
+                COMBAT_PANEL_RECT.height - 60,
+            ),
+            3,
+        )
+
+    def draw_ability_guide_panel(self) -> None:
+        lines = self.ability_guide_lines()
+        self.draw_panel_shell(ABILITY_PANEL_RECT, "Ability Guide")
+
+        if not lines:
+            draw_text(
+                self.screen,
+                self.font_small,
+                "No abilities yet.",
+                (148, 163, 184),
+                (ABILITY_PANEL_RECT.left + 16, ABILITY_PANEL_RECT.top + 46),
+            )
+            return
+
+        y = ABILITY_PANEL_RECT.top + 45
+        content_rect = pygame.Rect(
+            ABILITY_PANEL_RECT.left + 16,
+            y,
+            ABILITY_PANEL_RECT.width - 32,
+            ABILITY_PANEL_RECT.bottom - y - 14,
+        )
+        for line in lines:
+            y = draw_wrapped_text_left(
+                self.screen,
+                self.font_small,
+                f"- {line}",
+                (203, 213, 225),
+                pygame.Rect(content_rect.left, y, content_rect.width, content_rect.bottom - y),
+                2,
+            )
+            y += 7
+            if y + self.font_small.get_height() > content_rect.bottom:
+                break
+
+    def ability_guide_lines(self) -> list[str]:
+        if isinstance(self.player, Survivor):
+            if self.player.survivor_id == "survivor_odd":
+                return ["Move: WASD or arrows", "F: Picture Taken flash stuns killer 5s"]
+            if self.player.survivor_id == "survivor_explorer":
+                return ["Move: WASD or arrows", "A: Adrenaline invincible +60% speed", "A also Taming: killer 50% slower"]
+            if self.player.survivor_id == "survivor_kitty":
+                return ["Move: WASD or arrows", "L: place blue circle", "2: teleport to blue circle once"]
+            if self.player.survivor_id == "survivor_queen_goopy":
+                return ["Move: WASD or arrows", "K: summon 2 knights", "Knights stun killer 2.3s on touch"]
+            if self.player.survivor_id == "survivor_trashy":
+                return ["G: Gun Maker timing game / fire gun", "C: Shock Wave Cannon stuns and knocks back", "T: Devils Work turret, max 2", "Trashy abilities have 5s cooldowns"]
+            if self.player.survivor_id == "survivor_kevin":
+                return ["Move: WASD or arrows", "P: Punch in front for 5s", "S: Double Speed, +89% speed"]
+            return ["Move: WASD or arrows", "Survive both lives until timer ends"]
+
+        if not isinstance(self.player, Killer):
+            return []
+
+        if self.player.is_ducky():
+            return ["Space: Lunge Swing attack", "C: Crying Swing belt/mace projectile", "Y: HG, Ducky faster and survivor slower"]
+        if self.player.is_subslasher():
+            return ["Space: Popsicle Sword Swing", "I: Perpelling Shootdown freeze spike", "E: Freezing Gun kill spike", "Q: Perpelling Subzero homing cubes"]
+        if self.player.is_show_runner():
+            return ["Space: Curtain Slash", "9: hahaha, slow survivor 50%", "U: script hook pulls survivor halfway", "A: shows power, +69% speed"]
+        if self.player.is_vengance_bot():
+            return ["Space: Vengance Lunge", "R: robot slash dash for 5s", "C: explosion landmine then teleport"]
+        if self.player.is_malice_tiger():
+            return ["Tiger form: +69% speed for Hunter's Rage", "Space: slash attack", "I: invisible 5s; survivor cannot see you", "Invisibility cooldown: 5s after visible"]
+        if self.player.is_malice_bird():
+            return ["Bird form: flies through walls", "I: summon 2 helper birds", "A: shoot white poop stun projectile", "Helpers slow survivor 50% on touch"]
+        if self.player.is_malice_dinosaur():
+            return ["Dinosaur form: 10% slower", "S: stomp shockwave; survivor dies in range", "R: dinosaur roar freezes survivor 16s", "Stomp and roar cooldown: 5s"]
+        if self.player.is_malice():
+            return ["Space: Malice Bite", "H: Hunter's Rage, random 20s form", "I: In Search For Bodies, pass through walls 4s"]
+
+        return ["Space: attack", "Catch the survivor before time ends"]
+
     def draw_arena_preview(self) -> None:
-        preview = pygame.Rect(145, 355, 710, 210)
+        preview = pygame.Rect(0, 0, 760, 230)
+        preview.center = (WIDTH // 2, 475)
         pygame.draw.rect(self.screen, (20, 31, 48), preview, border_radius=18)
         pygame.draw.rect(self.screen, (64, 77, 98), preview, 2, border_radius=18)
         for x in range(preview.left + 28, preview.right, 58):
@@ -3522,8 +4320,8 @@ class Game:
             wall.draw(self.screen)
 
     def draw_hud(self) -> None:
-        pygame.draw.rect(self.screen, (5, 10, 20), pygame.Rect(0, 0, WIDTH, 92))
-        pygame.draw.line(self.screen, (51, 65, 85), (0, 92), (WIDTH, 92), 2)
+        pygame.draw.rect(self.screen, (5, 10, 20), pygame.Rect(0, 0, WIDTH, TOP_BAR_HEIGHT))
+        pygame.draw.line(self.screen, (51, 65, 85), (0, TOP_BAR_HEIGHT), (WIDTH, TOP_BAR_HEIGHT), 2)
 
         selected = KILLERS[self.round_killer]
         draw_text(self.screen, self.font_medium, "Tag 2.0", (248, 250, 252), (24, 14))
@@ -3534,46 +4332,13 @@ class Game:
             (203, 213, 225),
             (24, 50),
         )
-
         draw_text(
             self.screen,
-            self.font_large,
-            f"{math.ceil(self.round_time):02d}",
-            (248, 250, 252),
-            (WIDTH // 2, 45),
-            True,
+            self.font_small,
+            "WASD / Arrows move  |  Escape quits",
+            (148, 163, 184),
+            (WIDTH - 420, 50),
         )
-
-        if self.player_role == "Survivor":
-            status = "Survive!"
-            survivor_ability = self.survivor_ability_status()
-            detail = (
-                f"{self.survivor_status_message} | {survivor_ability}"
-                if self.survivor_status_message
-                else survivor_ability
-            )
-        else:
-            status = "Catch the survivor!"
-            detail = "Space attacks"
-            if isinstance(self.player, Killer):
-                if self.player.is_ducky():
-                    detail = self.ducky_ability_status(self.player)
-                elif self.player.is_malice():
-                    detail = self.malice_ability_status(self.player)
-                elif self.player.is_subslasher():
-                    detail = self.subslasher_ability_status()
-                elif self.player.is_show_runner():
-                    detail = self.show_runner_ability_status(self.player)
-                elif self.player.is_vengance_bot():
-                    detail = self.vengance_ability_status(self.player)
-
-        draw_text(self.screen, self.font_small, status, (248, 199, 88), (760, 14))
-        draw_text(self.screen, self.font_small, detail, (203, 213, 225), (760, 39))
-
-        if isinstance(self.player, Killer):
-            cooldown_status = self.player.cooldown_status()
-            draw_text(self.screen, self.font_small, cooldown_status, (226, 232, 240), (760, 64))
-            self.draw_cooldown_bar(self.player)
 
     def hud_role_text(self, killer_name: str) -> str:
         text = f"Role: {self.player_role}  |  Round killer: {killer_name}"
@@ -3635,10 +4400,36 @@ class Game:
         return "WASD / Arrows move"
 
     def malice_ability_status(self, malice: Killer) -> str:
-        roar = "H: roar"
-        if self.survivor_stun_timer > 0:
-            roar = f"Stun {self.survivor_stun_timer:.1f}s"
-        return f"{malice.wall_phase_status()} | {roar}"
+        if malice.is_malice_tiger():
+            invis = "I invisible"
+            if malice.tiger_invisible_timer > 0:
+                invis = f"Invisible {malice.tiger_invisible_timer:.1f}s"
+            elif malice.tiger_invisible_cooldown > 0:
+                invis = f"I cooldown {malice.tiger_invisible_cooldown:.1f}s"
+            return f"Tiger {malice.malice_form_timer:.1f}s | {invis}"
+
+        if malice.is_malice_bird():
+            summon = "I helpers"
+            poop = "A poop"
+            if malice.bird_summon_cooldown > 0:
+                summon = f"I cooldown {malice.bird_summon_cooldown:.1f}s"
+            if malice.bird_poop_cooldown > 0:
+                poop = f"A cooldown {malice.bird_poop_cooldown:.1f}s"
+            return f"Bird {malice.malice_form_timer:.1f}s | {summon} | {poop}"
+
+        if malice.is_malice_dinosaur():
+            stomp = "S stomp"
+            roar = "R roar"
+            if malice.dinosaur_stomp_cooldown > 0:
+                stomp = f"S cooldown {malice.dinosaur_stomp_cooldown:.1f}s"
+            if malice.dinosaur_roar_cooldown > 0:
+                roar = f"R cooldown {malice.dinosaur_roar_cooldown:.1f}s"
+            return f"Dino {malice.malice_form_timer:.1f}s | {stomp} | {roar}"
+
+        rage = "H: Hunter's Rage"
+        if malice.malice_hunter_cooldown > 0:
+            rage = f"H cooldown {malice.malice_hunter_cooldown:.1f}s"
+        return f"{malice.wall_phase_status()} | {rage}"
 
     def subslasher_ability_status(self) -> str:
         if not isinstance(self.player, Killer):
@@ -3695,8 +4486,9 @@ class Game:
             mine = f"C cooldown {vengance_bot.vengance_mine_cooldown:.0f}s"
         return f"{dash} | {mine}"
 
-    def draw_cooldown_bar(self, killer: Killer) -> None:
-        bar = pygame.Rect(592, 62, 140, 14)
+    def draw_cooldown_bar(self, killer: Killer, bar: pygame.Rect | None = None) -> None:
+        if bar is None:
+            bar = pygame.Rect(COMBAT_PANEL_RECT.left + 16, COMBAT_PANEL_RECT.top + 78, 150, 16)
         pygame.draw.rect(self.screen, (31, 41, 55), bar, border_radius=7)
 
         if killer.attack_phase is not None:

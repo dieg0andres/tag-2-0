@@ -41,8 +41,11 @@ python tools/generate_assets.py
 - I: Subslasher only, shoot Perpelling Shootdown freeze spike
 - E: Subslasher only, shoot Freezing Gun kill spike
 - Q: Subslasher only, launch Perpelling Subzero homing ice cubes
-- I: Malice only, activate In Search For Bodies
-- H: Malice only, activate Hunting Prowl
+- H: Malice only, activate Hunter's Rage and randomly transform for 20 seconds
+- I: base Malice phases through walls, Tiger turns invisible, Bird summons helper birds
+- A: Bird-form Malice only, shoot white bird poop
+- S: Dinosaur-form Malice only, stomp shockwave
+- R: Dinosaur-form Malice only, roar to freeze the survivor
 - 9: Show Runner only, activate hahaha
 - U: Show Runner only, activate script hook
 - A: Show Runner only, activate shows power
@@ -77,9 +80,12 @@ python tools/generate_assets.py
   - hahaha: press 9 to slow the survivor by 50% for 5.2 seconds.
   - script hook: press U to drag the survivor halfway to Show Runner. It does no damage.
   - shows power: press A to speed Show Runner up by 69% for 12.5 seconds.
-- Malice has two player-controlled abilities:
+- Malice has Hunter's Rage and form abilities:
   - In Search For Bodies: press I to pass through walls for 4 seconds. The 20-second cooldown starts after the ability ends.
-  - Hunting Prowl: press H to play Malice's roar and stun the AI survivor for 2.1 seconds.
+  - Hunter's Rage: press H to randomly become Tiger, Bird, or Dinosaur for 20 seconds.
+  - Tiger form: moves 69% faster, can still attack with Space, and can press I to go invisible for 5 seconds. While invisible, the AI survivor cannot see Tiger. The invisibility cooldown is 5 seconds after Tiger becomes visible again.
+  - Bird form: flies through walls. Press I to summon 2 helper birds that move randomly and slow the survivor by 50% on touch. Press A to shoot white bird poop that stuns the survivor.
+  - Dinosaur form: moves 10% slower. Press S to stomp and create a shockwave that kills the survivor if they are close enough. Press R to roar and freeze the survivor for 16 seconds.
 - Vengance Bot has two player-controlled abilities:
   - robot slash: press R to dash forward for up to 5 seconds. If the dash touches the survivor, Vengance Bot wins.
   - explosion: press C to place a landmine where Vengance Bot is standing, then teleport to a random open spot away from the survivor. If the survivor steps on the landmine, Vengance Bot wins.
@@ -141,7 +147,8 @@ The game looks for optional sound files in `assets/`:
 - `assets/vengance_bot_mastery_3_music.wav` plays when the player selects Vengance Bot Mastery 3.
 - `assets/ducky_chase_music.wav` plays only when Ducky is the round killer.
 - `assets/malice_chase_music.wav` plays only when Malice is the round killer.
-- `assets/malice_roar.wav` plays when player-controlled Malice uses Hunting Prowl.
+- `assets/malice_roar.wav` plays when player-controlled Malice activates Hunter's Rage.
+- `assets/dinosaur_roar.wav` plays when Dinosaur-form Malice uses the R roar ability.
 - `assets/attack.wav`
 - `assets/win.wav`
 - `assets/lose.wav`
@@ -169,6 +176,9 @@ The reference pictures were translated into simple 64 x 64 transparent top-down 
 - `show_runner_mastery_2.png`: based on the second Mastery drawing. It keeps the blue crystal crown, jagged dark half, and floating blue fragments.
 - `show_runner_mastery_3.png`: based on the third Mastery drawing. It keeps the red crown, blue-gray body, sharp split face, and stronger Mastery silhouette.
 - `malice.png`: based on the blue clawed shark-like drawing. It keeps the gray shark head, red eyes, teeth, blue limbs, and claws.
+- `malice_tiger_0.png` through `malice_tiger_2.png`: Hunter's Rage Tiger animation frames. They keep the blue body, orange stripes, yellow eyes/claws, and angry toothy face from the tiger reference.
+- `malice_bird_0.png` through `malice_bird_2.png`: Hunter's Rage Bird animation frames. They keep the blue body, orange wings, yellow beak, and yellow legs from the bird reference.
+- `malice_dinosaur_0.png` through `malice_dinosaur_2.png`: Hunter's Rage Dinosaur animation frames. They keep the long blue dinosaur body, orange back plates, yellow claws, and strong stomp silhouette.
 - `vengance_bot.png`: based on the gray robot drawing. It keeps the box head, red eyes, green mouth mark, thin arms, and tall gray body.
 - `vengance_wick_wonalds.png`: based on the Wick Wonalds drawing. It keeps the menu-board head, gray body, and yellow W detail.
 - `vengance_mlg.png`: based on the MLG drawing. It keeps the green body, white MLG head, green cap, and purple launcher.

@@ -10,6 +10,7 @@ import pygame
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 SPRITE_DIR = ROOT_DIR / "assets" / "sprites"
+ANIMATION_DIR = SPRITE_DIR / "animations"
 SIZE = 64
 
 
@@ -36,6 +37,77 @@ def save_if_missing(filename: str, surface: pygame.Surface) -> None:
         return
     pygame.image.save(surface, str(path))
     print(f"Created {path}")
+
+
+def save_animation_if_missing(filename: str, surface: pygame.Surface) -> None:
+    ANIMATION_DIR.mkdir(parents=True, exist_ok=True)
+    path = ANIMATION_DIR / filename
+    if path.exists():
+        print(f"Skipped existing {path}")
+        return
+    pygame.image.save(surface, str(path))
+    print(f"Created {path}")
+
+
+def make_walk_frame(source: pygame.Surface, frame: int) -> pygame.Surface:
+    """Create a simple transparent walking frame from a finished 64x64 sprite."""
+    canvas = make_surface()
+    shadow_alpha = 36 if frame in (0, 2) else 52
+    pygame.draw.ellipse(canvas, (0, 0, 0, shadow_alpha), pygame.Rect(18, 57, 28, 6))
+
+    if frame == 0:
+        transformed = source.copy()
+        offset = (0, 0)
+    elif frame == 1:
+        scaled = pygame.transform.smoothscale(source, (62, 64))
+        transformed = pygame.transform.rotozoom(scaled, -4, 1.0)
+        offset = (-1, -2)
+    elif frame == 2:
+        transformed = pygame.transform.smoothscale(source, (64, 62))
+        offset = (0, 1)
+    else:
+        scaled = pygame.transform.smoothscale(source, (62, 64))
+        transformed = pygame.transform.rotozoom(scaled, 4, 1.0)
+        offset = (1, -2)
+
+    rect = transformed.get_rect(center=(SIZE // 2 + offset[0], SIZE // 2 + offset[1]))
+    canvas.blit(transformed, rect)
+
+    # Tiny foot/impact accents make the motion read at small in-game scale.
+    if frame == 1:
+        pygame.draw.ellipse(canvas, (255, 255, 255, 58), pygame.Rect(12, 58, 12, 4))
+    elif frame == 3:
+        pygame.draw.ellipse(canvas, (255, 255, 255, 58), pygame.Rect(40, 58, 12, 4))
+
+    return canvas
+
+
+def should_make_walk_frames(sprite_key: str) -> bool:
+    return not any(
+        sprite_key.startswith(prefix)
+        for prefix in ("malice_tiger_", "malice_bird_", "malice_dinosaur_")
+    )
+
+
+def generate_walk_animations() -> None:
+    if pygame.display.get_surface() is None:
+        pygame.display.set_mode((1, 1))
+
+    for path in sorted(SPRITE_DIR.glob("*.png")):
+        sprite_key = path.stem
+        if not should_make_walk_frames(sprite_key):
+            continue
+        try:
+            source = pygame.image.load(str(path)).convert_alpha()
+        except pygame.error:
+            continue
+
+        source = pygame.transform.smoothscale(source, (SIZE, SIZE))
+        for frame in range(4):
+            save_animation_if_missing(
+                f"{sprite_key}_walk_{frame}.png",
+                make_walk_frame(source, frame),
+            )
 
 
 def generate_revenge_bot() -> pygame.Surface:
@@ -598,6 +670,108 @@ def generate_malice() -> pygame.Surface:
     for claw in [(3, 50), (8, 52), (27, 63), (47, 63)]:
         pygame.draw.line(sprite, yellow, claw, (claw[0] + 2, claw[1] - 5), 2)
 
+    return sprite
+
+
+def generate_malice_tiger(frame: int) -> pygame.Surface:
+    """Hunter's Rage Tiger: blue striped body, yellow claws, angry face."""
+    sprite = make_surface()
+    outline = (34, 48, 58)
+    blue = (49, 157, 205)
+    blue_dark = (25, 103, 151)
+    orange = (177, 91, 51)
+    yellow = (234, 218, 68)
+    white = (239, 244, 238)
+    leg_shift = (-3, 2, -1)[frame % 3]
+
+    pygame.draw.ellipse(sprite, blue, pygame.Rect(10, 24, 37, 22))
+    pygame.draw.ellipse(sprite, outline, pygame.Rect(10, 24, 37, 22), 2)
+    pygame.draw.circle(sprite, blue, (48, 24), 15)
+    pygame.draw.circle(sprite, outline, (48, 24), 15, 2)
+    pygame.draw.arc(sprite, blue_dark, pygame.Rect(2, 18, 20, 24), 1.4, 4.6, 4)
+    pygame.draw.line(sprite, outline, (12, 31), (4, 20), 1)
+
+    for x in (17, 27, 37):
+        pygame.draw.line(sprite, orange, (x, 25), (x - 4, 42), 3)
+    pygame.draw.line(sprite, orange, (49, 12), (43, 28), 3)
+    pygame.draw.line(sprite, orange, (56, 18), (44, 34), 3)
+
+    pygame.draw.polygon(sprite, blue, [(39, 10), (42, 1), (47, 12)])
+    pygame.draw.polygon(sprite, blue, [(55, 10), (60, 2), (59, 16)])
+    pygame.draw.polygon(sprite, outline, [(39, 10), (42, 1), (47, 12)], 2)
+    pygame.draw.polygon(sprite, outline, [(55, 10), (60, 2), (59, 16)], 2)
+    pygame.draw.polygon(sprite, yellow, [(41, 20), (47, 17), (47, 24)])
+    pygame.draw.polygon(sprite, yellow, [(53, 20), (59, 18), (57, 25)])
+    pygame.draw.rect(sprite, white, pygame.Rect(40, 30, 17, 9), border_radius=3)
+    for x in range(42, 57, 5):
+        pygame.draw.polygon(sprite, outline, [(x, 30), (x + 3, 34), (x, 39)])
+
+    for x, y in ((18, 44 + leg_shift), (28, 45 - leg_shift), (39, 44 + leg_shift)):
+        pygame.draw.line(sprite, blue_dark, (x, 42), (x, min(64, y + 10)), 4)
+        pygame.draw.line(sprite, yellow, (x, min(63, y + 10)), (x + 5, min(63, y + 7)), 2)
+    return sprite
+
+
+def generate_malice_bird(frame: int) -> pygame.Surface:
+    """Hunter's Rage Bird: blue body, orange wings, yellow beak and legs."""
+    sprite = make_surface()
+    outline = (34, 48, 58)
+    blue = (52, 169, 217)
+    blue_dark = (28, 116, 167)
+    orange = (194, 102, 54)
+    yellow = (231, 219, 60)
+    wing_top = (4, 0, 7)[frame % 3]
+    wing_bottom = (32, 24, 36)[frame % 3]
+
+    pygame.draw.ellipse(sprite, blue, pygame.Rect(10, 22, 36, 24))
+    pygame.draw.ellipse(sprite, outline, pygame.Rect(10, 22, 36, 24), 2)
+    pygame.draw.circle(sprite, blue_dark, (49, 26), 11)
+    pygame.draw.circle(sprite, outline, (49, 26), 11, 2)
+    pygame.draw.polygon(sprite, yellow, [(57, 25), (64, 21), (64, 30)])
+    pygame.draw.polygon(sprite, outline, [(57, 25), (64, 21), (64, 30)], 1)
+    pygame.draw.circle(sprite, yellow, (49, 22), 2)
+
+    pygame.draw.polygon(sprite, orange, [(20, 23), (18, wing_top), (30, wing_bottom), (28, 34)])
+    pygame.draw.polygon(sprite, orange, [(30, 23), (34, wing_top + 1), (40, wing_bottom), (36, 35)])
+    pygame.draw.lines(sprite, outline, False, [(20, 23), (18, wing_top), (30, wing_bottom)], 2)
+    pygame.draw.lines(sprite, outline, False, [(30, 23), (34, wing_top + 1), (40, wing_bottom)], 2)
+
+    for x in (22, 34):
+        pygame.draw.line(sprite, yellow, (x, 45), (x - 2, 60), 4)
+        pygame.draw.line(sprite, outline, (x, 45), (x - 2, 60), 1)
+        pygame.draw.line(sprite, yellow, (x - 2, 60), (x - 8, 63), 2)
+        pygame.draw.line(sprite, yellow, (x - 2, 60), (x + 4, 63), 2)
+    return sprite
+
+
+def generate_malice_dinosaur(frame: int) -> pygame.Surface:
+    """Hunter's Rage Dinosaur: long blue body, orange back plates, yellow claws."""
+    sprite = make_surface()
+    outline = (34, 48, 58)
+    blue = (43, 155, 202)
+    blue_dark = (29, 113, 163)
+    orange = (194, 101, 55)
+    yellow = (230, 219, 62)
+    leg_shift = (-2, 2, 0)[frame % 3]
+
+    pygame.draw.ellipse(sprite, blue, pygame.Rect(13, 23, 38, 22))
+    pygame.draw.ellipse(sprite, outline, pygame.Rect(13, 23, 38, 22), 2)
+    pygame.draw.ellipse(sprite, blue, pygame.Rect(40, 17, 20, 18))
+    pygame.draw.ellipse(sprite, outline, pygame.Rect(40, 17, 20, 18), 2)
+    pygame.draw.polygon(sprite, blue, [(14, 32), (1, 23), (6, 43)])
+    pygame.draw.line(sprite, outline, (14, 32), (2, 24), 2)
+    pygame.draw.circle(sprite, yellow, (53, 23), 3)
+
+    for x in (20, 29, 38):
+        pygame.draw.polygon(sprite, orange, [(x, 23), (x + 5, 10), (x + 10, 24)])
+        pygame.draw.lines(sprite, outline, True, [(x, 23), (x + 5, 10), (x + 10, 24)], 1)
+
+    pygame.draw.line(sprite, blue_dark, (24, 42), (23 + leg_shift, 61), 5)
+    pygame.draw.line(sprite, blue_dark, (41, 42), (43 - leg_shift, 61), 5)
+    pygame.draw.line(sprite, yellow, (23 + leg_shift, 61), (17 + leg_shift, 63), 2)
+    pygame.draw.line(sprite, yellow, (43 - leg_shift, 61), (49 - leg_shift, 63), 2)
+    pygame.draw.line(sprite, blue_dark, (52, 32), (62, 42), 4)
+    pygame.draw.line(sprite, yellow, (62, 42), (64, 37), 2)
     return sprite
 
 
@@ -1173,6 +1347,7 @@ def generate_vengance_bot_mastery_3() -> pygame.Surface:
 
 def main() -> None:
     pygame.init()
+    pygame.display.set_mode((1, 1))
     save_if_missing("revenge_bot.png", generate_revenge_bot())
     save_if_missing("ducky_fried_chicken.png", generate_ducky_fried_chicken())
     save_if_missing("ducky_inverted.png", generate_ducky_inverted())
@@ -1190,6 +1365,10 @@ def main() -> None:
     save_if_missing("show_runner_mastery_2.png", generate_show_runner_mastery_2())
     save_if_missing("show_runner_mastery_3.png", generate_show_runner_mastery_3())
     save_if_missing("malice.png", generate_malice())
+    for frame in range(3):
+        save_if_missing(f"malice_tiger_{frame}.png", generate_malice_tiger(frame))
+        save_if_missing(f"malice_bird_{frame}.png", generate_malice_bird(frame))
+        save_if_missing(f"malice_dinosaur_{frame}.png", generate_malice_dinosaur(frame))
     save_if_missing("vengance_bot.png", generate_vengance_bot())
     save_if_missing("vengance_wick_wonalds.png", generate_vengance_wick_wonalds())
     save_if_missing("vengance_mlg.png", generate_vengance_mlg())
@@ -1206,6 +1385,7 @@ def main() -> None:
     save_if_missing("survivor_kevin.png", generate_survivor_kevin())
     save_if_missing("survivor_trashy.png", generate_survivor_trashy())
     save_if_missing("survivor_queen_goopy.png", generate_survivor_queen_goopy())
+    generate_walk_animations()
     pygame.quit()
 
 
