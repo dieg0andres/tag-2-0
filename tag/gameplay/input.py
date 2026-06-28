@@ -78,6 +78,13 @@ class InputMixin:
             selected_skin = self.skin_index_from_key(key)
             if selected_skin is not None:
                 self.select_skin_for_round(selected_skin)
+            elif key == pygame.K_b:
+                self.state = GameState.ROLE_REVEAL
+                self.skin_notice = ""
+            elif key in (pygame.K_LEFT, pygame.K_UP):
+                self.cycle_selected_skin(-1)
+            elif key in (pygame.K_RIGHT, pygame.K_DOWN):
+                self.cycle_selected_skin(1)
             elif key in (pygame.K_RETURN, pygame.K_SPACE):
                 self.begin_round_from_skin_select()
 
@@ -261,9 +268,27 @@ class InputMixin:
         card_width = min(220, max(178, (window_width - 88 - total_gap) // columns))
         rows = math.ceil(count / columns)
         begin_top = self.menu_buttons["begin"].rect.top if "begin" in self.menu_buttons else window_height - 90
-        top = min(430, max(350, window_height - 274))
-        available_height = max(120, begin_top - top - 26)
-        card_height = min(76, max(58, (available_height - (rows - 1) * row_gap) // rows))
+        if (
+            self.state == GameState.KILLER_SKIN_SELECT
+            or (self.state == GameState.ROLE_REVEAL and self.player_role == "Survivor")
+        ):
+            if self.state == GameState.KILLER_SKIN_SELECT:
+                header_height = 210 if window_height >= 700 else 190
+            else:
+                header_height = 230 if window_height >= 700 else 210
+            gap = 34
+            available_height = max(
+                120,
+                begin_top - 24 - header_height - gap - (rows - 1) * row_gap,
+            )
+            card_height = min(76, max(58, available_height // rows))
+            cards_height = rows * card_height + (rows - 1) * row_gap
+            group_height = header_height + gap + cards_height
+            top = max(24, (begin_top - group_height) // 2) + header_height + gap
+        else:
+            top = min(430, max(350, window_height - 274))
+            available_height = max(120, begin_top - top - 26)
+            card_height = min(76, max(58, (available_height - (rows - 1) * row_gap) // rows))
         row = index // columns
         column = index % columns
         total_width = columns * card_width + (columns - 1) * card_gap
@@ -325,6 +350,15 @@ class InputMixin:
         if index >= len(options):
             return None
         return options[index]
+
+    def cycle_selected_skin(self, direction: int) -> None:
+        options = self.visible_skin_options_for_killer(self.round_killer)
+        if not options:
+            return
+        current_skin = self.selected_skins.get(self.round_killer, "classic")
+        current_index = options.index(current_skin) if current_skin in options else 0
+        next_index = (current_index + direction) % len(options)
+        self.select_skin_for_round(options[next_index])
 
     def select_skin_for_round(self, skin_id: str) -> None:
         if skin_id != "classic" and not self.skin_unlocked(skin_id):

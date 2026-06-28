@@ -235,7 +235,8 @@ class UIMixin:
             first_card = self.killer_card_rect(0)
             reveal.top = first_card.top - 34 - reveal.height
         else:
-            reveal.top = 32
+            first_card = self.survivor_card_rect(0)
+            reveal.top = first_card.top - 34 - reveal.height
         draw_panel(self.screen, reveal, fill=(12, 18, 34), border=role_color, radius=26, width=2, glow=role_color)
         draw_pill(
             self.screen,
@@ -264,15 +265,6 @@ class UIMixin:
             center=True,
         )
 
-        if self.player_role == "Survivor":
-            draw_wrapped_text(
-                self.screen,
-                self.font_small,
-                "Survive two 60-second lives while the random killer hunts you.",
-                COLORS["text_soft"],
-                pygame.Rect(reveal.left + 40, reveal.bottom - 38, reveal.width - 80, 28),
-                3,
-            )
         if self.player_role == "Killer":
             self.draw_killer_selection()
             self.menu_buttons["begin"].text = "Choose Skin" if self.selected_killer_has_skin_choices() else "Begin Round"
@@ -285,15 +277,6 @@ class UIMixin:
         rects = [self.survivor_card_rect(index) for index in range(len(SURVIVOR_IDS))]
         if not rects:
             return
-        bounds = rects[0].unionall(rects[1:]) if len(rects) > 1 else rects[0]
-        draw_text(
-            self.screen,
-            self.font_medium,
-            "Choose Survivor",
-            COLORS["text"],
-            (bounds.centerx, bounds.top - 30),
-            True,
-        )
 
         for index, survivor_id in enumerate(SURVIVOR_IDS):
             data = SURVIVORS[survivor_id]
@@ -406,14 +389,6 @@ class UIMixin:
         if not rects:
             return
         bounds = rects[0].unionall(rects[1:]) if len(rects) > 1 else rects[0]
-        draw_text(
-            self.screen,
-            self.font_medium,
-            "Choose Skin",
-            COLORS["text"],
-            (bounds.centerx, bounds.top - 30),
-            True,
-        )
 
         for index, skin_id in enumerate(options):
             rect = rects[index]
@@ -478,7 +453,8 @@ class UIMixin:
 
         header = pygame.Rect(0, 0, min(720, width - 80), 210 if height >= 700 else 190)
         header.centerx = center_x
-        header.top = 32
+        first_card = self.skin_card_rect(0)
+        header.top = first_card.top - 34 - header.height
         draw_panel(self.screen, header, fill=(12, 18, 34), border=COLORS["gold"], radius=26, width=2, glow=COLORS["gold"])
         draw_pill(
             self.screen,
@@ -491,14 +467,6 @@ class UIMixin:
             center=True,
         )
         draw_text(self.screen, self.font_large, selected["name"], COLORS["text"], (center_x, header.top + 103), True)
-        draw_wrapped_text(
-            self.screen,
-            self.font_small,
-            "Choose an unlocked skin for this round.",
-            COLORS["text_soft"],
-            pygame.Rect(header.left + 40, header.bottom - 44, header.width - 80, 28),
-            3,
-        )
 
         self.menu_buttons["back"].draw(self.screen, self.font_small, False)
         self.menu_buttons["begin"].text = "Begin Round"
