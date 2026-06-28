@@ -293,8 +293,11 @@ class UIMixin:
                 glow=accent if selected else None,
             )
 
-            sprite = self.sprites.get(survivor_id)
-            preview_rect = pygame.Rect(rect.left + 12, rect.centery - 26, 52, 52)
+            frames = self.walk_sprites.get(survivor_id, []) if selected else []
+            sprite = frames[(pygame.time.get_ticks() // 140) % len(frames)] if frames else self.sprites.get(survivor_id)
+            preview_size = min(72, rect.height - 50, rect.width // 3)
+            preview_rect = pygame.Rect(0, 0, preview_size, preview_size)
+            preview_rect.center = (rect.centerx, rect.centery - 18)
             if sprite is not None:
                 preview = pygame.transform.smoothscale(sprite, preview_rect.size)
                 self.screen.blit(preview, preview_rect)
@@ -304,18 +307,10 @@ class UIMixin:
             draw_text(
                 self.screen,
                 self.font_small,
-                ellipsize(self.font_small, f"{index + 1}. {data['name']}", rect.width - 84),
+                ellipsize(self.font_small, data["name"], rect.width - 24),
                 COLORS["text"],
-                (rect.left + 76, rect.top + 12),
-            )
-            draw_wrapped_text_left(
-                self.screen,
-                self.font_small,
-                data["description"],
-                COLORS["muted"],
-                pygame.Rect(rect.left + 76, rect.top + 36, rect.width - 88, rect.height - 44),
-                2,
-                max_lines=2,
+                (rect.centerx, preview_rect.bottom + 16),
+                True,
             )
 
     def draw_killer_selection(self) -> None:
@@ -347,31 +342,26 @@ class UIMixin:
                 border=accent if selected else COLORS["border_soft"],
             )
 
-            sprite = self.sprites.get(killer_id)
-            preview_size = min(78, rect.width - 44, rect.height // 3)
+            frames = self.walk_sprites.get(killer_id, []) if selected else []
+            sprite = frames[(pygame.time.get_ticks() // 140) % len(frames)] if frames else self.sprites.get(killer_id)
+            preview_size = min(92, rect.width - 42, rect.height // 2)
             preview_rect = pygame.Rect(0, 0, preview_size, preview_size)
-            preview_rect.center = (rect.centerx, rect.top + 52)
+            preview_rect.center = (rect.centerx, rect.centery - 24)
             if sprite is not None:
                 preview = pygame.transform.smoothscale(sprite, preview_rect.size)
                 self.screen.blit(preview, preview_rect)
             else:
                 pygame.draw.ellipse(self.screen, data["color"], preview_rect)
 
-            draw_text(
-                self.screen,
-                self.font_small,
-                ellipsize(self.font_small, data["name"], rect.width - 28),
-                COLORS["text"],
-                (rect.left + 14, rect.top + 96),
-            )
             draw_pill(
                 self.screen,
                 self.font_small,
-                ellipsize(self.font_small, data["attack_name"], rect.width - 34),
-                (rect.left + 12, rect.top + 124),
-                fg=COLORS["gold"],
-                bg=(38, 31, 19),
-                border=(95, 72, 25),
+                ellipsize(self.font_small, data["name"], rect.width - 34),
+                (rect.centerx, preview_rect.bottom + 22),
+                fg=COLORS["text"],
+                bg=accent if selected else COLORS["surface_2"],
+                border=accent if selected else COLORS["border_soft"],
+                center=True,
             )
             skin_count = len(self.unlocked_skin_options_for_killer(killer_id))
             skin_text = f"{skin_count} skins" if skin_count > 1 else "Classic skin"

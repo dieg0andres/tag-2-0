@@ -281,7 +281,10 @@ class InputMixin:
                 120,
                 begin_top - 24 - header_height - gap - (rows - 1) * row_gap,
             )
-            card_height = min(76, max(58, available_height // rows))
+            if self.state == GameState.KILLER_SKIN_SELECT:
+                card_height = min(76, max(58, available_height // rows))
+            else:
+                card_height = min(128, max(108, available_height // rows))
             cards_height = rows * card_height + (rows - 1) * row_gap
             group_height = header_height + gap + cards_height
             top = max(24, (begin_top - group_height) // 2) + header_height + gap
