@@ -21,25 +21,73 @@ class Wall:
     drift: tuple[int, int] = (0, 0)
     drift_speed: float = 0.0
     drift_phase: float = 0.0
+    spin_speed: float = 0.0
+    spin_range: float = 0.0
+    spin_phase: float = 0.0
+    active_after: float = 0.0
 
     def __post_init__(self) -> None:
         self.home_rect = self.rect.copy()
+        self.elapsed = 0.0
+        self.angle = 0.0
+        self.base_size = self.home_rect.size
 
     def update(self, dt: float) -> bool:
-        if self.drift == (0, 0) or self.drift_speed <= 0:
+        self.elapsed += dt
+        if self.elapsed < self.active_after:
+            self.rect = self.home_rect.copy()
+            self.angle = 0.0
             return False
 
-        self.drift_phase += dt * self.drift_speed
-        amount = math.sin(self.drift_phase)
-        self.rect.topleft = (
-            self.home_rect.left + round(self.drift[0] * amount),
-            self.home_rect.top + round(self.drift[1] * amount),
+        moving = self.drift != (0, 0) and abs(self.drift_speed) > 0
+        rotating = abs(self.spin_speed) > 0 and self.spin_range > 0
+        if not moving and not rotating:
+            return False
+
+        center = pygame.Vector2(self.home_rect.center)
+        if moving:
+            self.drift_phase += dt * self.drift_speed
+            amount = math.sin(self.drift_phase)
+            center.x += self.drift[0] * amount
+            center.y += self.drift[1] * amount
+
+        if rotating:
+            self.spin_phase += dt * self.spin_speed
+            self.angle = math.sin(self.spin_phase) * self.spin_range
+        else:
+            self.angle = 0.0
+
+        radians = math.radians(self.angle)
+        sin_angle = abs(math.sin(radians))
+        cos_angle = abs(math.cos(radians))
+        base_width, base_height = self.base_size
+        self.rect.size = (
+            max(1, round(base_width * cos_angle + base_height * sin_angle)),
+            max(1, round(base_width * sin_angle + base_height * cos_angle)),
         )
+        self.rect.center = (round(center.x), round(center.y))
+
+        if not ARENA_RECT.contains(self.rect):
+            self.rect.clamp_ip(ARENA_RECT)
+            if moving:
+                self.drift_speed *= -1
+            if rotating:
+                self.spin_speed *= -1
         return True
 
     def draw(self, surface: pygame.Surface) -> None:
-        pygame.draw.rect(surface, self.fill_color, self.rect, border_radius=6)
-        pygame.draw.rect(surface, self.border_color, self.rect, 2, border_radius=6)
+        if abs(self.angle) < 0.5:
+            pygame.draw.rect(surface, self.fill_color, self.rect, border_radius=6)
+            pygame.draw.rect(surface, self.border_color, self.rect, 2, border_radius=6)
+            return
+
+        wall_surface = pygame.Surface(self.base_size, pygame.SRCALPHA)
+        base_rect = wall_surface.get_rect()
+        pygame.draw.rect(wall_surface, self.fill_color, base_rect, border_radius=6)
+        pygame.draw.rect(wall_surface, self.border_color, base_rect, 2, border_radius=6)
+        rotated = pygame.transform.rotate(wall_surface, self.angle)
+        rotated_rect = rotated.get_rect(center=self.rect.center)
+        surface.blit(rotated, rotated_rect)
 
 
 class Button:

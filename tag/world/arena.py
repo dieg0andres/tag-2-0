@@ -18,6 +18,30 @@ from tag.utils.vector import facing_axis, safe_normalize, vector_from_keys
 
 
 BASE_ARENA = pygame.Rect(24, 112, 884, 664)
+
+
+def moving_wall(
+    rect: pygame.Rect,
+    drift: tuple[int, int] = (0, 0),
+    speed: float = 0.0,
+    phase: float = 0.0,
+    spin_speed: float = 0.0,
+    spin_range: float = 0.0,
+    spin_phase: float = 0.0,
+    active_after: float = 0.0,
+) -> dict[str, object]:
+    return {
+        "rect": rect,
+        "drift": drift,
+        "speed": speed,
+        "phase": phase,
+        "spin_speed": spin_speed,
+        "spin_range": spin_range,
+        "spin_phase": spin_phase,
+        "active_after": active_after,
+    }
+
+
 ARENA_LAYOUTS = [
     {
         "name": "Open Cross",
@@ -393,6 +417,376 @@ ARENA_LAYOUTS = [
             pygame.Rect(440, 685, 95, 28),
         ],
     },
+    {
+        "name": "Kinetic Crossroads",
+        "difficulty": "Medium",
+        "fill": (48, 77, 92),
+        "border": (103, 232, 249),
+        "walls": [
+            moving_wall(pygame.Rect(185, 205, 190, 28), (65, 0), 0.95, 0.0),
+            moving_wall(pygame.Rect(590, 205, 190, 28), (-65, 0), 0.95, 3.14),
+            moving_wall(pygame.Rect(465, 285, 38, 165), (0, 55), 0.88, 1.2, 1.15, 13),
+            pygame.Rect(150, 390, 165, 30),
+            pygame.Rect(645, 390, 165, 30),
+            moving_wall(pygame.Rect(235, 535, 210, 30), (0, -58), 0.82, 2.1),
+            moving_wall(pygame.Rect(530, 535, 210, 30), (0, 58), 0.82, 0.5),
+            pygame.Rect(110, 630, 36, 92),
+            pygame.Rect(820, 630, 36, 92),
+        ],
+    },
+    {
+        "name": "Rotary Hall",
+        "difficulty": "Medium",
+        "fill": (72, 61, 100),
+        "border": (216, 180, 254),
+        "walls": [
+            moving_wall(pygame.Rect(180, 190, 190, 28), (0, 48), 0.75, 0.3, 1.10, 12),
+            moving_wall(pygame.Rect(600, 190, 190, 28), (0, 48), 0.75, 2.8, 1.10, 12, 1.57),
+            pygame.Rect(115, 325, 185, 30),
+            pygame.Rect(665, 325, 185, 30),
+            moving_wall(pygame.Rect(395, 365, 175, 32), (80, 0), 1.05, 0.0, 1.30, 18),
+            moving_wall(pygame.Rect(395, 505, 175, 32), (-80, 0), 1.05, 3.14, 1.30, 18, 1.57),
+            pygame.Rect(205, 610, 170, 28),
+            pygame.Rect(590, 610, 170, 28),
+            moving_wall(pygame.Rect(465, 620, 36, 90), (0, -34), 0.90, 1.1, 1.45, 16),
+        ],
+    },
+    {
+        "name": "Neon Switchbacks",
+        "difficulty": "Hard",
+        "fill": (63, 85, 63),
+        "border": (190, 242, 100),
+        "walls": [
+            moving_wall(pygame.Rect(120, 185, 230, 28), (50, 0), 1.10, 0.0),
+            moving_wall(pygame.Rect(365, 245, 34, 145), (0, 48), 0.92, 1.0),
+            moving_wall(pygame.Rect(240, 390, 255, 28), (-65, 0), 1.08, 2.1, 1.0, 10),
+            moving_wall(pygame.Rect(560, 315, 34, 145), (0, -48), 0.92, 2.4),
+            moving_wall(pygame.Rect(480, 460, 250, 28), (62, 0), 1.08, 0.7, 1.0, 10, 1.5),
+            pygame.Rect(120, 555, 185, 28),
+            pygame.Rect(655, 555, 185, 28),
+            moving_wall(pygame.Rect(420, 620, 130, 28), (0, 58), 0.86, 0.4, 1.25, 14),
+            pygame.Rect(825, 640, 34, 72),
+        ],
+    },
+    {
+        "name": "Pendulum Rooms",
+        "difficulty": "Medium",
+        "fill": (92, 64, 72),
+        "border": (253, 164, 175),
+        "walls": [
+            pygame.Rect(120, 190, 150, 28),
+            moving_wall(pygame.Rect(330, 205, 155, 30), (0, 70), 0.80, 0.2, 1.2, 20),
+            pygame.Rect(690, 190, 150, 28),
+            moving_wall(pygame.Rect(500, 300, 34, 165), (85, 0), 0.98, 1.4),
+            pygame.Rect(155, 390, 175, 30),
+            pygame.Rect(630, 390, 175, 30),
+            moving_wall(pygame.Rect(265, 545, 145, 28), (75, 0), 0.90, 2.1, 1.1, 14),
+            moving_wall(pygame.Rect(555, 545, 145, 28), (-75, 0), 0.90, 0.5, 1.1, 14, 2.0),
+            pygame.Rect(450, 640, 60, 82),
+        ],
+    },
+    {
+        "name": "Rolling Barricades",
+        "difficulty": "Hard",
+        "fill": (64, 78, 103),
+        "border": (147, 197, 253),
+        "walls": [
+            moving_wall(pygame.Rect(130, 210, 165, 32), (75, 0), 1.20, 0.0, 1.25, 15),
+            moving_wall(pygame.Rect(400, 210, 165, 32), (75, 0), 1.20, 1.8, 1.25, 15),
+            moving_wall(pygame.Rect(640, 210, 165, 32), (-62, 0), 1.20, 3.0, 1.25, 15),
+            pygame.Rect(225, 350, 34, 150),
+            moving_wall(pygame.Rect(350, 390, 260, 30), (0, 72), 0.85, 0.6),
+            pygame.Rect(715, 350, 34, 150),
+            moving_wall(pygame.Rect(135, 600, 190, 30), (65, 0), 1.05, 2.2),
+            moving_wall(pygame.Rect(635, 600, 190, 30), (-65, 0), 1.05, 0.8),
+            pygame.Rect(465, 610, 42, 90),
+        ],
+    },
+    {
+        "name": "Clockwork Canal",
+        "difficulty": "Medium",
+        "fill": (78, 72, 52),
+        "border": (253, 224, 71),
+        "walls": [
+            moving_wall(pygame.Rect(170, 205, 150, 30), (0, 58), 0.78, 0.0),
+            moving_wall(pygame.Rect(405, 205, 150, 30), (0, -58), 0.78, 1.57),
+            moving_wall(pygame.Rect(640, 205, 150, 30), (0, 58), 0.78, 3.14),
+            pygame.Rect(110, 350, 220, 28),
+            pygame.Rect(635, 350, 220, 28),
+            moving_wall(pygame.Rect(455, 410, 50, 125), (70, 0), 1.0, 0.6, 1.35, 18),
+            pygame.Rect(160, 565, 165, 28),
+            moving_wall(pygame.Rect(395, 585, 170, 28), (0, 58), 0.9, 2.0, 1.3, 14),
+            pygame.Rect(650, 565, 165, 28),
+        ],
+    },
+    {
+        "name": "Shifting Courtyard",
+        "difficulty": "Hard",
+        "fill": (55, 91, 83),
+        "border": (94, 234, 212),
+        "walls": [
+            moving_wall(pygame.Rect(140, 190, 120, 74), (65, 0), 0.95, 0.0, 1.15, 12),
+            moving_wall(pygame.Rect(360, 185, 145, 66), (0, 58), 0.88, 1.2),
+            moving_wall(pygame.Rect(675, 190, 130, 74), (-65, 0), 0.95, 3.14, 1.15, 12, 1.1),
+            pygame.Rect(210, 365, 190, 28),
+            moving_wall(pygame.Rect(470, 350, 40, 150), (90, 0), 1.10, 0.5),
+            pygame.Rect(565, 365, 190, 28),
+            moving_wall(pygame.Rect(150, 585, 140, 70), (0, -55), 0.82, 2.0),
+            moving_wall(pygame.Rect(410, 585, 140, 70), (0, 55), 0.82, 0.5),
+            moving_wall(pygame.Rect(700, 585, 140, 70), (0, -55), 0.82, 1.3),
+        ],
+    },
+    {
+        "name": "Sawtooth Drift",
+        "difficulty": "Hard",
+        "fill": (91, 67, 50),
+        "border": (251, 146, 60),
+        "walls": [
+            moving_wall(pygame.Rect(110, 200, 150, 28), (70, 0), 1.18, 0.0),
+            moving_wall(pygame.Rect(305, 260, 150, 28), (-70, 0), 1.18, 1.3),
+            moving_wall(pygame.Rect(500, 320, 150, 28), (70, 0), 1.18, 2.6),
+            moving_wall(pygame.Rect(635, 380, 150, 28), (-60, 0), 1.18, 3.8),
+            moving_wall(pygame.Rect(500, 455, 150, 28), (70, 0), 1.18, 1.0),
+            moving_wall(pygame.Rect(305, 520, 150, 28), (-70, 0), 1.18, 2.1),
+            moving_wall(pygame.Rect(110, 585, 150, 28), (70, 0), 1.18, 3.4),
+            pygame.Rect(810, 530, 34, 145),
+            pygame.Rect(455, 625, 58, 85),
+        ],
+    },
+    {
+        "name": "Orbit Lattice",
+        "difficulty": "Medium",
+        "fill": (50, 69, 100),
+        "border": (125, 211, 252),
+        "walls": [
+            pygame.Rect(135, 210, 165, 28),
+            pygame.Rect(665, 210, 165, 28),
+            moving_wall(pygame.Rect(385, 250, 190, 30), (0, 62), 0.83, 0.3, 1.45, 22),
+            moving_wall(pygame.Rect(235, 395, 160, 30), (72, 0), 1.02, 1.4, 1.15, 16),
+            moving_wall(pygame.Rect(570, 395, 160, 30), (-72, 0), 1.02, 2.9, 1.15, 16, 1.8),
+            pygame.Rect(120, 555, 175, 28),
+            pygame.Rect(670, 555, 175, 28),
+            moving_wall(pygame.Rect(410, 610, 145, 28), (0, -50), 1.0, 0.6, 1.35, 16),
+            pygame.Rect(450, 460, 60, 70),
+        ],
+    },
+    {
+        "name": "Mixer Maze",
+        "difficulty": "Hard",
+        "fill": (84, 65, 110),
+        "border": (233, 213, 255),
+        "walls": [
+            moving_wall(pygame.Rect(160, 190, 185, 28), (55, 0), 1.0, 0.0, 1.3, 16),
+            moving_wall(pygame.Rect(620, 190, 185, 28), (-55, 0), 1.0, 3.14, 1.3, 16),
+            moving_wall(pygame.Rect(260, 315, 34, 155), (0, 60), 0.95, 1.3),
+            moving_wall(pygame.Rect(670, 315, 34, 155), (0, -60), 0.95, 2.5),
+            pygame.Rect(365, 370, 230, 30),
+            moving_wall(pygame.Rect(155, 545, 205, 30), (70, 0), 1.12, 1.1),
+            moving_wall(pygame.Rect(605, 545, 205, 30), (-70, 0), 1.12, 2.1),
+            moving_wall(pygame.Rect(455, 625, 50, 92), (0, -42), 1.0, 0.3, 1.55, 18),
+        ],
+    },
+    {
+        "name": "Half-Time Guillotine",
+        "difficulty": "Hard",
+        "fill": (96, 54, 65),
+        "border": (251, 113, 133),
+        "walls": [
+            pygame.Rect(120, 190, 200, 28),
+            pygame.Rect(640, 190, 200, 28),
+            moving_wall(pygame.Rect(455, 235, 48, 185), (0, 85), 1.65, 0.0, 1.75, 20, active_after=ROUND_DURATION / 2),
+            pygame.Rect(180, 385, 185, 30),
+            pygame.Rect(600, 385, 185, 30),
+            moving_wall(pygame.Rect(250, 560, 185, 30), (90, 0), 1.70, 1.5, active_after=ROUND_DURATION / 2),
+            moving_wall(pygame.Rect(530, 610, 185, 30), (-90, 0), 1.70, 3.0, active_after=ROUND_DURATION / 2),
+            pygame.Rect(110, 625, 34, 90),
+            pygame.Rect(820, 625, 34, 90),
+        ],
+    },
+    {
+        "name": "Second Act Blades",
+        "difficulty": "Hard",
+        "fill": (72, 60, 103),
+        "border": (196, 181, 253),
+        "walls": [
+            pygame.Rect(120, 220, 170, 28),
+            pygame.Rect(675, 220, 170, 28),
+            moving_wall(pygame.Rect(380, 260, 205, 28), (0, 70), 1.55, 0.0, 2.0, 24, active_after=ROUND_DURATION / 2),
+            pygame.Rect(145, 370, 205, 28),
+            pygame.Rect(615, 370, 205, 28),
+            moving_wall(pygame.Rect(455, 435, 42, 145), (85, 0), 1.75, 1.1, 1.9, 18, active_after=ROUND_DURATION / 2),
+            pygame.Rect(165, 605, 185, 28),
+            moving_wall(pygame.Rect(390, 635, 190, 28), (0, -65), 1.60, 2.4, 2.1, 20, active_after=ROUND_DURATION / 2),
+            pygame.Rect(615, 605, 185, 28),
+        ],
+    },
+    {
+        "name": "Wake-Up Corridors",
+        "difficulty": "Medium",
+        "fill": (56, 86, 74),
+        "border": (134, 239, 172),
+        "walls": [
+            pygame.Rect(130, 205, 220, 28),
+            pygame.Rect(610, 205, 220, 28),
+            pygame.Rect(210, 340, 34, 160),
+            pygame.Rect(720, 340, 34, 160),
+            moving_wall(pygame.Rect(335, 385, 295, 30), (0, 78), 1.45, 0.6, active_after=ROUND_DURATION / 2),
+            pygame.Rect(130, 560, 220, 28),
+            pygame.Rect(610, 560, 220, 28),
+            moving_wall(pygame.Rect(455, 610, 46, 92), (92, 0), 1.80, 2.0, 1.8, 16, active_after=ROUND_DURATION / 2),
+        ],
+    },
+    {
+        "name": "Late Surge Locks",
+        "difficulty": "Hard",
+        "fill": (80, 73, 58),
+        "border": (252, 211, 77),
+        "walls": [
+            pygame.Rect(150, 190, 650, 28),
+            pygame.Rect(772, 190, 28, 160),
+            pygame.Rect(260, 332, 540, 28),
+            moving_wall(pygame.Rect(250, 385, 36, 170), (120, 0), 1.85, 0.0, active_after=ROUND_DURATION / 2),
+            pygame.Rect(260, 555, 540, 28),
+            pygame.Rect(150, 410, 28, 170),
+            moving_wall(pygame.Rect(450, 635, 120, 28), (0, -80), 1.55, 1.2, 2.0, 18, active_after=ROUND_DURATION / 2),
+            pygame.Rect(685, 640, 150, 28),
+        ],
+    },
+    {
+        "name": "Afterburner Pins",
+        "difficulty": "Medium",
+        "fill": (50, 80, 105),
+        "border": (186, 230, 253),
+        "walls": [
+            pygame.Rect(150, 205, 140, 28),
+            pygame.Rect(675, 205, 140, 28),
+            moving_wall(pygame.Rect(330, 245, 34, 135), (0, 90), 1.60, 0.0, active_after=ROUND_DURATION / 2),
+            moving_wall(pygame.Rect(600, 245, 34, 135), (0, 90), 1.60, 3.14, active_after=ROUND_DURATION / 2),
+            pygame.Rect(210, 425, 190, 28),
+            pygame.Rect(565, 425, 190, 28),
+            moving_wall(pygame.Rect(430, 545, 110, 28), (95, 0), 1.85, 1.5, 2.0, 20, active_after=ROUND_DURATION / 2),
+            pygame.Rect(130, 625, 160, 28),
+            pygame.Rect(675, 625, 160, 28),
+        ],
+    },
+    {
+        "name": "Closing Credits",
+        "difficulty": "Hard",
+        "fill": (92, 54, 83),
+        "border": (244, 114, 182),
+        "walls": [
+            pygame.Rect(110, 195, 170, 28),
+            pygame.Rect(685, 195, 170, 28),
+            pygame.Rect(150, 315, 34, 155),
+            pygame.Rect(780, 315, 34, 155),
+            moving_wall(pygame.Rect(345, 335, 275, 30), (0, 75), 1.65, 0.7, 1.9, 17, active_after=ROUND_DURATION / 2),
+            pygame.Rect(160, 570, 190, 28),
+            pygame.Rect(615, 570, 190, 28),
+            moving_wall(pygame.Rect(455, 620, 46, 95), (115, 0), 1.90, 2.2, active_after=ROUND_DURATION / 2),
+        ],
+    },
+    {
+        "name": "Alarm Maze",
+        "difficulty": "Hard",
+        "fill": (100, 62, 48),
+        "border": (253, 186, 116),
+        "walls": [
+            pygame.Rect(125, 185, 34, 190),
+            pygame.Rect(245, 305, 34, 190),
+            pygame.Rect(365, 185, 34, 190),
+            pygame.Rect(565, 305, 34, 190),
+            pygame.Rect(685, 185, 34, 190),
+            pygame.Rect(805, 305, 34, 190),
+            moving_wall(pygame.Rect(160, 590, 230, 30), (90, 0), 1.65, 0.0, active_after=ROUND_DURATION / 2),
+            moving_wall(pygame.Rect(575, 590, 230, 30), (-90, 0), 1.65, 3.14, active_after=ROUND_DURATION / 2),
+            moving_wall(pygame.Rect(455, 625, 55, 65), (0, -58), 1.55, 1.1, 1.9, 15, active_after=ROUND_DURATION / 2),
+        ],
+    },
+    {
+        "name": "Final-Half Fan",
+        "difficulty": "Medium",
+        "fill": (68, 75, 94),
+        "border": (203, 213, 225),
+        "walls": [
+            pygame.Rect(110, 210, 180, 28),
+            pygame.Rect(675, 210, 180, 28),
+            pygame.Rect(220, 355, 170, 28),
+            pygame.Rect(575, 355, 170, 28),
+            moving_wall(pygame.Rect(450, 300, 60, 190), (0, 0), 0.0, 0.0, 2.2, 28, active_after=ROUND_DURATION / 2),
+            pygame.Rect(110, 540, 180, 28),
+            pygame.Rect(675, 540, 180, 28),
+            moving_wall(pygame.Rect(390, 615, 185, 28), (85, 0), 1.6, 0.5, active_after=ROUND_DURATION / 2),
+        ],
+    },
+    {
+        "name": "Half-Time Switchyard",
+        "difficulty": "Hard",
+        "fill": (54, 83, 80),
+        "border": (153, 246, 228),
+        "walls": [
+            pygame.Rect(145, 190, 185, 28),
+            pygame.Rect(635, 190, 185, 28),
+            moving_wall(pygame.Rect(430, 245, 110, 28), (0, 90), 1.75, 0.0, 2.15, 20, active_after=ROUND_DURATION / 2),
+            pygame.Rect(190, 365, 180, 28),
+            pygame.Rect(595, 365, 180, 28),
+            moving_wall(pygame.Rect(455, 435, 48, 150), (95, 0), 1.85, 1.6, active_after=ROUND_DURATION / 2),
+            pygame.Rect(140, 620, 180, 28),
+            pygame.Rect(645, 620, 180, 28),
+            moving_wall(pygame.Rect(420, 620, 130, 28), (0, -80), 1.7, 2.4, 2.0, 18, active_after=ROUND_DURATION / 2),
+        ],
+    },
+    {
+        "name": "Sleeping Spikes",
+        "difficulty": "Medium",
+        "fill": (78, 64, 96),
+        "border": (221, 214, 254),
+        "walls": [
+            pygame.Rect(125, 205, 28, 120),
+            pygame.Rect(260, 270, 28, 120),
+            pygame.Rect(395, 205, 28, 120),
+            pygame.Rect(530, 270, 28, 120),
+            pygame.Rect(665, 205, 28, 120),
+            pygame.Rect(800, 270, 28, 120),
+            moving_wall(pygame.Rect(190, 520, 155, 28), (80, 0), 1.55, 0.0, active_after=ROUND_DURATION / 2),
+            moving_wall(pygame.Rect(405, 585, 155, 28), (-80, 0), 1.55, 1.6, active_after=ROUND_DURATION / 2),
+            moving_wall(pygame.Rect(620, 520, 155, 28), (80, 0), 1.55, 3.0, active_after=ROUND_DURATION / 2),
+            pygame.Rect(450, 650, 62, 70),
+        ],
+    },
+    {
+        "name": "Sudden Spiral",
+        "difficulty": "Hard",
+        "fill": (74, 83, 50),
+        "border": (217, 249, 157),
+        "walls": [
+            pygame.Rect(165, 190, 620, 28),
+            pygame.Rect(757, 190, 28, 230),
+            pygame.Rect(300, 420, 485, 28),
+            pygame.Rect(300, 300, 28, 148),
+            pygame.Rect(300, 300, 310, 28),
+            moving_wall(pygame.Rect(610, 300, 36, 160), (0, 75), 1.55, 0.0, active_after=ROUND_DURATION / 2),
+            moving_wall(pygame.Rect(395, 535, 225, 28), (90, 0), 1.80, 2.0, 1.7, 15, active_after=ROUND_DURATION / 2),
+            pygame.Rect(165, 640, 205, 28),
+            pygame.Rect(655, 640, 185, 28),
+        ],
+    },
+    {
+        "name": "Wake The Walls",
+        "difficulty": "Hard",
+        "fill": (65, 73, 101),
+        "border": (165, 180, 252),
+        "walls": [
+            pygame.Rect(150, 205, 170, 28),
+            pygame.Rect(645, 205, 170, 28),
+            pygame.Rect(230, 340, 34, 155),
+            pygame.Rect(700, 340, 34, 155),
+            moving_wall(pygame.Rect(360, 375, 245, 30), (0, 85), 1.75, 0.0, 2.0, 22, active_after=ROUND_DURATION / 2),
+            pygame.Rect(150, 580, 170, 28),
+            pygame.Rect(645, 580, 170, 28),
+            moving_wall(pygame.Rect(455, 610, 42, 105), (100, 0), 1.95, 1.4, active_after=ROUND_DURATION / 2),
+            moving_wall(pygame.Rect(420, 255, 125, 28), (-70, 0), 1.55, 2.6, active_after=ROUND_DURATION / 2),
+        ],
+    },
 ]
 
 
@@ -413,11 +807,19 @@ class WorldMixin:
                 drift = wall_data.get("drift", (0, 0))
                 drift_speed = wall_data.get("speed", 0.0)
                 drift_phase = wall_data.get("phase", 0.0)
+                spin_speed = wall_data.get("spin_speed", 0.0)
+                spin_range = wall_data.get("spin_range", 0.0)
+                spin_phase = wall_data.get("spin_phase", 0.0)
+                active_after = wall_data.get("active_after", 0.0)
             else:
                 rect = wall_data
                 drift = (0, 0)
                 drift_speed = 0.0
                 drift_phase = 0.0
+                spin_speed = 0.0
+                spin_range = 0.0
+                spin_phase = 0.0
+                active_after = 0.0
 
             x_ratio = (rect.left - BASE_ARENA.left) / BASE_ARENA.width
             y_ratio = (rect.top - BASE_ARENA.top) / BASE_ARENA.height
@@ -433,7 +835,20 @@ class WorldMixin:
                 round(drift[0] / BASE_ARENA.width * ARENA_RECT.width),
                 round(drift[1] / BASE_ARENA.height * ARENA_RECT.height),
             )
-            walls.append(Wall(scaled_rect, fill, border, scaled_drift, drift_speed, drift_phase))
+            walls.append(
+                Wall(
+                    scaled_rect,
+                    fill,
+                    border,
+                    scaled_drift,
+                    drift_speed,
+                    drift_phase,
+                    spin_speed,
+                    spin_range,
+                    spin_phase,
+                    active_after,
+                )
+            )
         return walls
 
     def update_walls(self, dt: float) -> None:
