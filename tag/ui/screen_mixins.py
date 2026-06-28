@@ -25,6 +25,19 @@ from tag.utils.text import draw_text, draw_wrapped_text, draw_wrapped_text_left,
 from tag.utils.vector import facing_axis, safe_normalize, vector_from_keys
 
 
+ROLE_REVEAL_DANCE_KEYS = {
+    "revenge_bot",
+    "subslasher",
+    "vengance_bot",
+    "survivor",
+    "survivor_odd",
+    "survivor_explorer",
+    "survivor_kitty",
+    "survivor_kevin",
+    "survivor_trashy",
+}
+
+
 class UIMixin:
     def draw(self) -> None:
         if self.state == GameState.TITLE:
@@ -273,6 +286,100 @@ class UIMixin:
             self.menu_buttons["begin"].text = "Begin Round"
         self.menu_buttons["begin"].draw(self.screen, self.font_medium, True)
 
+    def draw_role_reveal_card_preview(
+        self,
+        character_id: str,
+        selected: bool,
+        preview_rect: pygame.Rect,
+        fallback_color: tuple[int, int, int],
+        accent: tuple[int, int, int],
+    ) -> None:
+        if selected and character_id in ROLE_REVEAL_DANCE_KEYS:
+            self.draw_role_reveal_dance_preview(character_id, preview_rect, fallback_color, accent)
+            return
+
+        sprite = self.sprites.get(character_id)
+        if sprite is not None:
+            preview = pygame.transform.smoothscale(sprite, preview_rect.size)
+            self.screen.blit(preview, preview_rect)
+        else:
+            pygame.draw.ellipse(self.screen, fallback_color, preview_rect)
+
+    def draw_role_reveal_dance_preview(
+        self,
+        character_id: str,
+        preview_rect: pygame.Rect,
+        fallback_color: tuple[int, int, int],
+        accent: tuple[int, int, int],
+    ) -> None:
+        # This animation is intentionally separate from gameplay walking frames.
+        # It builds a celebratory card-only pose from the existing sprite assets.
+        ticks = pygame.time.get_ticks()
+        t = ticks / 1000.0
+        frames = self.walk_sprites.get(character_id, [])
+        sprite = frames[(ticks // 110) % len(frames)] if frames else self.sprites.get(character_id)
+
+        jump = max(0.0, math.sin(t * 8.5)) * 10
+        sway = math.sin(t * 5.0) * 6
+        spin = math.sin(t * 6.4) * 15 + math.sin(t * 11.0) * 3
+        pulse = 1.0 + max(0.0, math.sin(t * 8.5)) * 0.08
+        arm_wave = math.sin(t * 9.0)
+        stage_pad = max(24, preview_rect.width // 3)
+        stage = pygame.Surface(
+            (preview_rect.width + stage_pad * 2, preview_rect.height + stage_pad * 2),
+            pygame.SRCALPHA,
+        )
+        cx, cy = stage.get_width() // 2, stage.get_height() // 2
+        size = min(preview_rect.width, preview_rect.height)
+
+        shadow_rect = pygame.Rect(0, 0, int(size * 0.82), max(5, int(size * 0.13)))
+        shadow_rect.center = (cx, cy + int(size * 0.48))
+        pygame.draw.ellipse(stage, (0, 0, 0, 60), shadow_rect)
+
+        for i in range(6):
+            angle = t * 4.2 + i * math.tau / 6
+            radius = size * (0.56 + 0.08 * math.sin(t * 3.0 + i))
+            dot_x = cx + int(math.cos(angle) * radius)
+            dot_y = cy + int(math.sin(angle) * radius * 0.58) - int(size * 0.08)
+            sparkle_color = (255, 221, 93, 180) if i % 2 == 0 else (*accent[:3], 165)
+            pygame.draw.circle(stage, sparkle_color, (dot_x, dot_y), 3 + (i % 2))
+
+        arm_color = (*accent[:3], 220)
+        glove_color = (255, 255, 255, 230)
+        for side in (-1, 1):
+            shoulder = (cx + side * int(size * 0.17), cy + int(size * 0.03))
+            hand = (
+                cx + side * int(size * 0.58),
+                cy - int(size * (0.17 + side * arm_wave * 0.16)),
+            )
+            elbow = (
+                cx + side * int(size * 0.40),
+                cy - int(size * (0.02 - side * arm_wave * 0.10)),
+            )
+            pygame.draw.line(stage, arm_color, shoulder, elbow, max(3, size // 14))
+            pygame.draw.line(stage, arm_color, elbow, hand, max(3, size // 14))
+            pygame.draw.circle(stage, glove_color, hand, max(4, size // 12))
+
+        if sprite is not None:
+            base = pygame.transform.smoothscale(sprite, preview_rect.size)
+            danced = pygame.transform.rotozoom(base, spin, pulse)
+            danced_rect = danced.get_rect(center=(cx, cy - int(jump)))
+            stage.blit(danced, danced_rect)
+        else:
+            fallback = pygame.Surface(preview_rect.size, pygame.SRCALPHA)
+            pygame.draw.ellipse(fallback, (*fallback_color[:3], 255), fallback.get_rect())
+            pygame.draw.ellipse(fallback, (*accent[:3], 255), fallback.get_rect(), 4)
+            danced = pygame.transform.rotozoom(fallback, spin, pulse)
+            danced_rect = danced.get_rect(center=(cx, cy - int(jump)))
+            stage.blit(danced, danced_rect)
+
+        foot_y = cy + int(size * 0.47) - int(jump * 0.25)
+        pygame.draw.circle(stage, (*accent[:3], 175), (cx - int(size * 0.24), foot_y), max(3, size // 13))
+        pygame.draw.circle(stage, (*accent[:3], 175), (cx + int(size * 0.24), foot_y), max(3, size // 13))
+
+        stage_rect = stage.get_rect(center=(preview_rect.centerx + int(sway), preview_rect.centery))
+        self.screen.blit(stage, stage_rect)
+
     def draw_survivor_selection(self) -> None:
         rects = [self.survivor_card_rect(index) for index in range(len(SURVIVOR_IDS))]
         if not rects:
@@ -293,16 +400,10 @@ class UIMixin:
                 glow=accent if selected else None,
             )
 
-            frames = self.walk_sprites.get(survivor_id, []) if selected else []
-            sprite = frames[(pygame.time.get_ticks() // 140) % len(frames)] if frames else self.sprites.get(survivor_id)
             preview_size = min(72, rect.height - 50, rect.width // 3)
             preview_rect = pygame.Rect(0, 0, preview_size, preview_size)
             preview_rect.center = (rect.centerx, rect.centery - 18)
-            if sprite is not None:
-                preview = pygame.transform.smoothscale(sprite, preview_rect.size)
-                self.screen.blit(preview, preview_rect)
-            else:
-                pygame.draw.ellipse(self.screen, accent, preview_rect)
+            self.draw_role_reveal_card_preview(survivor_id, selected, preview_rect, accent, accent)
 
             draw_text(
                 self.screen,
@@ -342,16 +443,10 @@ class UIMixin:
                 border=accent if selected else COLORS["border_soft"],
             )
 
-            frames = self.walk_sprites.get(killer_id, []) if selected else []
-            sprite = frames[(pygame.time.get_ticks() // 140) % len(frames)] if frames else self.sprites.get(killer_id)
             preview_size = min(92, rect.width - 42, rect.height // 2)
             preview_rect = pygame.Rect(0, 0, preview_size, preview_size)
             preview_rect.center = (rect.centerx, rect.centery - 24)
-            if sprite is not None:
-                preview = pygame.transform.smoothscale(sprite, preview_rect.size)
-                self.screen.blit(preview, preview_rect)
-            else:
-                pygame.draw.ellipse(self.screen, data["color"], preview_rect)
+            self.draw_role_reveal_card_preview(killer_id, selected, preview_rect, data["color"], accent)
 
             draw_pill(
                 self.screen,
