@@ -15,10 +15,12 @@ from tag.utils.vector import facing_axis, safe_normalize
 @dataclass
 class Wall:
     rect: pygame.Rect
+    fill_color: tuple[int, int, int] = (67, 73, 85)
+    border_color: tuple[int, int, int] = (126, 137, 151)
 
     def draw(self, surface: pygame.Surface) -> None:
-        pygame.draw.rect(surface, (67, 73, 85), self.rect, border_radius=6)
-        pygame.draw.rect(surface, (126, 137, 151), self.rect, 2, border_radius=6)
+        pygame.draw.rect(surface, self.fill_color, self.rect, border_radius=6)
+        pygame.draw.rect(surface, self.border_color, self.rect, 2, border_radius=6)
 
 
 class Button:

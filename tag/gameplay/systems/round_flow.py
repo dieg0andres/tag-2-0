@@ -57,6 +57,7 @@ class RoundFlowMixin:
         self.spinning_perimeter_edges = 0
         self.last_spinning_perimeter_edge = None
         self.vengance_mines_placed_this_round = 0
+        self.select_random_wall_layout()
         self.walls = self.create_walls()
 
         killer_sprite_key = self.sprite_key_for_round_killer()
@@ -68,9 +69,11 @@ class RoundFlowMixin:
             survivor_key = self.selected_player_survivor if self.selected_player_survivor in self.sprites else "survivor"
             survivor_sprite = self.sprites.get(survivor_key)
             survivor_walk_frames = self.walk_sprites.get(survivor_key, [])
+            survivor_spawn = self.spawn_position(0.54, 0.68)
+            killer_spawn = self.spawn_position(0.90, 0.08, survivor_spawn)
             self.survivor = Survivor(
                 "You",
-                (500, 560),
+                survivor_spawn,
                 survivor_sprite,
                 self.selected_player_survivor,
                 survivor_walk_frames,
@@ -80,7 +83,7 @@ class RoundFlowMixin:
                 Killer(
                     self.round_killer,
                     KILLERS[self.round_killer]["name"],
-                    (820, 145),
+                    killer_spawn,
                     killer_sprite,
                     "classic",
                     killer_walk_frames,
@@ -91,17 +94,19 @@ class RoundFlowMixin:
             ai_survivor_key = ai_survivor_id if ai_survivor_id in self.sprites else "survivor"
             survivor_sprite = self.sprites.get(ai_survivor_key)
             survivor_walk_frames = self.walk_sprites.get(ai_survivor_key, [])
+            killer_spawn = self.spawn_position(0.54, 0.68)
+            survivor_spawn = self.spawn_position(0.54, 0.08, killer_spawn)
             self.player = Killer(
                 self.round_killer,
                 "You",
-                (500, 555),
+                killer_spawn,
                 killer_sprite,
                 player_killer_skin if self.skin_unlocked(player_killer_skin) else "classic",
                 killer_walk_frames,
             )
             self.survivor = Survivor(
                 "AI Survivor",
-                (500, 150),
+                survivor_spawn,
                 survivor_sprite,
                 ai_survivor_id,
                 survivor_walk_frames,
@@ -110,6 +115,25 @@ class RoundFlowMixin:
 
         self.state = GameState.PLAYING
         self.start_round_music()
+
+    def spawn_position(
+        self,
+        x_ratio: float,
+        y_ratio: float,
+        avoid_pos: pygame.Vector2 | None = None,
+    ) -> pygame.Vector2:
+        pos = pygame.Vector2(
+            ARENA_RECT.left + ARENA_RECT.width * x_ratio,
+            ARENA_RECT.top + ARENA_RECT.height * y_ratio,
+        )
+        rect = pygame.Rect(0, 0, CHARACTER_COLLISION_SIZE, CHARACTER_COLLISION_SIZE)
+        rect.center = (round(pos.x), round(pos.y))
+        blocked = not ARENA_RECT.contains(rect) or any(rect.colliderect(wall.rect) for wall in self.walls)
+        if not blocked:
+            return pos
+
+        open_pos = self.random_open_position(avoid_pos, 180 if avoid_pos is not None else 0)
+        return open_pos if open_pos is not None else pygame.Vector2(ARENA_RECT.center)
 
     def sprite_for_round_killer(self) -> pygame.Surface | None:
         return self.sprites.get(self.sprite_key_for_round_killer()) or self.sprites.get(self.round_killer)
@@ -185,4 +209,3 @@ class RoundFlowMixin:
         self.state = GameState.GAME_OVER
         self.stop_music()
         self.play_sound("win" if player_won else "lose")
-

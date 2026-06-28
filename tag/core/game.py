@@ -84,6 +84,7 @@ class Game(AssetMixin, PersistenceMixin, WorldMixin, InputMixin, SurvivorAbiliti
         self.malice_helper_birds: list[MaliceHelperBird] = []
         self.dinosaur_shockwave_timer = 0.0
         self.dinosaur_shockwave_pos = pygame.Vector2()
+        self.wall_layout_id = 0
 
         self.menu_buttons = {
             "play": Button(pygame.Rect(0, 0, 220, 58), "Start"),
