@@ -484,7 +484,7 @@ class UIMixin:
             draw_text(
                 self.screen,
                 self.font_small,
-                ellipsize(self.font_small, f"{index + 1}. {self.skin_name(self.round_killer, skin_id)}", rect.width - 84),
+                ellipsize(self.font_small, self.skin_name(self.round_killer, skin_id), rect.width - 84),
                 COLORS["text"] if unlocked else COLORS["muted"],
                 (rect.left + 76, rect.top + 12),
             )
