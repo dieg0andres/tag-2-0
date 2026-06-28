@@ -28,6 +28,8 @@ from tag.utils.vector import facing_axis, safe_normalize, vector_from_keys
 ROLE_REVEAL_DANCE_KEYS = {
     "revenge_bot",
     "subslasher",
+    "show_runner",
+    "malice",
     "vengance_bot",
     "survivor",
     "survivor_odd",
@@ -35,6 +37,7 @@ ROLE_REVEAL_DANCE_KEYS = {
     "survivor_kitty",
     "survivor_kevin",
     "survivor_trashy",
+    "survivor_queen_goopy",
 }
 
 
@@ -322,8 +325,7 @@ class UIMixin:
         jump = max(0.0, math.sin(t * 8.5)) * 10
         sway = math.sin(t * 5.0) * 6
         spin = math.sin(t * 6.4) * 15 + math.sin(t * 11.0) * 3
-        pulse = 1.0 + max(0.0, math.sin(t * 8.5)) * 0.08
-        arm_wave = math.sin(t * 9.0)
+        pulse = 1.0
         stage_pad = max(24, preview_rect.width // 3)
         stage = pygame.Surface(
             (preview_rect.width + stage_pad * 2, preview_rect.height + stage_pad * 2),
@@ -344,22 +346,6 @@ class UIMixin:
             sparkle_color = (255, 221, 93, 180) if i % 2 == 0 else (*accent[:3], 165)
             pygame.draw.circle(stage, sparkle_color, (dot_x, dot_y), 3 + (i % 2))
 
-        arm_color = (*accent[:3], 220)
-        glove_color = (255, 255, 255, 230)
-        for side in (-1, 1):
-            shoulder = (cx + side * int(size * 0.17), cy + int(size * 0.03))
-            hand = (
-                cx + side * int(size * 0.58),
-                cy - int(size * (0.17 + side * arm_wave * 0.16)),
-            )
-            elbow = (
-                cx + side * int(size * 0.40),
-                cy - int(size * (0.02 - side * arm_wave * 0.10)),
-            )
-            pygame.draw.line(stage, arm_color, shoulder, elbow, max(3, size // 14))
-            pygame.draw.line(stage, arm_color, elbow, hand, max(3, size // 14))
-            pygame.draw.circle(stage, glove_color, hand, max(4, size // 12))
-
         if sprite is not None:
             base = pygame.transform.smoothscale(sprite, preview_rect.size)
             danced = pygame.transform.rotozoom(base, spin, pulse)
@@ -372,10 +358,6 @@ class UIMixin:
             danced = pygame.transform.rotozoom(fallback, spin, pulse)
             danced_rect = danced.get_rect(center=(cx, cy - int(jump)))
             stage.blit(danced, danced_rect)
-
-        foot_y = cy + int(size * 0.47) - int(jump * 0.25)
-        pygame.draw.circle(stage, (*accent[:3], 175), (cx - int(size * 0.24), foot_y), max(3, size // 13))
-        pygame.draw.circle(stage, (*accent[:3], 175), (cx + int(size * 0.24), foot_y), max(3, size // 13))
 
         stage_rect = stage.get_rect(center=(preview_rect.centerx + int(sway), preview_rect.centery))
         self.screen.blit(stage, stage_rect)
