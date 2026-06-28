@@ -580,7 +580,7 @@ class UIMixin:
         draw_text(
             self.screen,
             self.font_small,
-            f"Gun Maker skill check  {survivor.trashy_hits}/{TRASHY_GUN_TARGET_HITS}",
+            f"Press Space on overlap  {survivor.trashy_hits}/{TRASHY_GUN_TARGET_HITS}",
             COLORS["text"],
             (shell.centerx, shell.top + 14),
             True,
@@ -817,7 +817,7 @@ class UIMixin:
             if self.player.survivor_id == "survivor_queen_goopy":
                 return ["Move: WASD or arrows", "K: summon 2 knights", "Knights stun killer 2.3s on touch"]
             if self.player.survivor_id == "survivor_trashy":
-                return ["G: Gun Maker timing game / fire gun", "C: Shock Wave Cannon stuns and knocks back", "T: Devils Work turret, max 2", "Trashy abilities have 5s cooldowns"]
+                return ["G: Gun Maker / homing gun", "Space: hit 3 Gun Maker overlaps", "Gun passes through walls and stuns", "C: Shock Wave Cannon; T: turret"]
             if self.player.survivor_id == "survivor_kevin":
                 return ["Move: WASD or arrows", "P: Punch in front for 5s", "S: Double Speed, +89% speed"]
             return ["Move: WASD or arrows", "Survive both lives until timer ends"]
@@ -929,9 +929,9 @@ class UIMixin:
             return "K Knights"
         if survivor.survivor_id == "survivor_trashy":
             if survivor.trashy_minigame_active:
-                return f"Click overlap {survivor.trashy_hits}/{TRASHY_GUN_TARGET_HITS}"
+                return f"Space overlap {survivor.trashy_hits}/{TRASHY_GUN_TARGET_HITS}"
             if survivor.trashy_gun_ready:
-                gun = "G fire gun"
+                gun = "G fire homing gun"
             else:
                 gun = "G Gun Maker" if not survivor.trashy_gun_used else "Gun used"
             shock = (

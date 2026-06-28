@@ -324,7 +324,12 @@ class SimulationMixin:
     def update_survivor_shots(self, dt: float) -> None:
         remaining: list[SurvivorShot] = []
         for shot in self.survivor_shots:
-            if not shot.update(dt, self.walls):
+            target = (
+                min(self.killers, key=lambda killer: killer.pos.distance_squared_to(shot.pos))
+                if self.killers
+                else None
+            )
+            if not shot.update(dt, target):
                 continue
             hit_killer = next((killer for killer in self.killers if shot.rect.colliderect(killer.rect)), None)
             if hit_killer is not None:

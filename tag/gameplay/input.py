@@ -193,15 +193,19 @@ class InputMixin:
             if self.menu_buttons["begin"].contains(pos):
                 self.begin_round_from_skin_select()
 
-        elif self.state == GameState.PLAYING:
-            if self.player_role == "Survivor" and isinstance(self.player, Survivor):
-                self.handle_survivor_click(pos)
-
     def handle_survivor_keydown(self, key: int) -> None:
         if not isinstance(self.player, Survivor):
             return
 
         survivor = self.player
+        if (
+            survivor.survivor_id == "survivor_trashy"
+            and survivor.trashy_minigame_active
+            and key == pygame.K_SPACE
+        ):
+            self.handle_trashy_minigame_press(survivor)
+            return
+
         if survivor.survivor_id == "survivor_odd" and key == pygame.K_f:
             self.use_odd_picture_taken(survivor)
         elif survivor.survivor_id == "survivor_explorer" and key == pygame.K_a:
@@ -224,13 +228,6 @@ class InputMixin:
                 self.use_kevin_punch(survivor)
             elif key == pygame.K_s:
                 self.use_kevin_double_speed(survivor)
-
-    def handle_survivor_click(self, pos: tuple[int, int]) -> None:
-        if not isinstance(self.player, Survivor):
-            return
-        survivor = self.player
-        if survivor.survivor_id == "survivor_trashy" and survivor.trashy_minigame_active:
-            self.handle_trashy_minigame_click(survivor, pos)
 
     def survivor_index_from_key(self, key: int) -> str | None:
         number_keys = (

@@ -224,7 +224,7 @@ class VenganceLandmine:
 
 
 class SurvivorShot:
-    """Trashy's earned gun shot. It stuns a killer instead of ending the round."""
+    """Trashy's earned homing shot. It stuns a killer instead of ending the round."""
 
     def __init__(self, origin: pygame.Vector2, direction: pygame.Vector2) -> None:
         self.pos = pygame.Vector2(origin)
@@ -235,15 +235,23 @@ class SurvivorShot:
         self.rect = pygame.Rect(0, 0, 22, 12)
         self.rect.center = (round(self.pos.x), round(self.pos.y))
 
-    def update(self, dt: float, walls: list[Wall]) -> bool:
+    def update(self, dt: float, target: Character | None) -> bool:
         self.lifetime -= dt
         if self.lifetime <= 0:
             return False
+        if target is not None:
+            desired = safe_normalize(target.pos - self.pos)
+            if desired.length_squared() > 0:
+                turn_amount = min(1.0, TRASHY_GUN_HOMING_STRENGTH * dt)
+                curved_direction = self.direction + (desired - self.direction) * turn_amount
+                self.direction = safe_normalize(curved_direction)
+                if self.direction.length_squared() == 0:
+                    self.direction = desired
         self.pos += self.direction * TRASHY_GUN_SHOT_SPEED * dt
         self.rect.center = (round(self.pos.x), round(self.pos.y))
         if not ARENA_RECT.colliderect(self.rect):
             return False
-        return not any(self.rect.colliderect(wall.rect) for wall in walls)
+        return True
 
     def draw(self, surface: pygame.Surface) -> None:
         pygame.draw.rect(surface, (239, 68, 68), self.rect, border_radius=6)
@@ -698,13 +706,15 @@ class Survivor(Character):
         return self.explorer_adrenaline_timer > 0
 
     def set_trashy_target(self) -> None:
-        padding = TRASHY_MINIGAME_TARGET_SIZE // 2 + 4
+        target_width = round(TRASHY_MINIGAME_TARGET_SIZE * 1.5)
+        padding = target_width // 2 + 4
         self.trashy_target_x = float(
             random.randint(TRASHY_MINIGAME_BAR.left + padding, TRASHY_MINIGAME_BAR.right - padding)
         )
 
     def trashy_target_rect(self) -> pygame.Rect:
-        rect = pygame.Rect(0, 0, TRASHY_MINIGAME_TARGET_SIZE, TRASHY_MINIGAME_TARGET_SIZE)
+        target_width = round(TRASHY_MINIGAME_TARGET_SIZE * 1.5)
+        rect = pygame.Rect(0, 0, target_width, TRASHY_MINIGAME_TARGET_SIZE)
         rect.center = (round(self.trashy_target_x), TRASHY_MINIGAME_BAR.centery)
         return rect
 

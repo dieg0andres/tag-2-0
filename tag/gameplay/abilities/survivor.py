@@ -92,7 +92,7 @@ class SurvivorAbilitiesMixin:
             self.survivor_status_message = "Trashy's gun already fired."
             return
         if survivor.trashy_minigame_active:
-            self.survivor_status_message = "Click when the white circle overlaps green."
+            self.survivor_status_message = "Press Space when the white circle overlaps green."
             return
 
         survivor.trashy_minigame_active = True
@@ -100,12 +100,12 @@ class SurvivorAbilitiesMixin:
         survivor.trashy_circle_x = float(TRASHY_MINIGAME_BAR.left + TRASHY_MINIGAME_CIRCLE_RADIUS)
         survivor.trashy_circle_direction = 1
         survivor.set_trashy_target()
-        self.survivor_status_message = "Gun Maker started. Click the overlap 10 times."
+        self.survivor_status_message = "Gun Maker started. Press Space on 3 overlaps."
 
-    def handle_trashy_minigame_click(self, survivor: Survivor, pos: tuple[int, int]) -> None:
+    def handle_trashy_minigame_press(self, survivor: Survivor) -> None:
         circle = survivor.trashy_circle_rect()
         target = survivor.trashy_target_rect()
-        if circle.colliderect(target) and circle.collidepoint(pos):
+        if circle.colliderect(target):
             survivor.trashy_hits += 1
             if survivor.trashy_hits >= TRASHY_GUN_TARGET_HITS:
                 survivor.trashy_minigame_active = False
@@ -127,7 +127,7 @@ class SurvivorAbilitiesMixin:
         self.survivor_shots.append(SurvivorShot(survivor.pos + direction * 35, direction))
         survivor.trashy_gun_ready = False
         survivor.trashy_gun_used = True
-        self.survivor_status_message = "Trashy fired the gun."
+        self.survivor_status_message = "Trashy fired the homing gun."
 
     def use_trashy_shock_wave_cannon(self, survivor: Survivor) -> None:
         if survivor.trashy_shock_cooldown > 0:

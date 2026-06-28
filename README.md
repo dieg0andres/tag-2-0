@@ -35,7 +35,7 @@ python tools/generate_assets.py
 - T: Trashy only, place Devils Work turret
 - P: Kevin only, activate Punch
 - S: Kevin only, activate Double Speed
-- Spacebar: attack when you are the killer
+- Spacebar: attack when you are the killer, or hit Gun Maker timing overlaps as Trashy
 - C: Ducky only, activate crying swing
 - Y: Ducky only, activate HG
 - I: Subslasher only, shoot Perpelling Shootdown freeze spike
@@ -101,7 +101,7 @@ python tools/generate_assets.py
 - Queen Goopy:
   - Knights: press K to summon 2 gray helpers that chase the killer and stun on contact for 2.3 seconds.
 - Trashy:
-  - Gun Maker: press G to start a timing challenge at the bottom of the screen. Click when the white circle overlaps the green square 10 times in a row to earn a gun, then press G again to fire a stunning shot.
+  - Gun Maker: press G to start a timing challenge at the bottom of the screen. Press Space when the white circle overlaps the green target 3 times in a row to earn a gun, then press G again to fire a homing, wall-piercing stunning shot.
   - Shock Wave Cannon: press C to fire a cannon blast. If it hits the killer, it stuns for 5 seconds, knocks the killer back, and removes 10 seconds from the round timer. This has a 5-second cooldown.
   - Devils Work: press T to place a turret. When the killer gets close, it shoots and stuns the killer for 2.5 seconds. This has a 5-second cooldown and a maximum of 2 active turrets.
 - Kevin:
