@@ -111,9 +111,9 @@ class Game(AssetMixin, PersistenceMixin, WorldMixin, InputMixin, SurvivorAbiliti
         width = self.window_width()
         height = self.window_height()
         center_x = width // 2
-        self.menu_buttons["play"].rect.center = (center_x, min(max(420, height - 300), 490))
-        self.menu_buttons["reveal"].rect.center = (center_x, min(max(540, height - 205), height - 150))
-        self.menu_buttons["begin"].rect.center = (center_x, min(max(560, height - 170), height - 105))
+        self.menu_buttons["play"].rect.center = (center_x, min(max(450, height - 190), 500))
+        self.menu_buttons["reveal"].rect.center = (center_x, min(max(548, height - 175), height - 82))
+        self.menu_buttons["begin"].rect.center = (center_x, min(max(585, height - 110), height - 55))
 
     def handle_window_resize(self, width: int, height: int) -> None:
         old_arena = ARENA_RECT.copy()

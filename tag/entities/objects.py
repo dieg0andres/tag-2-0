@@ -8,6 +8,7 @@ import pygame
 
 from tag.config.settings import *
 from tag.data.content import KILLERS
+from tag.ui.theme import COLORS, draw_button
 from tag.utils.text import draw_text
 from tag.utils.vector import facing_axis, safe_normalize
 
@@ -52,13 +53,7 @@ class Button:
         font: pygame.font.Font,
         active: bool = False,
     ) -> None:
-        fill = (234, 240, 248) if active else (31, 41, 55)
-        text_color = (15, 23, 42) if active else (241, 245, 249)
-        outline = (248, 199, 88) if active else (90, 101, 117)
-
-        pygame.draw.rect(surface, fill, self.rect, border_radius=8)
-        pygame.draw.rect(surface, outline, self.rect, 3, border_radius=8)
-        draw_text(surface, font, self.text, text_color, self.rect.center, center=True)
+        draw_button(surface, font, self.rect, self.text, active)
 
     def contains(self, pos: tuple[int, int]) -> bool:
         return self.rect.collidepoint(pos)
@@ -614,8 +609,11 @@ class Character:
             pygame.draw.line(surface, (255, 255, 255), start, end, 3)
             pygame.draw.circle(surface, (255, 255, 255), end, 4)
 
-        label = font.render(self.name, True, (226, 232, 240))
+        label = font.render(self.name, True, COLORS["text_soft"])
         label_rect = label.get_rect(center=(self.rect.centerx, self.rect.top - 11))
+        backing = label_rect.inflate(12, 6)
+        pygame.draw.rect(surface, COLORS["bg"], backing, border_radius=backing.height // 2)
+        pygame.draw.rect(surface, COLORS["border_soft"], backing, 1, border_radius=backing.height // 2)
         surface.blit(label, label_rect)
         self.is_moving = False
 
@@ -819,8 +817,11 @@ class Killer(Character):
             end = start + facing * 31
             pygame.draw.line(surface, (255, 255, 255), start, end, 3)
 
-        label = font.render(self.name, True, (226, 232, 240))
+        label = font.render(self.name, True, COLORS["text_soft"])
         label_rect = label.get_rect(center=(self.rect.centerx, self.rect.top - 11))
+        backing = label_rect.inflate(12, 6)
+        pygame.draw.rect(surface, COLORS["bg"], backing, border_radius=backing.height // 2)
+        pygame.draw.rect(surface, COLORS["border_soft"], backing, 1, border_radius=backing.height // 2)
         surface.blit(label, label_rect)
         self.draw_stun_effect(surface, font)
 

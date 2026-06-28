@@ -212,19 +212,28 @@ class InputMixin:
         return SURVIVOR_IDS[index]
 
     def survivor_card_rect(self, index: int) -> pygame.Rect:
+        return self.selection_card_rect(index, len(SURVIVOR_IDS))
+
+    def selection_card_rect(self, index: int, count: int) -> pygame.Rect:
         window_width = self.window_width()
-        card_width = 210
-        card_height = 70
-        card_gap = 18
-        row_gap = 8
-        columns = min(4, len(SURVIVOR_IDS), max(2, (window_width - 80) // (card_width + card_gap)))
+        window_height = self.window_height()
+        card_gap = 14
+        row_gap = 10
+        columns = min(4, count, max(2, (window_width - 88) // 210))
+        total_gap = (columns - 1) * card_gap
+        card_width = min(220, max(178, (window_width - 88 - total_gap) // columns))
+        rows = math.ceil(count / columns)
+        begin_top = self.menu_buttons["begin"].rect.top if "begin" in self.menu_buttons else window_height - 90
+        top = min(430, max(350, window_height - 274))
+        available_height = max(120, begin_top - top - 26)
+        card_height = min(76, max(58, (available_height - (rows - 1) * row_gap) // rows))
         row = index // columns
         column = index % columns
         total_width = columns * card_width + (columns - 1) * card_gap
         start_x = (window_width - total_width) // 2
         return pygame.Rect(
             start_x + column * (card_width + card_gap),
-            430 + row * (card_height + row_gap),
+            top + row * (card_height + row_gap),
             card_width,
             card_height,
         )
@@ -290,23 +299,8 @@ class InputMixin:
         self.skin_notice = f"{self.skin_name(self.round_killer, skin_id)} selected."
 
     def skin_card_rect(self, index: int) -> pygame.Rect:
-        window_width = self.window_width()
-        card_width = 210
-        card_height = 70
-        card_gap = 18
-        row_gap = 8
         options = self.skin_options_for_killer(self.round_killer)
-        columns = min(4, len(options), max(2, (window_width - 80) // (card_width + card_gap)))
-        row = index // columns
-        column = index % columns
-        total_width = columns * card_width + (columns - 1) * card_gap
-        start_x = (window_width - total_width) // 2
-        return pygame.Rect(
-            start_x + column * (card_width + card_gap),
-            430 + row * (card_height + row_gap),
-            card_width,
-            card_height,
-        )
+        return self.selection_card_rect(index, len(options))
 
     def skin_from_card_click(self, pos: tuple[int, int]) -> str | None:
         for index, skin_id in enumerate(self.skin_options_for_killer(self.round_killer)):
@@ -326,11 +320,14 @@ class InputMixin:
 
     def killer_card_rect(self, index: int) -> pygame.Rect:
         window_width = self.window_width()
+        window_height = self.window_height()
         card_gap = 16
-        card_width = min(172, max(140, (window_width - 96 - (len(KILLER_IDS) - 1) * card_gap) // len(KILLER_IDS)))
+        card_width = min(182, max(150, (window_width - 96 - (len(KILLER_IDS) - 1) * card_gap) // len(KILLER_IDS)))
+        card_height = min(292, max(238, window_height - 390))
+        top = min(158, max(138, window_height // 4 - 12))
         total_width = len(KILLER_IDS) * card_width + (len(KILLER_IDS) - 1) * card_gap
         start_x = (window_width - total_width) // 2
-        return pygame.Rect(start_x + index * (card_width + card_gap), 170, card_width, 305)
+        return pygame.Rect(start_x + index * (card_width + card_gap), top, card_width, card_height)
 
     def killer_from_card_click(self, pos: tuple[int, int]) -> str | None:
         for index, killer_id in enumerate(KILLER_IDS):

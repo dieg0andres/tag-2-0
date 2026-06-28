@@ -12,6 +12,7 @@ from tag.config.settings import *
 from tag.core.state import GameState
 from tag.data.content import *
 from tag.entities.objects import *
+from tag.ui.theme import COLORS
 from tag.utils.text import draw_text, draw_wrapped_text, draw_wrapped_text_left
 from tag.utils.vector import facing_axis, safe_normalize, vector_from_keys
 
@@ -513,21 +514,21 @@ class WorldMixin:
         width, height = self.screen.get_size()
         preview = pygame.Rect(0, 0, min(760, width - 120), min(230, max(180, int(height * 0.28))))
         preview.center = (width // 2, min(475, height - 220))
-        pygame.draw.rect(self.screen, (20, 31, 48), preview, border_radius=18)
-        pygame.draw.rect(self.screen, (64, 77, 98), preview, 2, border_radius=18)
+        pygame.draw.rect(self.screen, (13, 22, 40), preview, border_radius=22)
+        pygame.draw.rect(self.screen, COLORS["border_soft"], preview, 2, border_radius=22)
         for x in range(preview.left + 28, preview.right, 58):
-            pygame.draw.line(self.screen, (28, 41, 62), (x, preview.top + 10), (x, preview.bottom - 10))
+            pygame.draw.line(self.screen, (23, 36, 58), (x, preview.top + 10), (x, preview.bottom - 10))
         for y in range(preview.top + 28, preview.bottom, 58):
-            pygame.draw.line(self.screen, (28, 41, 62), (preview.left + 10, y), (preview.right - 10, y))
+            pygame.draw.line(self.screen, (23, 36, 58), (preview.left + 10, y), (preview.right - 10, y))
 
     def draw_arena(self) -> None:
-        pygame.draw.rect(self.screen, (20, 31, 48), ARENA_RECT, border_radius=12)
-        pygame.draw.rect(self.screen, (91, 106, 130), ARENA_RECT, 3, border_radius=12)
+        pygame.draw.rect(self.screen, (13, 22, 40), ARENA_RECT, border_radius=16)
+        pygame.draw.rect(self.screen, COLORS["border"], ARENA_RECT, 2, border_radius=16)
 
         for x in range(ARENA_RECT.left + 40, ARENA_RECT.right, 40):
             pygame.draw.line(
                 self.screen,
-                (28, 41, 62),
+                (22, 34, 55),
                 (x, ARENA_RECT.top),
                 (x, ARENA_RECT.bottom),
                 1,
@@ -535,7 +536,7 @@ class WorldMixin:
         for y in range(ARENA_RECT.top + 40, ARENA_RECT.bottom, 40):
             pygame.draw.line(
                 self.screen,
-                (28, 41, 62),
+                (22, 34, 55),
                 (ARENA_RECT.left, y),
                 (ARENA_RECT.right, y),
                 1,

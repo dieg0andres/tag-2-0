@@ -12,7 +12,16 @@ from tag.config.settings import *
 from tag.core.state import GameState
 from tag.data.content import *
 from tag.entities.objects import *
-from tag.utils.text import draw_text, draw_wrapped_text, draw_wrapped_text_left
+from tag.ui.theme import (
+    COLORS,
+    draw_cinematic_background,
+    draw_divider,
+    draw_panel,
+    draw_pill,
+    draw_progress_bar,
+    draw_vignette,
+)
+from tag.utils.text import draw_text, draw_wrapped_text, draw_wrapped_text_left, ellipsize
 from tag.utils.vector import facing_axis, safe_normalize, vector_from_keys
 
 
@@ -32,148 +41,228 @@ class UIMixin:
         pygame.display.flip()
 
     def draw_title(self) -> None:
-        self.screen.fill((10, 16, 30))
+        draw_cinematic_background(self.screen)
         self.draw_arena_preview()
+        draw_vignette(self.screen, 115)
+
+        width, height = self.screen.get_size()
         center_x = self.window_center_x()
-        draw_text(self.screen, self.font_title, "Tag 2.0", (248, 250, 252), (center_x, 160), True)
+        hero = pygame.Rect(0, 0, min(860, width - 72), min(600, height - 96))
+        hero.centerx = center_x
+        hero.top = 42 if height <= 700 else 48
+        draw_panel(self.screen, hero, fill=(12, 18, 34), border=COLORS["border"], radius=26, width=2, glow=COLORS["primary"])
+
+        draw_pill(
+            self.screen,
+            self.font_small,
+            "ARCADE SURVIVAL TAG",
+            (hero.centerx, hero.top + 42),
+            fg=COLORS["primary_light"],
+            bg=(16, 32, 58),
+            border=(37, 99, 235),
+            center=True,
+        )
+        draw_text(self.screen, self.font_title, "Tag 2.0", COLORS["text"], (center_x, hero.top + 118), True)
         draw_text(
             self.screen,
             self.font_medium,
-            "Random role. Survive twice or catch.",
-            (203, 213, 225),
-            (center_x, 245),
+            "Run, hunt, survive.",
+            COLORS["text_soft"],
+            (center_x, hero.top + 188),
             True,
         )
-        draw_text(
+        draw_wrapped_text(
             self.screen,
             self.font_small,
-            "WASD / Arrows move  |  Space attacks as killer  |  Escape quits",
-            (148, 163, 184),
-            (center_x, 305),
-            True,
+            "Every round assigns a role. Survive both lives as the runner or catch the survivor before the clock dies.",
+            COLORS["muted"],
+            pygame.Rect(hero.left + 100, hero.top + 212, hero.width - 200, 52),
+            4,
         )
+        chips = [("WASD / Arrows", "Move"), ("Space", "Attack"), ("Esc", "Quit")]
+        chip_y = min(hero.top + 304, self.menu_buttons["play"].rect.top - 44)
+        total_chip_width = 0
+        chip_sizes: list[tuple[str, str, int]] = []
+        for key, label in chips:
+            text = f"{key}  {label}"
+            width_hint = self.font_small.size(text)[0] + 24
+            chip_sizes.append((key, label, width_hint))
+            total_chip_width += width_hint
+        total_chip_width += 12 * (len(chips) - 1)
+        chip_x = center_x - total_chip_width // 2
+        for key, label, width_hint in chip_sizes:
+            rect = draw_pill(
+                self.screen,
+                self.font_small,
+                f"{key}  {label}",
+                (chip_x, chip_y),
+                fg=COLORS["text_soft"],
+                bg=(18, 27, 46),
+                border=COLORS["border_soft"],
+            )
+            chip_x += width_hint + 12
+
         self.menu_buttons["play"].draw(self.screen, self.font_medium, True)
         draw_text(
             self.screen,
             self.font_small,
             "Press Enter or click Start",
-            (203, 213, 225),
+            COLORS["muted"],
             (center_x, self.menu_buttons["play"].rect.bottom + 20),
             True,
         )
 
     def draw_round_setup(self) -> None:
-        self.screen.fill((13, 22, 36))
+        draw_cinematic_background(self.screen)
+        draw_vignette(self.screen, 95)
         center_x = self.window_center_x()
+        width = self.window_width()
         draw_text(
             self.screen,
             self.font_large,
-            "Round Setup",
-            (248, 250, 252),
-            (center_x, 78),
+            "Choose Your Hunter",
+            COLORS["text"],
+            (center_x, 66),
             True,
         )
-        draw_text(
+        draw_wrapped_text(
             self.screen,
             self.font_small,
             "Choose your killer if your random role is Killer. Survivor rounds still use a random AI killer.",
-            (203, 213, 225),
-            (center_x, 123),
-            True,
+            COLORS["text_soft"],
+            pygame.Rect(center_x - min(430, width // 2 - 40), 104, min(860, width - 80), 44),
+            4,
         )
 
+        card_bottom = 0
         for index, killer_id in enumerate(KILLER_IDS):
             data = KILLERS[killer_id]
             panel = self.killer_card_rect(index)
             is_selected = killer_id == self.selected_player_killer
-            pygame.draw.rect(self.screen, (24, 34, 52), panel, border_radius=12)
-            pygame.draw.rect(
+            accent = data.get("accent", COLORS["primary"])
+            draw_panel(
                 self.screen,
-                (248, 199, 88) if is_selected else (77, 88, 106),
                 panel,
-                4 if is_selected else 3,
-                border_radius=12,
+                fill=(18, 27, 46) if is_selected else (13, 20, 36),
+                border=accent if is_selected else COLORS["border_soft"],
+                radius=20,
+                width=2 if is_selected else 1,
+                glow=accent if is_selected else None,
             )
-            draw_text(
+            draw_pill(
                 self.screen,
                 self.font_small,
                 str(index + 1),
-                (248, 199, 88) if is_selected else (148, 163, 184),
                 (panel.left + 13, panel.top + 10),
+                fg=COLORS["text"],
+                bg=accent if is_selected else COLORS["surface_2"],
+                border=accent if is_selected else COLORS["border_soft"],
             )
 
             sprite = self.sprites.get(killer_id)
-            preview_rect = pygame.Rect(0, 0, 82, 82)
-            preview_rect.center = (panel.centerx, panel.top + 56)
+            preview_size = min(104, panel.width - 42, panel.height // 3)
+            preview_rect = pygame.Rect(0, 0, preview_size, preview_size)
+            preview_rect.center = (panel.centerx, panel.top + 68)
             if sprite is not None:
                 preview = pygame.transform.smoothscale(sprite, preview_rect.size)
                 self.screen.blit(preview, preview_rect)
             else:
                 pygame.draw.ellipse(self.screen, data["color"], preview_rect)
 
-            draw_wrapped_text(
+            name = ellipsize(self.font_small, data["name"], panel.width - 30)
+            draw_text(
                 self.screen,
                 self.font_small,
-                data["name"],
-                (248, 250, 252),
-                pygame.Rect(panel.left + 10, panel.top + 106, panel.width - 20, 44),
+                name,
+                COLORS["text"],
+                (panel.left + 16, panel.top + 130),
             )
-            draw_wrapped_text(
+            draw_pill(
                 self.screen,
                 self.font_small,
                 data["attack_name"],
-                (248, 199, 88),
-                pygame.Rect(panel.left + 10, panel.top + 155, panel.width - 20, 48),
+                (panel.left + 14, panel.top + 158),
+                fg=COLORS["gold"],
+                bg=(38, 31, 19),
+                border=(95, 72, 25),
             )
             draw_wrapped_text(
                 self.screen,
                 self.font_small,
                 data["description"],
-                (177, 188, 205),
-                pygame.Rect(panel.left + 10, panel.top + 218, panel.width - 20, 58),
+                COLORS["muted"],
+                pygame.Rect(panel.left + 16, panel.top + 198, panel.width - 32, panel.bottom - panel.top - 212),
+                3,
             )
+            card_bottom = max(card_bottom, panel.bottom)
 
         selected_name = KILLERS[self.selected_player_killer]["name"]
-        draw_text(
+        draw_pill(
             self.screen,
             self.font_small,
             f"Selected killer if you become Killer: {selected_name}",
-            (248, 199, 88),
-            (center_x, 492),
-            True,
+            (center_x, card_bottom + 18),
+            fg=COLORS["gold"],
+            bg=(34, 27, 16),
+            border=(120, 86, 26),
+            center=True,
         )
         self.menu_buttons["reveal"].draw(self.screen, self.font_medium, True)
         draw_text(
             self.screen,
             self.font_small,
             "Click a killer or press 1-5. Skin selection appears after you become Killer.",
-            (203, 213, 225),
+            COLORS["muted"],
             (center_x, self.menu_buttons["reveal"].rect.bottom + 18),
             True,
         )
 
     def draw_role_reveal(self) -> None:
-        self.screen.fill((10, 16, 30))
+        draw_cinematic_background(self.screen)
+        draw_vignette(self.screen, 110)
         selected = KILLERS[self.round_killer]
-        role_color = (96, 165, 250) if self.player_role == "Survivor" else (248, 113, 113)
+        role_color = COLORS["primary"] if self.player_role == "Survivor" else COLORS["danger"]
         center_x = self.window_center_x()
+        width, height = self.screen.get_size()
 
-        draw_text(self.screen, self.font_large, "Role Reveal", (248, 250, 252), (center_x, 125), True)
-        draw_text(self.screen, self.font_title, self.player_role, role_color, (center_x, 240), True)
-        draw_text(
+        reveal = pygame.Rect(0, 0, min(720, width - 80), 230 if height >= 700 else 210)
+        reveal.centerx = center_x
+        reveal.top = 32
+        draw_panel(self.screen, reveal, fill=(12, 18, 34), border=role_color, radius=26, width=2, glow=role_color)
+        draw_pill(
             self.screen,
-            self.font_medium,
+            self.font_small,
+            "ROLE ASSIGNED",
+            (center_x, reveal.top + 34),
+            fg=COLORS["text"],
+            bg=(23, 37, 66),
+            border=role_color,
+            center=True,
+        )
+        draw_text(self.screen, self.font_title, self.player_role, role_color, (center_x, reveal.top + 110), True)
+        draw_pill(
+            self.screen,
+            self.font_small,
             f"Round killer: {selected['name']}",
-            (226, 232, 240),
-            (center_x, 330),
-            True,
+            (center_x, reveal.top + 164),
+            fg=COLORS["text_soft"],
+            bg=(18, 27, 46),
+            border=COLORS["border_soft"],
+            center=True,
         )
 
         if self.player_role == "Survivor":
             prompt = "Survive two 60-second lives while the random killer hunts you."
         else:
             prompt = "Catch the AI survivor with your selected killer before time runs out."
-        draw_text(self.screen, self.font_medium, prompt, (203, 213, 225), (center_x, 380), True)
+        draw_wrapped_text(
+            self.screen,
+            self.font_small,
+            prompt,
+            COLORS["text_soft"],
+            pygame.Rect(reveal.left + 40, reveal.bottom - 38, reveal.width - 80, 28),
+            3,
+        )
         if self.player_role == "Killer":
             self.draw_skin_selection()
         else:
@@ -181,71 +270,92 @@ class UIMixin:
         self.menu_buttons["begin"].draw(self.screen, self.font_medium, True)
 
     def draw_survivor_selection(self) -> None:
-        center_x = self.window_center_x()
+        rects = [self.survivor_card_rect(index) for index in range(len(SURVIVOR_IDS))]
+        if not rects:
+            return
+        bounds = rects[0].unionall(rects[1:]) if len(rects) > 1 else rects[0]
         draw_text(
             self.screen,
             self.font_medium,
             "Choose Survivor",
-            (248, 250, 252),
-            (center_x, 420),
+            COLORS["text"],
+            (bounds.centerx, bounds.top - 30),
             True,
         )
 
         for index, survivor_id in enumerate(SURVIVOR_IDS):
             data = SURVIVORS[survivor_id]
-            rect = self.survivor_card_rect(index)
+            rect = rects[index]
             selected = survivor_id == self.selected_player_survivor
-            fill = (24, 41, 58)
-            outline = (96, 165, 250) if selected else (88, 100, 116)
-            pygame.draw.rect(self.screen, fill, rect, border_radius=8)
-            pygame.draw.rect(self.screen, outline, rect, 3 if selected else 2, border_radius=8)
+            accent = COLORS["primary"]
+            draw_panel(
+                self.screen,
+                rect,
+                fill=(17, 31, 53) if selected else (13, 20, 36),
+                border=accent if selected else COLORS["border_soft"],
+                radius=16,
+                width=2 if selected else 1,
+                glow=accent if selected else None,
+            )
 
             sprite = self.sprites.get(survivor_id)
-            preview_rect = pygame.Rect(rect.left + 8, rect.top + 13, 44, 44)
+            preview_rect = pygame.Rect(rect.left + 12, rect.centery - 26, 52, 52)
             if sprite is not None:
                 preview = pygame.transform.smoothscale(sprite, preview_rect.size)
                 self.screen.blit(preview, preview_rect)
             else:
-                pygame.draw.ellipse(self.screen, (96, 165, 250), preview_rect)
+                pygame.draw.ellipse(self.screen, accent, preview_rect)
 
             draw_text(
                 self.screen,
                 self.font_small,
-                f"{index + 1}. {data['name']}",
-                (248, 250, 252),
-                (rect.left + 60, rect.top + 9),
+                ellipsize(self.font_small, f"{index + 1}. {data['name']}", rect.width - 84),
+                COLORS["text"],
+                (rect.left + 76, rect.top + 12),
             )
-            draw_wrapped_text(
+            draw_wrapped_text_left(
                 self.screen,
                 self.font_small,
                 data["description"],
-                (203, 213, 225),
-                pygame.Rect(rect.left + 60, rect.top + 32, rect.width - 68, 30),
+                COLORS["muted"],
+                pygame.Rect(rect.left + 76, rect.top + 36, rect.width - 88, rect.height - 44),
+                2,
+                max_lines=2,
             )
 
     def draw_skin_selection(self) -> None:
-        center_x = self.window_center_x()
+        options = self.skin_options_for_killer(self.round_killer)
+        rects = [self.skin_card_rect(index) for index in range(len(options))]
+        if not rects:
+            return
+        bounds = rects[0].unionall(rects[1:]) if len(rects) > 1 else rects[0]
         draw_text(
             self.screen,
             self.font_medium,
             "Choose Skin",
-            (248, 250, 252),
-            (center_x, 420),
+            COLORS["text"],
+            (bounds.centerx, bounds.top - 30),
             True,
         )
 
-        for index, skin_id in enumerate(self.skin_options_for_killer(self.round_killer)):
-            rect = self.skin_card_rect(index)
+        for index, skin_id in enumerate(options):
+            rect = rects[index]
             selected = self.selected_skins.get(self.round_killer, "classic") == skin_id
             unlocked = skin_id == "classic" or self.skin_unlocked(skin_id)
-            fill = (25, 42, 37) if unlocked else (35, 35, 42)
-            outline = (248, 199, 88) if selected else (88, 100, 116)
-            pygame.draw.rect(self.screen, fill, rect, border_radius=8)
-            pygame.draw.rect(self.screen, outline, rect, 3 if selected else 2, border_radius=8)
+            accent = COLORS["gold"] if unlocked else COLORS["warning"]
+            draw_panel(
+                self.screen,
+                rect,
+                fill=(28, 30, 24) if unlocked else (25, 25, 32),
+                border=accent if selected else COLORS["border_soft"],
+                radius=16,
+                width=2 if selected else 1,
+                glow=accent if selected else None,
+            )
 
             sprite_key = self.skin_sprite_key(self.round_killer, skin_id)
             sprite = self.sprites.get(sprite_key)
-            preview_rect = pygame.Rect(rect.left + 8, rect.top + 13, 44, 44)
+            preview_rect = pygame.Rect(rect.left + 12, rect.centery - 26, 52, 52)
             if sprite is not None:
                 preview = pygame.transform.smoothscale(sprite, preview_rect.size)
                 self.screen.blit(preview, preview_rect)
@@ -255,27 +365,31 @@ class UIMixin:
             draw_text(
                 self.screen,
                 self.font_small,
-                f"{index + 1}. {self.skin_name(self.round_killer, skin_id)}",
-                (248, 250, 252) if unlocked else (148, 163, 184),
-                (rect.left + 60, rect.top + 9),
+                ellipsize(self.font_small, f"{index + 1}. {self.skin_name(self.round_killer, skin_id)}", rect.width - 84),
+                COLORS["text"] if unlocked else COLORS["muted"],
+                (rect.left + 76, rect.top + 12),
             )
 
             status = "Unlocked" if unlocked else f"Locked: {self.skin_challenge_text(skin_id)}"
-            draw_wrapped_text(
+            draw_wrapped_text_left(
                 self.screen,
                 self.font_small,
                 status,
-                (134, 239, 172) if unlocked else (248, 199, 88),
-                pygame.Rect(rect.left + 60, rect.top + 32, rect.width - 68, 30),
+                COLORS["success"] if unlocked else COLORS["gold"],
+                pygame.Rect(rect.left + 76, rect.top + 36, rect.width - 88, rect.height - 44),
+                2,
+                max_lines=2,
             )
 
         if self.skin_notice:
+            notice_bottom = min(self.menu_buttons["begin"].rect.top - 8, bounds.bottom + 42)
             draw_wrapped_text(
                 self.screen,
                 self.font_small,
                 self.skin_notice,
-                (203, 213, 225),
-                pygame.Rect(center_x - 350, 582, 700, 36),
+                COLORS["text_soft"],
+                pygame.Rect(bounds.left, bounds.bottom + 8, bounds.width, max(24, notice_bottom - bounds.bottom - 8)),
+                3,
             )
 
     def draw_gameplay(self) -> None:
@@ -389,21 +503,24 @@ class UIMixin:
             return
 
         survivor = self.player
-        pygame.draw.rect(self.screen, (127, 29, 29), TRASHY_MINIGAME_BAR, border_radius=10)
-        pygame.draw.rect(self.screen, (254, 202, 202), TRASHY_MINIGAME_BAR, 2, border_radius=10)
-        target = survivor.trashy_target_rect()
-        circle = survivor.trashy_circle_rect()
-        pygame.draw.rect(self.screen, (34, 197, 94), target, border_radius=4)
-        pygame.draw.circle(self.screen, (248, 250, 252), circle.center, TRASHY_MINIGAME_CIRCLE_RADIUS)
-        pygame.draw.circle(self.screen, (15, 23, 42), circle.center, TRASHY_MINIGAME_CIRCLE_RADIUS, 2)
+        shell = TRASHY_MINIGAME_BAR.inflate(38, 66)
+        shell.centery = TRASHY_MINIGAME_BAR.centery - 3
+        draw_panel(self.screen, shell, fill=(12, 18, 34), border=COLORS["primary"], radius=18, width=2, glow=COLORS["primary"])
         draw_text(
             self.screen,
             self.font_small,
-            f"Gun Maker {survivor.trashy_hits}/{TRASHY_GUN_TARGET_HITS}",
-            (248, 250, 252),
-            (TRASHY_MINIGAME_BAR.centerx, TRASHY_MINIGAME_BAR.top - 20),
+            f"Gun Maker skill check  {survivor.trashy_hits}/{TRASHY_GUN_TARGET_HITS}",
+            COLORS["text"],
+            (shell.centerx, shell.top + 14),
             True,
         )
+        pygame.draw.rect(self.screen, (23, 31, 49), TRASHY_MINIGAME_BAR, border_radius=12)
+        pygame.draw.rect(self.screen, COLORS["border"], TRASHY_MINIGAME_BAR, 2, border_radius=12)
+        target = survivor.trashy_target_rect()
+        circle = survivor.trashy_circle_rect()
+        pygame.draw.rect(self.screen, COLORS["success"], target, border_radius=6)
+        pygame.draw.circle(self.screen, COLORS["text"], circle.center, TRASHY_MINIGAME_CIRCLE_RADIUS)
+        pygame.draw.circle(self.screen, COLORS["surface"], circle.center, TRASHY_MINIGAME_CIRCLE_RADIUS, 2)
 
     def draw_dinosaur_shockwave(self) -> None:
         if self.dinosaur_shockwave_timer <= 0:
@@ -421,19 +538,12 @@ class UIMixin:
         self.screen.blit(overlay, (0, 0))
 
     def draw_panel_shell(self, rect: pygame.Rect, title: str) -> None:
-        pygame.draw.rect(self.screen, (12, 19, 32), rect, border_radius=PANEL_RADIUS)
-        pygame.draw.rect(self.screen, (51, 65, 85), rect, 2, border_radius=PANEL_RADIUS)
-        draw_text(self.screen, self.font_small, title, (248, 250, 252), (rect.left + 16, rect.top + 12))
-        pygame.draw.line(
-            self.screen,
-            (51, 65, 85),
-            (rect.left + 14, rect.top + 37),
-            (rect.right - 14, rect.top + 37),
-            1,
-        )
+        draw_panel(self.screen, rect, fill=COLORS["surface"], border=COLORS["border_soft"], radius=14, width=1)
+        draw_text(self.screen, self.font_small, title.upper(), COLORS["muted"], (rect.left + 16, rect.top + 12))
+        draw_divider(self.screen, rect, rect.top + 38)
 
     def draw_side_panel(self) -> None:
-        pygame.draw.rect(self.screen, (8, 13, 24), SIDE_PANEL_RECT, border_radius=10)
+        pygame.draw.rect(self.screen, COLORS["bg_2"], SIDE_PANEL_RECT, border_radius=18)
         self.draw_timer_panel()
         self.draw_status_panel()
         self.draw_ability_guide_panel()
@@ -441,19 +551,20 @@ class UIMixin:
 
     def draw_timer_panel(self) -> None:
         self.draw_panel_shell(TIMER_PANEL_RECT, "Time")
+        number_y = TIMER_PANEL_RECT.centery + (10 if TIMER_PANEL_RECT.height < 150 else 4)
         draw_text(
             self.screen,
             self.font_large,
             f"{math.ceil(self.round_time):02d}",
-            (248, 250, 252),
-            (TIMER_PANEL_RECT.centerx, TIMER_PANEL_RECT.top + 73),
+            COLORS["text"],
+            (TIMER_PANEL_RECT.centerx, number_y),
             True,
         )
         draw_text(
             self.screen,
             self.font_small,
             "seconds left",
-            (148, 163, 184),
+            COLORS["muted"],
             (TIMER_PANEL_RECT.centerx, TIMER_PANEL_RECT.bottom - 24),
             True,
         )
@@ -485,52 +596,59 @@ class UIMixin:
         return status, detail
 
     def draw_status_panel(self) -> None:
-        self.draw_panel_shell(STATUS_PANEL_RECT, "Round Status")
+        self.draw_panel_shell(STATUS_PANEL_RECT, "Objective")
         status, detail = self.gameplay_status_text()
-        draw_text(
+        draw_pill(
             self.screen,
             self.font_small,
             status,
-            (248, 199, 88),
-            (STATUS_PANEL_RECT.left + 16, STATUS_PANEL_RECT.top + 47),
+            (STATUS_PANEL_RECT.left + 16, STATUS_PANEL_RECT.top + 48),
+            fg=COLORS["gold"],
+            bg=(35, 28, 18),
+            border=(112, 80, 25),
         )
         draw_wrapped_text_left(
             self.screen,
             self.font_small,
             detail,
-            (203, 213, 225),
+            COLORS["text_soft"],
             pygame.Rect(
                 STATUS_PANEL_RECT.left + 16,
-                STATUS_PANEL_RECT.top + 73,
+                STATUS_PANEL_RECT.top + 84,
                 STATUS_PANEL_RECT.width - 32,
-                STATUS_PANEL_RECT.bottom - STATUS_PANEL_RECT.top - 86,
+                STATUS_PANEL_RECT.bottom - STATUS_PANEL_RECT.top - 96,
             ),
             2,
+            max_lines=3,
         )
 
     def draw_combat_panel(self) -> None:
         self.draw_panel_shell(COMBAT_PANEL_RECT, "Action")
         if isinstance(self.player, Killer):
-            draw_text(
+            draw_wrapped_text_left(
                 self.screen,
                 self.font_small,
                 self.player.cooldown_status(),
-                (226, 232, 240),
-                (COMBAT_PANEL_RECT.left + 16, COMBAT_PANEL_RECT.top + 47),
+                COLORS["text_soft"],
+                pygame.Rect(COMBAT_PANEL_RECT.left + 16, COMBAT_PANEL_RECT.top + 48, COMBAT_PANEL_RECT.width - 32, 30),
+                2,
+                max_lines=1,
             )
             bar = pygame.Rect(
                 COMBAT_PANEL_RECT.left + 16,
-                COMBAT_PANEL_RECT.top + 78,
+                COMBAT_PANEL_RECT.top + 84,
                 COMBAT_PANEL_RECT.width - 32,
-                16,
+                14,
             )
             self.draw_cooldown_bar(self.player, bar)
-            draw_text(
+            draw_pill(
                 self.screen,
                 self.font_small,
                 "Space: basic attack",
-                (148, 163, 184),
-                (COMBAT_PANEL_RECT.left + 16, COMBAT_PANEL_RECT.top + 98),
+                (COMBAT_PANEL_RECT.left + 16, COMBAT_PANEL_RECT.top + 108),
+                fg=COLORS["muted"],
+                bg=COLORS["surface_2"],
+                border=COLORS["border_soft"],
             )
             return
 
@@ -538,26 +656,27 @@ class UIMixin:
             self.screen,
             self.font_small,
             self.survivor_ability_status(),
-            (226, 232, 240),
+            COLORS["text_soft"],
             pygame.Rect(
                 COMBAT_PANEL_RECT.left + 16,
-                COMBAT_PANEL_RECT.top + 47,
+                COMBAT_PANEL_RECT.top + 52,
                 COMBAT_PANEL_RECT.width - 32,
                 COMBAT_PANEL_RECT.height - 60,
             ),
             3,
+            max_lines=4,
         )
 
     def draw_ability_guide_panel(self) -> None:
         lines = self.ability_guide_lines()
-        self.draw_panel_shell(ABILITY_PANEL_RECT, "Ability Guide")
+        self.draw_panel_shell(ABILITY_PANEL_RECT, "Abilities")
 
         if not lines:
             draw_text(
                 self.screen,
                 self.font_small,
                 "No abilities yet.",
-                (148, 163, 184),
+                COLORS["muted"],
                 (ABILITY_PANEL_RECT.left + 16, ABILITY_PANEL_RECT.top + 46),
             )
             return
@@ -569,18 +688,52 @@ class UIMixin:
             ABILITY_PANEL_RECT.width - 32,
             ABILITY_PANEL_RECT.bottom - y - 14,
         )
+        row_gap = 8
+        hidden = 0
         for line in lines:
-            y = draw_wrapped_text_left(
+            if y + 34 > content_rect.bottom:
+                hidden += 1
+                continue
+            row = pygame.Rect(content_rect.left, y, content_rect.width, 34)
+            pygame.draw.rect(self.screen, COLORS["surface_2"], row, border_radius=10)
+            pygame.draw.rect(self.screen, COLORS["border_soft"], row, 1, border_radius=10)
+            if ":" in line:
+                key, detail = line.split(":", 1)
+                key_rect = draw_pill(
+                    self.screen,
+                    self.font_small,
+                    key.strip(),
+                    (row.left + 8, row.top + 5),
+                    fg=COLORS["primary_light"],
+                    bg=(17, 32, 56),
+                    border=(37, 99, 235),
+                )
+                detail_x = key_rect.right + 8
+                draw_text(
+                    self.screen,
+                    self.font_small,
+                    ellipsize(self.font_small, detail.strip(), row.right - detail_x - 8),
+                    COLORS["text_soft"],
+                    (detail_x, row.top + 8),
+                )
+            else:
+                draw_text(
+                    self.screen,
+                    self.font_small,
+                    ellipsize(self.font_small, line, row.width - 18),
+                    COLORS["text_soft"],
+                    (row.left + 10, row.top + 8),
+                )
+            y += row.height + row_gap
+
+        if hidden > 0 and y + self.font_small.get_height() <= content_rect.bottom:
+            draw_text(
                 self.screen,
                 self.font_small,
-                f"- {line}",
-                (203, 213, 225),
-                pygame.Rect(content_rect.left, y, content_rect.width, content_rect.bottom - y),
-                2,
+                f"+ {hidden} more",
+                COLORS["muted"],
+                (content_rect.left + 8, y),
             )
-            y += 7
-            if y + self.font_small.get_height() > content_rect.bottom:
-                break
 
     def ability_guide_lines(self) -> list[str]:
         if isinstance(self.player, Survivor):
@@ -622,24 +775,56 @@ class UIMixin:
 
     def draw_hud(self) -> None:
         width = self.window_width()
-        pygame.draw.rect(self.screen, (5, 10, 20), pygame.Rect(0, 0, width, TOP_BAR_HEIGHT))
-        pygame.draw.line(self.screen, (51, 65, 85), (0, TOP_BAR_HEIGHT), (width, TOP_BAR_HEIGHT), 2)
-
+        pygame.draw.rect(self.screen, COLORS["bg"], pygame.Rect(0, 0, width, TOP_BAR_HEIGHT))
+        pygame.draw.rect(self.screen, (10, 18, 34), pygame.Rect(14, 12, width - 28, TOP_BAR_HEIGHT - 24), border_radius=18)
+        pygame.draw.line(self.screen, COLORS["border_soft"], (24, TOP_BAR_HEIGHT - 1), (width - 24, TOP_BAR_HEIGHT - 1), 1)
         selected = KILLERS[self.round_killer]
-        draw_text(self.screen, self.font_medium, "Tag 2.0", (248, 250, 252), (24, 14))
-        draw_text(
+        draw_text(self.screen, self.font_medium, "Tag 2.0", COLORS["text"], (30, 16))
+
+        cursor_x = 142
+        role_color = COLORS["primary"] if self.player_role == "Survivor" else COLORS["danger"]
+        role_pill = draw_pill(
             self.screen,
             self.font_small,
-            self.hud_role_text(selected["name"]),
-            (203, 213, 225),
-            (24, 50),
+            self.player_role,
+            (cursor_x, 19),
+            fg=COLORS["text"],
+            bg=(17, 32, 56) if self.player_role == "Survivor" else (55, 24, 32),
+            border=role_color,
         )
-        draw_text(
+        cursor_x = role_pill.right + 10
+        killer_label = ellipsize(self.font_small, f"Killer: {selected['name']}", max(150, width // 5))
+        killer_pill = draw_pill(
             self.screen,
             self.font_small,
-            "WASD / Arrows move  |  Escape quits" if width >= 1080 else "Esc quits",
-            (148, 163, 184),
-            (width - 420 if width >= 1080 else width - 100, 50),
+            killer_label,
+            (cursor_x, 19),
+            fg=COLORS["text_soft"],
+            bg=COLORS["surface_2"],
+            border=COLORS["border_soft"],
+        )
+        cursor_x = killer_pill.right + 10
+        if self.player_role == "Survivor":
+            draw_pill(
+                self.screen,
+                self.font_small,
+                f"Life {self.survivor_life_number}/{SURVIVOR_TOTAL_LIVES}",
+                (cursor_x, 19),
+                fg=COLORS["success"],
+                bg=(17, 43, 34),
+                border=(34, 197, 94),
+            )
+
+        controls = "WASD / Arrows move  |  Esc quits" if width >= 1080 else "Esc quits"
+        controls_width = self.font_small.size(controls)[0] + 24
+        draw_pill(
+            self.screen,
+            self.font_small,
+            controls,
+            (width - controls_width - 30, 19),
+            fg=COLORS["muted"],
+            bg=COLORS["surface"],
+            border=COLORS["border_soft"],
         )
 
     def hud_role_text(self, killer_name: str) -> str:
@@ -791,7 +976,6 @@ class UIMixin:
     def draw_cooldown_bar(self, killer: Killer, bar: pygame.Rect | None = None) -> None:
         if bar is None:
             bar = pygame.Rect(COMBAT_PANEL_RECT.left + 16, COMBAT_PANEL_RECT.top + 78, 150, 16)
-        pygame.draw.rect(self.screen, (31, 41, 55), bar, border_radius=7)
 
         if killer.attack_phase is not None:
             progress = 1.0
@@ -800,29 +984,52 @@ class UIMixin:
         else:
             progress = 1.0 - (killer.cooldown_remaining / killer.data["cooldown"])
 
-        fill = bar.copy()
-        fill.width = max(0, int(bar.width * progress))
-        pygame.draw.rect(self.screen, (34, 197, 94), fill, border_radius=7)
-        pygame.draw.rect(self.screen, (148, 163, 184), bar, 2, border_radius=7)
+        draw_progress_bar(self.screen, bar, progress, fill=COLORS["success"])
 
     def draw_game_over(self) -> None:
-        self.screen.fill((10, 16, 30))
+        draw_cinematic_background(self.screen)
         self.draw_arena_preview()
+        draw_vignette(self.screen, 120)
 
         result = "YOU WIN" if self.player_won else "YOU LOSE"
-        color = (74, 222, 128) if self.player_won else (248, 113, 113)
+        color = COLORS["success"] if self.player_won else COLORS["danger"]
         center_x = self.window_center_x()
-        draw_text(self.screen, self.font_title, result, color, (center_x, 160), True)
-        draw_text(self.screen, self.font_medium, self.end_reason, (226, 232, 240), (center_x, 255), True)
+        width, height = self.screen.get_size()
+        panel = pygame.Rect(0, 0, min(760, width - 80), min(390, height - 100))
+        panel.center = (center_x, height // 2)
+        draw_panel(self.screen, panel, fill=(12, 18, 34), border=color, radius=26, width=2, glow=color)
+        draw_text(self.screen, self.font_title, result, color, (center_x, panel.top + 88), True)
+        draw_wrapped_text(
+            self.screen,
+            self.font_medium,
+            self.end_reason,
+            COLORS["text_soft"],
+            pygame.Rect(panel.left + 48, panel.top + 140, panel.width - 96, 70),
+            4,
+        )
         skin_text = self.skin_progress_text()
-        draw_text(self.screen, self.font_small, skin_text, (248, 199, 88), (center_x, 292), True)
+        draw_wrapped_text(
+            self.screen,
+            self.font_small,
+            skin_text,
+            COLORS["gold"],
+            pygame.Rect(panel.left + 58, panel.top + 220, panel.width - 116, 44),
+            3,
+        )
         if self.skin_notice:
-            draw_text(self.screen, self.font_small, self.skin_notice, (134, 239, 172), (center_x, 320), True)
+            draw_wrapped_text(
+                self.screen,
+                self.font_small,
+                self.skin_notice,
+                COLORS["success"],
+                pygame.Rect(panel.left + 58, panel.top + 265, panel.width - 116, 36),
+                3,
+            )
         draw_text(
             self.screen,
             self.font_small,
             "Press R to restart from the title screen. Press Escape to quit.",
-            (203, 213, 225),
-            (center_x, 355),
+            COLORS["muted"],
+            (center_x, panel.bottom - 48),
             True,
         )
