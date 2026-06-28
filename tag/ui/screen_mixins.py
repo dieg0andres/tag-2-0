@@ -71,14 +71,6 @@ class UIMixin:
             (center_x, hero.top + 188),
             True,
         )
-        draw_wrapped_text(
-            self.screen,
-            self.font_small,
-            "Every round assigns a role. Survive both lives as the runner or catch the survivor before the clock dies.",
-            COLORS["muted"],
-            pygame.Rect(hero.left + 100, hero.top + 212, hero.width - 200, 52),
-            4,
-        )
         chips = [("WASD / Arrows", "Move"), ("Space", "Attack"), ("Esc", "Quit")]
         chip_y = min(hero.top + 304, self.menu_buttons["play"].rect.top - 44)
         total_chip_width = 0
@@ -103,14 +95,6 @@ class UIMixin:
             chip_x += width_hint + 12
 
         self.menu_buttons["play"].draw(self.screen, self.font_medium, True)
-        draw_text(
-            self.screen,
-            self.font_small,
-            "Press Enter or click Start",
-            COLORS["muted"],
-            (center_x, self.menu_buttons["play"].rect.bottom + 20),
-            True,
-        )
 
     def draw_round_setup(self) -> None:
         draw_cinematic_background(self.screen)
