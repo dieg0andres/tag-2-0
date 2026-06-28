@@ -23,12 +23,55 @@ class RoundFlowMixin:
             self.round_killer = self.selected_player_killer
         else:
             self.round_killer = random.choice(KILLER_IDS)
+        self.skin_notice = ""
         self.survivor_life_number = 1
         self.survivor_status_message = ""
         self.survivor_stun_timer = 0.0
         self.survivor_slow_timer = 0.0
         self.explorer_taming_timer = 0.0
         self.state = GameState.ROLE_REVEAL
+
+    def unlocked_skin_options_for_killer(self, killer_id: str) -> list[str]:
+        return [
+            skin_id
+            for skin_id in self.skin_options_for_killer(killer_id)
+            if skin_id == "classic" or self.skin_unlocked(skin_id)
+        ]
+
+    def selected_killer_has_skin_choices(self) -> bool:
+        return len(self.unlocked_skin_options_for_killer(self.selected_player_killer)) > 1
+
+    def set_selected_killer_for_role_reveal(self, killer_id: str) -> None:
+        self.selected_player_killer = killer_id
+        self.round_killer = killer_id
+        self.skin_notice = ""
+        if self.selected_skins.get(killer_id, "classic") not in self.unlocked_skin_options_for_killer(killer_id):
+            self.selected_skins[killer_id] = "classic"
+
+    def cycle_selected_killer(self, direction: int) -> None:
+        current_index = KILLER_IDS.index(self.selected_player_killer)
+        next_index = (current_index + direction) % len(KILLER_IDS)
+        self.set_selected_killer_for_role_reveal(KILLER_IDS[next_index])
+
+    def continue_from_role_reveal(self) -> None:
+        if self.player_role == "Survivor":
+            self.begin_round()
+            return
+
+        self.round_killer = self.selected_player_killer
+        if self.selected_killer_has_skin_choices():
+            self.state = GameState.KILLER_SKIN_SELECT
+            return
+
+        self.selected_skins[self.round_killer] = "classic"
+        self.begin_round()
+
+    def begin_round_from_skin_select(self) -> None:
+        self.round_killer = self.selected_player_killer
+        selected_skin = self.selected_skins.get(self.round_killer, "classic")
+        if selected_skin not in self.unlocked_skin_options_for_killer(self.round_killer):
+            self.selected_skins[self.round_killer] = "classic"
+        self.begin_round()
 
     def begin_round(self) -> None:
         self.round_time = ROUND_DURATION

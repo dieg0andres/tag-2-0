@@ -44,7 +44,7 @@ class InputMixin:
 
         if self.state == GameState.TITLE:
             if key in (pygame.K_RETURN, pygame.K_SPACE):
-                self.state = GameState.ROUND_SETUP
+                self.reveal_role()
 
         elif self.state == GameState.ROUND_SETUP:
             selected_index = self.killer_index_from_key(key)
@@ -58,11 +58,28 @@ class InputMixin:
                 selected_survivor = self.survivor_index_from_key(key)
                 if selected_survivor is not None:
                     self.selected_player_survivor = selected_survivor
+                elif key in (pygame.K_LEFT, pygame.K_UP):
+                    self.cycle_selected_survivor(-1)
+                elif key in (pygame.K_RIGHT, pygame.K_DOWN):
+                    self.cycle_selected_survivor(1)
+            elif self.player_role == "Killer":
+                selected_index = self.killer_index_from_key(key)
+                if selected_index is not None:
+                    self.set_selected_killer_for_role_reveal(KILLER_IDS[selected_index])
+                elif key == pygame.K_LEFT:
+                    self.cycle_selected_killer(-1)
+                elif key == pygame.K_RIGHT:
+                    self.cycle_selected_killer(1)
+
+            if key in (pygame.K_RETURN, pygame.K_SPACE):
+                self.continue_from_role_reveal()
+
+        elif self.state == GameState.KILLER_SKIN_SELECT:
             selected_skin = self.skin_index_from_key(key)
-            if self.player_role == "Killer" and selected_skin is not None:
+            if selected_skin is not None:
                 self.select_skin_for_round(selected_skin)
             elif key in (pygame.K_RETURN, pygame.K_SPACE):
-                self.begin_round()
+                self.begin_round_from_skin_select()
 
         elif self.state == GameState.PLAYING:
             if self.player_role == "Survivor" and isinstance(self.player, Survivor):
@@ -129,7 +146,7 @@ class InputMixin:
     def handle_click(self, pos: tuple[int, int]) -> None:
         if self.state == GameState.TITLE:
             if self.menu_buttons["play"].contains(pos):
-                self.state = GameState.ROUND_SETUP
+                self.reveal_role()
 
         elif self.state == GameState.ROUND_SETUP:
             clicked_killer = self.killer_from_card_click(pos)
@@ -141,18 +158,33 @@ class InputMixin:
                 self.reveal_role()
 
         elif self.state == GameState.ROLE_REVEAL:
-            clicked_survivor = self.survivor_from_card_click(pos)
-            if self.player_role == "Survivor" and clicked_survivor is not None:
-                self.selected_player_survivor = clicked_survivor
-                return
+            if self.player_role == "Survivor":
+                clicked_survivor = self.survivor_from_card_click(pos)
+                if clicked_survivor is not None:
+                    self.selected_player_survivor = clicked_survivor
+                    return
+            elif self.player_role == "Killer":
+                clicked_killer = self.killer_from_card_click(pos)
+                if clicked_killer is not None:
+                    self.set_selected_killer_for_role_reveal(clicked_killer)
+                    return
 
+            if self.menu_buttons["begin"].contains(pos):
+                self.continue_from_role_reveal()
+
+        elif self.state == GameState.KILLER_SKIN_SELECT:
             clicked_skin = self.skin_from_card_click(pos)
-            if self.player_role == "Killer" and clicked_skin is not None:
+            if clicked_skin is not None:
                 self.select_skin_for_round(clicked_skin)
                 return
 
+            if self.menu_buttons["back"].contains(pos):
+                self.state = GameState.ROLE_REVEAL
+                self.skin_notice = ""
+                return
+
             if self.menu_buttons["begin"].contains(pos):
-                self.begin_round()
+                self.begin_round_from_skin_select()
 
         elif self.state == GameState.PLAYING:
             if self.player_role == "Survivor" and isinstance(self.player, Survivor):
@@ -211,6 +243,11 @@ class InputMixin:
             return None
         return SURVIVOR_IDS[index]
 
+    def cycle_selected_survivor(self, direction: int) -> None:
+        current_index = SURVIVOR_IDS.index(self.selected_player_survivor)
+        next_index = (current_index + direction) % len(SURVIVOR_IDS)
+        self.selected_player_survivor = SURVIVOR_IDS[next_index]
+
     def survivor_card_rect(self, index: int) -> pygame.Rect:
         return self.selection_card_rect(index, len(SURVIVOR_IDS))
 
@@ -253,6 +290,11 @@ class InputMixin:
         )
         return skins
 
+    def visible_skin_options_for_killer(self, killer_id: str) -> list[str]:
+        if self.state == GameState.KILLER_SKIN_SELECT:
+            return self.unlocked_skin_options_for_killer(killer_id)
+        return self.skin_options_for_killer(killer_id)
+
     def skin_name(self, killer_id: str, skin_id: str) -> str:
         if skin_id == "classic":
             return f"Classic {KILLERS[killer_id]['name']}"
@@ -278,7 +320,7 @@ class InputMixin:
         if key not in number_keys:
             return None
 
-        options = self.skin_options_for_killer(self.round_killer)
+        options = self.visible_skin_options_for_killer(self.round_killer)
         index = number_keys.index(key)
         if index >= len(options):
             return None
@@ -299,11 +341,11 @@ class InputMixin:
         self.skin_notice = f"{self.skin_name(self.round_killer, skin_id)} selected."
 
     def skin_card_rect(self, index: int) -> pygame.Rect:
-        options = self.skin_options_for_killer(self.round_killer)
+        options = self.visible_skin_options_for_killer(self.round_killer)
         return self.selection_card_rect(index, len(options))
 
     def skin_from_card_click(self, pos: tuple[int, int]) -> str | None:
-        for index, skin_id in enumerate(self.skin_options_for_killer(self.round_killer)):
+        for index, skin_id in enumerate(self.visible_skin_options_for_killer(self.round_killer)):
             if self.skin_card_rect(index).collidepoint(pos):
                 return skin_id
         return None
@@ -323,8 +365,16 @@ class InputMixin:
         window_height = self.window_height()
         card_gap = 16
         card_width = min(182, max(150, (window_width - 96 - (len(KILLER_IDS) - 1) * card_gap) // len(KILLER_IDS)))
-        card_height = min(292, max(238, window_height - 390))
-        top = min(158, max(138, window_height // 4 - 12))
+        if self.state == GameState.ROLE_REVEAL and self.player_role == "Killer":
+            card_height = min(220, max(170, window_height - 420))
+            header_height = 230 if window_height >= 700 else 210
+            gap = 34
+            begin_top = self.menu_buttons["begin"].rect.top
+            group_height = header_height + gap + card_height
+            top = max(24, (begin_top - group_height) // 2) + header_height + gap
+        else:
+            card_height = min(292, max(238, window_height - 390))
+            top = min(158, max(138, window_height // 4 - 12))
         total_width = len(KILLER_IDS) * card_width + (len(KILLER_IDS) - 1) * card_gap
         start_x = (window_width - total_width) // 2
         return pygame.Rect(start_x + index * (card_width + card_gap), top, card_width, card_height)

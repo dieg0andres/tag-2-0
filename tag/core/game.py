@@ -90,6 +90,7 @@ class Game(AssetMixin, PersistenceMixin, WorldMixin, InputMixin, SurvivorAbiliti
             "play": Button(pygame.Rect(0, 0, 220, 58), "Start"),
             "reveal": Button(pygame.Rect(0, 0, 220, 58), "Reveal Role"),
             "begin": Button(pygame.Rect(0, 0, 220, 58), "Begin Round"),
+            "back": Button(pygame.Rect(0, 0, 130, 46), "Back"),
         }
         self.update_menu_buttons()
 
@@ -114,6 +115,7 @@ class Game(AssetMixin, PersistenceMixin, WorldMixin, InputMixin, SurvivorAbiliti
         self.menu_buttons["play"].rect.center = (center_x, min(max(450, height - 190), 500))
         self.menu_buttons["reveal"].rect.center = (center_x, min(max(548, height - 175), height - 82))
         self.menu_buttons["begin"].rect.center = (center_x, min(max(585, height - 110), height - 55))
+        self.menu_buttons["back"].rect.topleft = (28, 28)
 
     def handle_window_resize(self, width: int, height: int) -> None:
         old_arena = ARENA_RECT.copy()

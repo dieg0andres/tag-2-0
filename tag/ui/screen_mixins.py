@@ -33,6 +33,8 @@ class UIMixin:
             self.draw_round_setup()
         elif self.state == GameState.ROLE_REVEAL:
             self.draw_role_reveal()
+        elif self.state == GameState.KILLER_SKIN_SELECT:
+            self.draw_killer_skin_select()
         elif self.state == GameState.PLAYING:
             self.draw_gameplay()
         elif self.state == GameState.GAME_OVER:
@@ -222,14 +224,18 @@ class UIMixin:
     def draw_role_reveal(self) -> None:
         draw_cinematic_background(self.screen)
         draw_vignette(self.screen, 110)
-        selected = KILLERS[self.round_killer]
+        selected = KILLERS[self.round_killer if self.player_role == "Survivor" else self.selected_player_killer]
         role_color = COLORS["primary"] if self.player_role == "Survivor" else COLORS["danger"]
         center_x = self.window_center_x()
         width, height = self.screen.get_size()
 
         reveal = pygame.Rect(0, 0, min(720, width - 80), 230 if height >= 700 else 210)
         reveal.centerx = center_x
-        reveal.top = 32
+        if self.player_role == "Killer":
+            first_card = self.killer_card_rect(0)
+            reveal.top = first_card.top - 34 - reveal.height
+        else:
+            reveal.top = 32
         draw_panel(self.screen, reveal, fill=(12, 18, 34), border=role_color, radius=26, width=2, glow=role_color)
         draw_pill(
             self.screen,
@@ -242,10 +248,15 @@ class UIMixin:
             center=True,
         )
         draw_text(self.screen, self.font_title, self.player_role, role_color, (center_x, reveal.top + 110), True)
+        role_detail = (
+            f"Round killer: {selected['name']}"
+            if self.player_role == "Survivor"
+            else f"Selected killer: {selected['name']}"
+        )
         draw_pill(
             self.screen,
             self.font_small,
-            f"Round killer: {selected['name']}",
+            role_detail,
             (center_x, reveal.top + 164),
             fg=COLORS["text_soft"],
             bg=(18, 27, 46),
@@ -254,21 +265,20 @@ class UIMixin:
         )
 
         if self.player_role == "Survivor":
-            prompt = "Survive two 60-second lives while the random killer hunts you."
-        else:
-            prompt = "Catch the AI survivor with your selected killer before time runs out."
-        draw_wrapped_text(
-            self.screen,
-            self.font_small,
-            prompt,
-            COLORS["text_soft"],
-            pygame.Rect(reveal.left + 40, reveal.bottom - 38, reveal.width - 80, 28),
-            3,
-        )
+            draw_wrapped_text(
+                self.screen,
+                self.font_small,
+                "Survive two 60-second lives while the random killer hunts you.",
+                COLORS["text_soft"],
+                pygame.Rect(reveal.left + 40, reveal.bottom - 38, reveal.width - 80, 28),
+                3,
+            )
         if self.player_role == "Killer":
-            self.draw_skin_selection()
+            self.draw_killer_selection()
+            self.menu_buttons["begin"].text = "Choose Skin" if self.selected_killer_has_skin_choices() else "Begin Round"
         else:
             self.draw_survivor_selection()
+            self.menu_buttons["begin"].text = "Begin Round"
         self.menu_buttons["begin"].draw(self.screen, self.font_medium, True)
 
     def draw_survivor_selection(self) -> None:
@@ -325,8 +335,73 @@ class UIMixin:
                 max_lines=2,
             )
 
+    def draw_killer_selection(self) -> None:
+        rects = [self.killer_card_rect(index) for index in range(len(KILLER_IDS))]
+        if not rects:
+            return
+
+        for index, killer_id in enumerate(KILLER_IDS):
+            data = KILLERS[killer_id]
+            rect = rects[index]
+            selected = killer_id == self.selected_player_killer
+            accent = data.get("accent", COLORS["primary"])
+            draw_panel(
+                self.screen,
+                rect,
+                fill=(18, 27, 46) if selected else (13, 20, 36),
+                border=accent if selected else COLORS["border_soft"],
+                radius=18,
+                width=2 if selected else 1,
+                glow=accent if selected else None,
+            )
+            draw_pill(
+                self.screen,
+                self.font_small,
+                str(index + 1),
+                (rect.left + 12, rect.top + 10),
+                fg=COLORS["text"],
+                bg=accent if selected else COLORS["surface_2"],
+                border=accent if selected else COLORS["border_soft"],
+            )
+
+            sprite = self.sprites.get(killer_id)
+            preview_size = min(78, rect.width - 44, rect.height // 3)
+            preview_rect = pygame.Rect(0, 0, preview_size, preview_size)
+            preview_rect.center = (rect.centerx, rect.top + 52)
+            if sprite is not None:
+                preview = pygame.transform.smoothscale(sprite, preview_rect.size)
+                self.screen.blit(preview, preview_rect)
+            else:
+                pygame.draw.ellipse(self.screen, data["color"], preview_rect)
+
+            draw_text(
+                self.screen,
+                self.font_small,
+                ellipsize(self.font_small, data["name"], rect.width - 28),
+                COLORS["text"],
+                (rect.left + 14, rect.top + 96),
+            )
+            draw_pill(
+                self.screen,
+                self.font_small,
+                ellipsize(self.font_small, data["attack_name"], rect.width - 34),
+                (rect.left + 12, rect.top + 124),
+                fg=COLORS["gold"],
+                bg=(38, 31, 19),
+                border=(95, 72, 25),
+            )
+            skin_count = len(self.unlocked_skin_options_for_killer(killer_id))
+            skin_text = f"{skin_count} skins" if skin_count > 1 else "Classic skin"
+            draw_text(
+                self.screen,
+                self.font_small,
+                skin_text,
+                COLORS["muted"],
+                (rect.left + 14, rect.bottom - 28),
+            )
+
     def draw_skin_selection(self) -> None:
-        options = self.skin_options_for_killer(self.round_killer)
+        options = self.visible_skin_options_for_killer(self.round_killer)
         rects = [self.skin_card_rect(index) for index in range(len(options))]
         if not rects:
             return
@@ -393,6 +468,42 @@ class UIMixin:
                 pygame.Rect(bounds.left, bounds.bottom + 8, bounds.width, max(24, notice_bottom - bounds.bottom - 8)),
                 3,
             )
+
+    def draw_killer_skin_select(self) -> None:
+        draw_cinematic_background(self.screen)
+        draw_vignette(self.screen, 110)
+        center_x = self.window_center_x()
+        width, height = self.screen.get_size()
+        selected = KILLERS[self.round_killer]
+
+        header = pygame.Rect(0, 0, min(720, width - 80), 210 if height >= 700 else 190)
+        header.centerx = center_x
+        header.top = 32
+        draw_panel(self.screen, header, fill=(12, 18, 34), border=COLORS["gold"], radius=26, width=2, glow=COLORS["gold"])
+        draw_pill(
+            self.screen,
+            self.font_small,
+            "KILLER LOADOUT",
+            (center_x, header.top + 34),
+            fg=COLORS["text"],
+            bg=(38, 31, 19),
+            border=(95, 72, 25),
+            center=True,
+        )
+        draw_text(self.screen, self.font_large, selected["name"], COLORS["text"], (center_x, header.top + 103), True)
+        draw_wrapped_text(
+            self.screen,
+            self.font_small,
+            "Choose an unlocked skin for this round.",
+            COLORS["text_soft"],
+            pygame.Rect(header.left + 40, header.bottom - 44, header.width - 80, 28),
+            3,
+        )
+
+        self.menu_buttons["back"].draw(self.screen, self.font_small, False)
+        self.menu_buttons["begin"].text = "Begin Round"
+        self.draw_skin_selection()
+        self.menu_buttons["begin"].draw(self.screen, self.font_medium, True)
 
     def draw_gameplay(self) -> None:
         self.screen.fill((12, 19, 32))
