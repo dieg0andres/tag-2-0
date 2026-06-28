@@ -17,6 +17,24 @@ class Wall:
     rect: pygame.Rect
     fill_color: tuple[int, int, int] = (67, 73, 85)
     border_color: tuple[int, int, int] = (126, 137, 151)
+    drift: tuple[int, int] = (0, 0)
+    drift_speed: float = 0.0
+    drift_phase: float = 0.0
+
+    def __post_init__(self) -> None:
+        self.home_rect = self.rect.copy()
+
+    def update(self, dt: float) -> bool:
+        if self.drift == (0, 0) or self.drift_speed <= 0:
+            return False
+
+        self.drift_phase += dt * self.drift_speed
+        amount = math.sin(self.drift_phase)
+        self.rect.topleft = (
+            self.home_rect.left + round(self.drift[0] * amount),
+            self.home_rect.top + round(self.drift[1] * amount),
+        )
+        return True
 
     def draw(self, surface: pygame.Surface) -> None:
         pygame.draw.rect(surface, self.fill_color, self.rect, border_radius=6)

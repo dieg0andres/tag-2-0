@@ -195,6 +195,203 @@ ARENA_LAYOUTS = [
             pygame.Rect(730, 610, 150, 30),
         ],
     },
+    {
+        "name": "Serpent Run",
+        "difficulty": "Expert",
+        "fill": (48, 89, 91),
+        "border": (103, 232, 249),
+        "walls": [
+            pygame.Rect(95, 180, 190, 28),
+            pygame.Rect(255, 180, 32, 120),
+            pygame.Rect(255, 300, 210, 28),
+            pygame.Rect(465, 220, 32, 108),
+            pygame.Rect(465, 220, 215, 28),
+            pygame.Rect(680, 220, 32, 132),
+            pygame.Rect(485, 352, 227, 28),
+            pygame.Rect(455, 352, 32, 122),
+            pygame.Rect(245, 474, 242, 28),
+            pygame.Rect(245, 474, 32, 140),
+            pygame.Rect(245, 614, 260, 28),
+            pygame.Rect(655, 520, 190, 30),
+        ],
+    },
+    {
+        "name": "Vault Rooms",
+        "difficulty": "Expert",
+        "fill": (74, 79, 92),
+        "border": (226, 232, 240),
+        "walls": [
+            pygame.Rect(115, 190, 175, 28),
+            pygame.Rect(115, 190, 28, 150),
+            pygame.Rect(262, 255, 28, 120),
+            pygame.Rect(610, 190, 175, 28),
+            pygame.Rect(757, 190, 28, 150),
+            pygame.Rect(610, 255, 28, 120),
+            pygame.Rect(350, 340, 250, 32),
+            pygame.Rect(350, 455, 250, 32),
+            pygame.Rect(115, 570, 175, 28),
+            pygame.Rect(262, 500, 28, 98),
+            pygame.Rect(610, 570, 175, 28),
+            pygame.Rect(610, 500, 28, 98),
+        ],
+    },
+    {
+        "name": "Double Helix",
+        "difficulty": "Expert",
+        "fill": (64, 74, 109),
+        "border": (129, 140, 248),
+        "walls": [
+            pygame.Rect(150, 180, 170, 28),
+            pygame.Rect(150, 285, 240, 28),
+            pygame.Rect(220, 390, 250, 28),
+            pygame.Rect(155, 495, 235, 28),
+            pygame.Rect(150, 600, 170, 28),
+            pygame.Rect(645, 180, 170, 28),
+            pygame.Rect(575, 285, 240, 28),
+            pygame.Rect(495, 390, 250, 28),
+            pygame.Rect(575, 495, 235, 28),
+            pygame.Rect(645, 600, 170, 28),
+            pygame.Rect(455, 225, 42, 115),
+            pygame.Rect(455, 520, 42, 115),
+        ],
+    },
+    {
+        "name": "Needle Garden",
+        "difficulty": "Hard",
+        "fill": (84, 92, 58),
+        "border": (217, 249, 157),
+        "walls": [
+            pygame.Rect(125, 175, 28, 112),
+            pygame.Rect(230, 235, 28, 150),
+            pygame.Rect(335, 175, 28, 112),
+            pygame.Rect(440, 235, 28, 150),
+            pygame.Rect(545, 175, 28, 112),
+            pygame.Rect(650, 235, 28, 150),
+            pygame.Rect(755, 175, 28, 112),
+            pygame.Rect(160, 500, 28, 150),
+            pygame.Rect(285, 430, 28, 150),
+            pygame.Rect(410, 500, 28, 150),
+            pygame.Rect(535, 430, 28, 150),
+            pygame.Rect(660, 500, 28, 150),
+            pygame.Rect(785, 430, 28, 150),
+        ],
+    },
+    {
+        "name": "Trapdoor Grid",
+        "difficulty": "Expert",
+        "fill": (97, 61, 76),
+        "border": (251, 113, 133),
+        "walls": [
+            pygame.Rect(120, 205, 130, 28),
+            pygame.Rect(330, 205, 130, 28),
+            pygame.Rect(540, 205, 130, 28),
+            pygame.Rect(750, 205, 110, 28),
+            pygame.Rect(210, 330, 130, 28),
+            pygame.Rect(420, 330, 130, 28),
+            pygame.Rect(630, 330, 130, 28),
+            pygame.Rect(120, 455, 130, 28),
+            pygame.Rect(330, 455, 130, 28),
+            pygame.Rect(540, 455, 130, 28),
+            pygame.Rect(750, 455, 110, 28),
+            pygame.Rect(210, 580, 130, 28),
+            pygame.Rect(420, 580, 130, 28),
+            pygame.Rect(630, 580, 130, 28),
+            pygame.Rect(470, 655, 36, 72),
+        ],
+    },
+    {
+        "name": "Theater Curtains",
+        "difficulty": "Hard",
+        "fill": (104, 52, 70),
+        "border": (253, 164, 175),
+        "walls": [
+            pygame.Rect(95, 180, 34, 245),
+            pygame.Rect(180, 230, 34, 245),
+            pygame.Rect(265, 180, 34, 245),
+            pygame.Rect(350, 230, 34, 245),
+            pygame.Rect(575, 180, 34, 245),
+            pygame.Rect(660, 230, 34, 245),
+            pygame.Rect(745, 180, 34, 245),
+            pygame.Rect(830, 230, 34, 245),
+            pygame.Rect(410, 575, 150, 30),
+            pygame.Rect(410, 670, 150, 30),
+        ],
+    },
+    {
+        "name": "Satellite Rings",
+        "difficulty": "Expert",
+        "fill": (50, 80, 108),
+        "border": (125, 211, 252),
+        "walls": [
+            pygame.Rect(210, 190, 155, 28),
+            pygame.Rect(210, 190, 28, 135),
+            pygame.Rect(337, 190, 28, 135),
+            pygame.Rect(210, 325, 155, 28),
+            pygame.Rect(600, 190, 155, 28),
+            pygame.Rect(600, 190, 28, 135),
+            pygame.Rect(727, 190, 28, 135),
+            pygame.Rect(600, 325, 155, 28),
+            pygame.Rect(375, 410, 210, 30),
+            pygame.Rect(210, 555, 155, 28),
+            pygame.Rect(337, 555, 28, 135),
+            pygame.Rect(600, 555, 155, 28),
+            pygame.Rect(600, 555, 28, 135),
+        ],
+    },
+    {
+        "name": "Spiral Lock",
+        "difficulty": "Expert",
+        "fill": (88, 73, 58),
+        "border": (253, 186, 116),
+        "walls": [
+            pygame.Rect(150, 185, 650, 28),
+            pygame.Rect(772, 185, 28, 440),
+            pygame.Rect(260, 625, 540, 28),
+            pygame.Rect(260, 305, 28, 348),
+            pygame.Rect(260, 305, 410, 28),
+            pygame.Rect(642, 305, 28, 220),
+            pygame.Rect(370, 525, 300, 28),
+            pygame.Rect(370, 405, 28, 148),
+            pygame.Rect(370, 405, 178, 28),
+            pygame.Rect(520, 405, 28, 72),
+        ],
+    },
+    {
+        "name": "Drifting Gates",
+        "difficulty": "Moving",
+        "fill": (47, 86, 75),
+        "border": (110, 231, 183),
+        "walls": [
+            pygame.Rect(130, 205, 180, 30),
+            pygame.Rect(650, 205, 180, 30),
+            {"rect": pygame.Rect(385, 265, 34, 190), "drift": (90, 0), "speed": 0.42, "phase": 0.0},
+            {"rect": pygame.Rect(545, 265, 34, 190), "drift": (-90, 0), "speed": 0.42, "phase": 1.57},
+            pygame.Rect(125, 405, 205, 30),
+            pygame.Rect(635, 405, 205, 30),
+            {"rect": pygame.Rect(250, 560, 180, 30), "drift": (0, 55), "speed": 0.35, "phase": 0.75},
+            {"rect": pygame.Rect(535, 610, 180, 30), "drift": (0, -55), "speed": 0.35, "phase": 2.25},
+            pygame.Rect(800, 565, 38, 125),
+            pygame.Rect(110, 565, 38, 125),
+        ],
+    },
+    {
+        "name": "Tide Shift",
+        "difficulty": "Moving",
+        "fill": (38, 82, 111),
+        "border": (56, 189, 248),
+        "walls": [
+            {"rect": pygame.Rect(120, 210, 210, 30), "drift": (70, 0), "speed": 0.30, "phase": 0.0},
+            {"rect": pygame.Rect(620, 210, 210, 30), "drift": (-70, 0), "speed": 0.30, "phase": 3.14},
+            pygame.Rect(455, 255, 44, 130),
+            {"rect": pygame.Rect(185, 375, 200, 30), "drift": (0, 65), "speed": 0.27, "phase": 1.0},
+            {"rect": pygame.Rect(570, 445, 200, 30), "drift": (0, -65), "speed": 0.27, "phase": 2.4},
+            pygame.Rect(120, 610, 190, 30),
+            pygame.Rect(655, 610, 190, 30),
+            pygame.Rect(330, 555, 34, 135),
+            pygame.Rect(605, 555, 34, 135),
+            pygame.Rect(440, 685, 95, 28),
+        ],
+    },
 ]
 
 
@@ -208,21 +405,55 @@ class WorldMixin:
         fill = layout["fill"]
         border = layout["border"]
 
-        wall_rects = []
-        for rect in layout["walls"]:
+        walls: list[Wall] = []
+        for wall_data in layout["walls"]:
+            if isinstance(wall_data, dict):
+                rect = wall_data["rect"]
+                drift = wall_data.get("drift", (0, 0))
+                drift_speed = wall_data.get("speed", 0.0)
+                drift_phase = wall_data.get("phase", 0.0)
+            else:
+                rect = wall_data
+                drift = (0, 0)
+                drift_speed = 0.0
+                drift_phase = 0.0
+
             x_ratio = (rect.left - BASE_ARENA.left) / BASE_ARENA.width
             y_ratio = (rect.top - BASE_ARENA.top) / BASE_ARENA.height
             width_ratio = rect.width / BASE_ARENA.width
             height_ratio = rect.height / BASE_ARENA.height
-            wall_rects.append(
-                pygame.Rect(
-                    ARENA_RECT.left + round(x_ratio * ARENA_RECT.width),
-                    ARENA_RECT.top + round(y_ratio * ARENA_RECT.height),
-                    max(26, round(width_ratio * ARENA_RECT.width)),
-                    max(22, round(height_ratio * ARENA_RECT.height)),
-                )
+            scaled_rect = pygame.Rect(
+                ARENA_RECT.left + round(x_ratio * ARENA_RECT.width),
+                ARENA_RECT.top + round(y_ratio * ARENA_RECT.height),
+                max(26, round(width_ratio * ARENA_RECT.width)),
+                max(22, round(height_ratio * ARENA_RECT.height)),
             )
-        return [Wall(rect, fill, border) for rect in wall_rects]
+            scaled_drift = (
+                round(drift[0] / BASE_ARENA.width * ARENA_RECT.width),
+                round(drift[1] / BASE_ARENA.height * ARENA_RECT.height),
+            )
+            walls.append(Wall(scaled_rect, fill, border, scaled_drift, drift_speed, drift_phase))
+        return walls
+
+    def update_walls(self, dt: float) -> None:
+        moved = False
+        for wall in self.walls:
+            moved = wall.update(dt) or moved
+
+        if not moved:
+            return
+
+        resolved: set[int] = set()
+        for character in (self.player, self.survivor, *self.killers):
+            if character is None or id(character) in resolved:
+                continue
+            resolved.add(id(character))
+            if (
+                isinstance(character, Killer)
+                and (character.is_wall_phasing() or character.is_malice_bird())
+            ):
+                continue
+            self.resolve_wall_overlap(character)
 
     def current_perimeter_edge(self, rect: pygame.Rect) -> str | None:
         if rect.top <= ARENA_RECT.top + PERIMETER_MARGIN:

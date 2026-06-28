@@ -43,6 +43,8 @@ class SimulationMixin:
         if self.dinosaur_shockwave_timer > 0:
             self.dinosaur_shockwave_timer = max(0.0, self.dinosaur_shockwave_timer - dt)
 
+        self.update_walls(dt)
+
         if self.player is not None:
             player_walls = self.walls
             if (
@@ -474,4 +476,3 @@ class SimulationMixin:
 
         if self.round_time <= 0:
             self.end_round(False, "The survivor escaped until the timer ended.")
-
