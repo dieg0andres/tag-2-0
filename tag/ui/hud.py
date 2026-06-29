@@ -19,6 +19,7 @@ from tag.data.content import KILLERS
 from tag.entities.objects import Killer, Survivor
 from tag.ui.theme import COLORS, draw_divider, draw_panel, draw_pill, draw_progress_bar
 from tag.utils.text import draw_text, draw_wrapped_text_left, ellipsize
+from tag.world.arena import ARENA_LAYOUTS
 
 
 class HudMixin:
@@ -264,6 +265,9 @@ class HudMixin:
         pygame.draw.rect(self.screen, (10, 18, 34), pygame.Rect(14, 12, width - 28, TOP_BAR_HEIGHT - 24), border_radius=18)
         pygame.draw.line(self.screen, COLORS["border_soft"], (24, TOP_BAR_HEIGHT - 1), (width - 24, TOP_BAR_HEIGHT - 1), 1)
         selected = KILLERS[self.round_killer]
+        controls = "WASD / Arrows move  |  Esc quits" if width >= 1080 else "Esc quits"
+        controls_width = self.font_small.size(controls)[0] + 24
+        controls_left = width - controls_width - 30
         draw_text(self.screen, self.font_medium, "Tag 2.0", COLORS["text"], (30, 16))
 
         cursor_x = 142
@@ -289,19 +293,37 @@ class HudMixin:
             border=COLORS["border_soft"],
         )
         cursor_x = killer_pill.right + 10
+
+        layout_id = getattr(self, "wall_layout_id", 0) or 0
+        arena = ARENA_LAYOUTS[layout_id % len(ARENA_LAYOUTS)]
+        arena_label = ellipsize(self.font_small, f"Arena: {arena['name']}", max(140, width // 6))
+        arena_width = self.font_small.size(arena_label)[0] + 24
+        life_label = f"Life {self.survivor_life_number}/{SURVIVOR_TOTAL_LIVES}" if self.player_role == "Survivor" else ""
+        life_width = self.font_small.size(life_label)[0] + 24 if life_label else 0
+        life_gap = 10 if life_label else 0
+        if cursor_x + arena_width + life_gap + life_width <= controls_left - 10:
+            arena_pill = draw_pill(
+                self.screen,
+                self.font_small,
+                arena_label,
+                (cursor_x, 19),
+                fg=COLORS["text_soft"],
+                bg=COLORS["surface_2"],
+                border=COLORS["border_soft"],
+            )
+            cursor_x = arena_pill.right + 10
+
         if self.player_role == "Survivor":
             draw_pill(
                 self.screen,
                 self.font_small,
-                f"Life {self.survivor_life_number}/{SURVIVOR_TOTAL_LIVES}",
+                life_label,
                 (cursor_x, 19),
                 fg=COLORS["success"],
                 bg=(17, 43, 34),
                 border=(34, 197, 94),
             )
 
-        controls = "WASD / Arrows move  |  Esc quits" if width >= 1080 else "Esc quits"
-        controls_width = self.font_small.size(controls)[0] + 24
         draw_pill(
             self.screen,
             self.font_small,
