@@ -638,7 +638,7 @@ class Character:
         self.ai_nudge = pygame.Vector2(math.cos(angle), math.sin(angle))
         self.ai_nudge_timer = random.uniform(0.25, 0.55)
 
-    def draw(self, surface: pygame.Surface, font: pygame.font.Font) -> None:
+    def draw(self, surface: pygame.Surface, font: pygame.font.Font, label_alpha: int = 255) -> None:
         draw_rect = pygame.Rect(0, 0, SPRITE_DRAW_SIZE, SPRITE_DRAW_SIZE)
         draw_rect.center = self.rect.center
 
@@ -665,13 +665,38 @@ class Character:
             pygame.draw.line(surface, (255, 255, 255), start, end, 3)
             pygame.draw.circle(surface, (255, 255, 255), end, 4)
 
+        self.draw_name_label(surface, font, label_alpha)
+        self.is_moving = False
+
+    def draw_name_label(self, surface: pygame.Surface, font: pygame.font.Font, alpha: int = 255) -> None:
+        alpha = max(0, min(255, alpha))
+        if alpha <= 0:
+            return
+
         label = font.render(self.name, True, COLORS["text_soft"])
         label_rect = label.get_rect(center=(self.rect.centerx, self.rect.top - 11))
         backing = label_rect.inflate(12, 6)
-        pygame.draw.rect(surface, COLORS["bg"], backing, border_radius=backing.height // 2)
-        pygame.draw.rect(surface, COLORS["border_soft"], backing, 1, border_radius=backing.height // 2)
-        surface.blit(label, label_rect)
-        self.is_moving = False
+        border_radius = backing.height // 2
+
+        if alpha >= 255:
+            pygame.draw.rect(surface, COLORS["bg"], backing, border_radius=border_radius)
+            pygame.draw.rect(surface, COLORS["border_soft"], backing, 1, border_radius=border_radius)
+            surface.blit(label, label_rect)
+            return
+
+        label_layer = pygame.Surface(backing.size, pygame.SRCALPHA)
+        local_backing = label_layer.get_rect()
+        pygame.draw.rect(label_layer, (*COLORS["bg"], alpha), local_backing, border_radius=border_radius)
+        pygame.draw.rect(
+            label_layer,
+            (*COLORS["border_soft"], alpha),
+            local_backing,
+            1,
+            border_radius=border_radius,
+        )
+        label.set_alpha(alpha)
+        label_layer.blit(label, label_rect.move(-backing.left, -backing.top))
+        surface.blit(label_layer, backing)
 
 
 class Survivor(Character):
@@ -849,9 +874,9 @@ class Killer(Character):
     def is_vengance_bot(self) -> bool:
         return self.killer_id == "vengance_bot"
 
-    def draw(self, surface: pygame.Surface, font: pygame.font.Font) -> None:
+    def draw(self, surface: pygame.Surface, font: pygame.font.Font, label_alpha: int = 255) -> None:
         if self.skin_id != "vengance_spinning" or self.sprite is None:
-            super().draw(surface, font)
+            super().draw(surface, font, label_alpha)
             self.draw_stun_effect(surface, font)
             return
 
@@ -875,12 +900,7 @@ class Killer(Character):
             end = start + facing * 31
             pygame.draw.line(surface, (255, 255, 255), start, end, 3)
 
-        label = font.render(self.name, True, COLORS["text_soft"])
-        label_rect = label.get_rect(center=(self.rect.centerx, self.rect.top - 11))
-        backing = label_rect.inflate(12, 6)
-        pygame.draw.rect(surface, COLORS["bg"], backing, border_radius=backing.height // 2)
-        pygame.draw.rect(surface, COLORS["border_soft"], backing, 1, border_radius=backing.height // 2)
-        surface.blit(label, label_rect)
+        self.draw_name_label(surface, font, label_alpha)
         self.draw_stun_effect(surface, font)
 
     def draw_stun_effect(self, surface: pygame.Surface, font: pygame.font.Font) -> None:

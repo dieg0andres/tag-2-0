@@ -4,9 +4,12 @@ import pygame
 
 from tag.config.settings import (
     KITTY_TELEPORT_MARKER_RADIUS,
+    LABEL_FADE_DURATION,
+    LABEL_FULL_VISIBLE_DURATION,
     MALICE_DINOSAUR_SHOCKWAVE_RADIUS,
     MALICE_DINOSAUR_SHOCKWAVE_VISUAL_DURATION,
     ODD_FLASH_VISUAL_DURATION,
+    ROUND_DURATION,
     TRASHY_GUN_TARGET_HITS,
     TRASHY_MINIGAME_BAR,
     TRASHY_MINIGAME_CIRCLE_RADIUS,
@@ -57,17 +60,30 @@ class GameplayScreenMixin:
             bird.draw(self.screen)
 
         self.draw_dinosaur_shockwave()
+        label_alpha = self.overhead_label_alpha()
 
         if self.survivor is not None:
-            self.survivor.draw(self.screen, self.font_small)
+            self.survivor.draw(self.screen, self.font_small, label_alpha)
 
         for killer in self.killers:
             if killer is not self.survivor:
-                killer.draw(self.screen, self.font_small)
+                killer.draw(self.screen, self.font_small, label_alpha)
 
         self.draw_hud()
         self.draw_side_panel()
         self.draw_survivor_ability_ui()
+
+    def overhead_label_alpha(self) -> int:
+        elapsed = ROUND_DURATION - self.round_time
+        if elapsed <= LABEL_FULL_VISIBLE_DURATION:
+            return 255
+
+        fade_elapsed = elapsed - LABEL_FULL_VISIBLE_DURATION
+        if fade_elapsed >= LABEL_FADE_DURATION:
+            return 0
+
+        fade_progress = fade_elapsed / LABEL_FADE_DURATION
+        return round(255 * (1.0 - fade_progress))
 
     def draw_survivor_ability_effects(self) -> None:
         if not isinstance(self.player, Survivor):
