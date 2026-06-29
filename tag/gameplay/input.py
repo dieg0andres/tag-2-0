@@ -316,8 +316,6 @@ class InputMixin:
         return skins
 
     def visible_skin_options_for_killer(self, killer_id: str) -> list[str]:
-        if self.state == GameState.KILLER_SKIN_SELECT:
-            return self.unlocked_skin_options_for_killer(killer_id)
         return self.skin_options_for_killer(killer_id)
 
     def skin_name(self, killer_id: str, skin_id: str) -> str:

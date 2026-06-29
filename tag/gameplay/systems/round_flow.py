@@ -39,7 +39,7 @@ class RoundFlowMixin:
         ]
 
     def selected_killer_has_skin_choices(self) -> bool:
-        return len(self.unlocked_skin_options_for_killer(self.selected_player_killer)) > 1
+        return len(self.skin_options_for_killer(self.selected_player_killer)) > 1
 
     def set_selected_killer_for_role_reveal(self, killer_id: str) -> None:
         self.selected_player_killer = killer_id

@@ -47,7 +47,7 @@ class SkinSelectScreenMixin:
                 (rect.left + 76, rect.top + 12),
             )
 
-            status = "Unlocked" if unlocked else f"Locked: {self.skin_challenge_text(skin_id)}"
+            status = "Unlocked" if unlocked else "Locked"
             draw_wrapped_text_left(
                 self.screen,
                 self.font_small,

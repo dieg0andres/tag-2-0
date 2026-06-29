@@ -229,8 +229,9 @@ class RoleRevealScreenMixin:
                 border=accent if selected else COLORS["border_soft"],
                 center=True,
             )
-            skin_count = len(self.unlocked_skin_options_for_killer(killer_id))
-            skin_text = f"{skin_count} skins" if skin_count > 1 else "Classic skin"
+            unlocked_count = len(self.unlocked_skin_options_for_killer(killer_id))
+            total_count = len(self.skin_options_for_killer(killer_id))
+            skin_text = f"{unlocked_count}/{total_count} unlocked"
             draw_text(
                 self.screen,
                 self.font_small,
