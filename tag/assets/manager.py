@@ -135,6 +135,23 @@ class AssetMixin:
         if vengance_mastery_3_music.exists():
             self.music_tracks["skin:vengance_bot_mastery_3"] = vengance_mastery_3_music
 
+        combo_music_files = {
+            ("survivor_trashy", "revenge_bot"): "combo_trashy_or_odd_vs_ducky.wav",
+            ("survivor_odd", "revenge_bot"): "combo_trashy_or_odd_vs_ducky.wav",
+            ("survivor_explorer", "vengance_bot"): "combo_explorer_vs_vengance_bot.wav",
+            ("survivor_explorer", "malice"): "combo_explorer_vs_malice.wav",
+            ("survivor_kitty", "show_runner"): "combo_kitty_vs_show_runner.wav",
+            ("survivor_queen_goopy", "subslasher"): "combo_queen_goopy_vs_subslasher.wav",
+            ("survivor_queen_goopy", "revenge_bot"): "combo_queen_goopy_vs_ducky.wav",
+            ("survivor_trashy", "subslasher"): "combo_trashy_vs_subslasher.wav",
+            ("survivor_kitty", "malice"): "combo_kitty_vs_malice.wav",
+            ("survivor_kevin", "revenge_bot"): "combo_kevin_vs_ducky.wav",
+        }
+        for (survivor_id, killer_id), filename in combo_music_files.items():
+            path = ASSET_DIR / filename
+            if path.exists():
+                self.music_tracks[f"combo:{survivor_id}:{killer_id}"] = path
+
         for sound_name in ("attack", "win", "lose", "malice_roar", "dinosaur_roar"):
             path = ASSET_DIR / f"{sound_name}.wav"
             if not path.exists():
@@ -154,12 +171,15 @@ class AssetMixin:
             return
 
         pygame.mixer.music.stop()
-        music_path = self.music_tracks.get(self.round_killer)
+        survivor_id = self.survivor.survivor_id if self.survivor is not None else "survivor"
+        music_path = self.music_tracks.get(f"combo:{survivor_id}:{self.round_killer}")
         if self.player_role == "Killer":
             selected_skin = self.selected_skins.get(self.round_killer, "classic")
             skin_music = self.music_tracks.get(f"skin:{selected_skin}")
-            if skin_music is not None:
+            if music_path is None and skin_music is not None:
                 music_path = skin_music
+        if music_path is None:
+            music_path = self.music_tracks.get(self.round_killer)
 
         if music_path is None:
             return
@@ -173,4 +193,3 @@ class AssetMixin:
     def stop_music(self) -> None:
         if self.audio_enabled:
             pygame.mixer.music.stop()
-
