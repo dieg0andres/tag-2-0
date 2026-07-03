@@ -13,7 +13,7 @@ from tag.utils.text import draw_text
 from tag.utils.vector import facing_axis, safe_normalize
 
 
-DIRECTIONAL_SPRITE_TILT_DEGREES = 35
+DIRECTIONAL_SPRITE_TILT_DEGREES = 10
 
 
 @dataclass
