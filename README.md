@@ -143,22 +143,33 @@ python tools/generate_assets.py
 
 Progress is saved locally in `save_data.json`. That file is ignored by Git so every computer can have its own unlock progress.
 
+## Asset Layout
+
+Game assets are grouped by media type:
+
+- `assets/sprites/`: character, killer, skin, and form sprites.
+- `assets/sprites/animations/`: walking and form animation frames.
+- `assets/audio/`: optional WAV music and sound effects.
+- `assets/videos/`: reserved for future video assets.
+
 ## Custom Music And Sounds
 
-The game looks for optional sound files in `assets/`:
+The game looks for optional sound files in `assets/audio/`:
 
-- `assets/show_runner_chase_music.wav` plays only when Show Runner is the round killer.
-- `assets/show_runner_mastery_3_music.wav` plays when the player selects Show Runner Mastery 3.
-- `assets/vengance_bot_mastery_3_music.wav` plays when the player selects Vengance Bot Mastery 3.
-- `assets/ducky_chase_music.wav` plays only when Ducky is the round killer.
-- `assets/malice_chase_music.wav` plays only when Malice is the round killer.
-- `assets/malice_roar.wav` plays when player-controlled Malice activates Hunter's Rage.
-- `assets/dinosaur_roar.wav` plays when Dinosaur-form Malice uses the R roar ability.
-- `assets/attack.wav`
-- `assets/win.wav`
-- `assets/lose.wav`
+- `assets/audio/show_runner_chase_music.wav` plays only when Show Runner is the round killer.
+- `assets/audio/show_runner_mastery_3_music.wav` plays when the player selects Show Runner Mastery 3.
+- `assets/audio/vengance_bot_mastery_3_music.wav` plays when the player selects Vengance Bot Mastery 3.
+- `assets/audio/ducky_chase_music.wav` plays only when Ducky is the round killer.
+- `assets/audio/subslasher_chase_music.wav` plays only when Subslasher is the round killer.
+- `assets/audio/malice_chase_music.wav` plays only when Malice is the round killer.
+- `assets/audio/vengance_bot_base_chase_music.wav` plays only when Vengance Bot is the round killer.
+- `assets/audio/malice_roar.wav` plays when player-controlled Malice activates Hunter's Rage.
+- `assets/audio/dinosaur_roar.wav` plays when Dinosaur-form Malice uses the R roar ability.
+- `assets/audio/attack.wav`
+- `assets/audio/win.wav`
+- `assets/audio/lose.wav`
 
-If any file is missing or cannot load, the game continues silently. To replace chase music later, use a WAV file named `show_runner_chase_music.wav`, `ducky_chase_music.wav`, or `malice_chase_music.wav`.
+Combo music and skin-specific music also live in `assets/audio/`. If any file is missing or cannot load, the game continues silently. To replace chase music later, use the same WAV filenames in `assets/audio/`.
 
 ## Sprite Asset Plan
 

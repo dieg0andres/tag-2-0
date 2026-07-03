@@ -108,39 +108,39 @@ class AssetMixin:
 
         self.audio_enabled = True
 
-        show_runner_music = ASSET_DIR / "show_runner_chase_music.wav"
+        show_runner_music = AUDIO_DIR / "show_runner_chase_music.wav"
         if show_runner_music.exists():
             self.music_tracks["show_runner"] = show_runner_music
 
-        ducky_music = ASSET_DIR / "ducky_chase_music.wav"
+        ducky_music = AUDIO_DIR / "ducky_chase_music.wav"
         if ducky_music.exists():
             self.music_tracks["revenge_bot"] = ducky_music
 
-        subslasher_music = ASSET_DIR / "subslasher_chase_music.wav"
+        subslasher_music = AUDIO_DIR / "subslasher_chase_music.wav"
         if subslasher_music.exists():
             self.music_tracks["subslasher"] = subslasher_music
 
-        malice_music = ASSET_DIR / "malice_chase_music.wav"
+        malice_music = AUDIO_DIR / "malice_chase_music.wav"
         if malice_music.exists():
             self.music_tracks["malice"] = malice_music
 
-        vengance_base_music = ASSET_DIR / "vengance_bot_base_chase_music.wav"
+        vengance_base_music = AUDIO_DIR / "vengance_bot_base_chase_music.wav"
         if vengance_base_music.exists():
             self.music_tracks["vengance_bot"] = vengance_base_music
 
-        vengance_music = ASSET_DIR / "vengance_bot_chase_music.wav"
+        vengance_music = AUDIO_DIR / "vengance_bot_chase_music.wav"
         if vengance_music.exists():
             self.music_tracks["skin:mlg"] = vengance_music
 
-        pack_runner_music = ASSET_DIR / "pack_runner_chase_music.wav"
+        pack_runner_music = AUDIO_DIR / "pack_runner_chase_music.wav"
         if pack_runner_music.exists():
             self.music_tracks["skin:pack_runner"] = pack_runner_music
 
-        mastery_3_music = ASSET_DIR / "show_runner_mastery_3_music.wav"
+        mastery_3_music = AUDIO_DIR / "show_runner_mastery_3_music.wav"
         if mastery_3_music.exists():
             self.music_tracks["skin:show_runner_mastery_3"] = mastery_3_music
 
-        vengance_mastery_3_music = ASSET_DIR / "vengance_bot_mastery_3_music.wav"
+        vengance_mastery_3_music = AUDIO_DIR / "vengance_bot_mastery_3_music.wav"
         if vengance_mastery_3_music.exists():
             self.music_tracks["skin:vengance_bot_mastery_3"] = vengance_mastery_3_music
 
@@ -157,12 +157,12 @@ class AssetMixin:
             ("survivor_kevin", "revenge_bot"): "combo_kevin_vs_ducky.wav",
         }
         for (survivor_id, killer_id), filename in combo_music_files.items():
-            path = ASSET_DIR / filename
+            path = AUDIO_DIR / filename
             if path.exists():
                 self.music_tracks[f"combo:{survivor_id}:{killer_id}"] = path
 
         for sound_name in ("attack", "win", "lose", "malice_roar", "dinosaur_roar"):
-            path = ASSET_DIR / f"{sound_name}.wav"
+            path = AUDIO_DIR / f"{sound_name}.wav"
             if not path.exists():
                 continue
             try:

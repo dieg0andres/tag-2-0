@@ -17,8 +17,10 @@ LABEL_FADE_DURATION = 2.0
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
 ASSET_DIR = ROOT_DIR / "assets"
+AUDIO_DIR = ASSET_DIR / "audio"
 SPRITE_DIR = ASSET_DIR / "sprites"
 ANIMATION_DIR = SPRITE_DIR / "animations"
+VIDEO_DIR = ASSET_DIR / "videos"
 SAVE_FILE = ROOT_DIR / "save_data.json"
 
 UI_MARGIN = 24
