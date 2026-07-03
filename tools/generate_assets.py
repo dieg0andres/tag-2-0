@@ -673,6 +673,92 @@ def generate_malice() -> pygame.Surface:
     return sprite
 
 
+def generate_malice_bug() -> pygame.Surface:
+    """Bug Malice skin: green insect body, dark mask eyes, antennae, and hooked legs."""
+    sprite = make_surface()
+    outline = (49, 54, 46)
+    green = (145, 166, 91)
+    green_dark = (83, 111, 55)
+    pale = (221, 222, 205)
+    dark = (42, 43, 39)
+
+    pygame.draw.polygon(sprite, green, [(8, 43), (28, 26), (47, 22), (58, 32), (45, 47), (22, 51)])
+    pygame.draw.polygon(sprite, outline, [(8, 43), (28, 26), (47, 22), (58, 32), (45, 47), (22, 51)], 2)
+    pygame.draw.polygon(sprite, green_dark, [(22, 28), (30, 14), (38, 28)])
+    pygame.draw.polygon(sprite, green_dark, [(37, 24), (46, 8), (53, 29)])
+    for x in (26, 36, 46):
+        pygame.draw.line(sprite, pale, (x, 27), (x - 5, 48), 3)
+    pygame.draw.ellipse(sprite, pale, pygame.Rect(47, 17, 15, 18))
+    pygame.draw.ellipse(sprite, outline, pygame.Rect(47, 17, 15, 18), 2)
+    pygame.draw.ellipse(sprite, dark, pygame.Rect(49, 20, 5, 7))
+    pygame.draw.ellipse(sprite, dark, pygame.Rect(56, 21, 4, 6))
+    pygame.draw.arc(sprite, outline, pygame.Rect(45, 6, 23, 19), 3.4, 5.4, 2)
+    pygame.draw.arc(sprite, outline, pygame.Rect(43, 8, 27, 21), 3.6, 5.7, 2)
+    for x in (22, 31, 41, 50):
+        pygame.draw.line(sprite, green_dark, (x, 45), (x - 4, 63), 5)
+        pygame.draw.line(sprite, outline, (x, 45), (x - 4, 63), 1)
+        pygame.draw.line(sprite, outline, (x - 5, 62), (x + 1, 61), 2)
+
+    return sprite
+
+
+def generate_malice_bones() -> pygame.Surface:
+    """Bones Malice skin: pale skeleton, rib cage, long tail, and toothy skull."""
+    sprite = make_surface()
+    outline = (75, 76, 68)
+    bone = (219, 218, 198)
+    bone_shadow = (177, 176, 158)
+    dark = (39, 39, 35)
+
+    pygame.draw.ellipse(sprite, bone, pygame.Rect(14, 29, 37, 16))
+    pygame.draw.ellipse(sprite, outline, pygame.Rect(14, 29, 37, 16), 2)
+    pygame.draw.arc(sprite, bone_shadow, pygame.Rect(0, 21, 25, 30), 1.6, 4.8, 5)
+    pygame.draw.line(sprite, outline, (13, 36), (2, 31), 2)
+    for x in (22, 29, 36, 43):
+        pygame.draw.arc(sprite, outline, pygame.Rect(x - 2, 29, 8, 18), 1.5, 4.7, 2)
+    pygame.draw.ellipse(sprite, bone, pygame.Rect(44, 20, 18, 20))
+    pygame.draw.ellipse(sprite, outline, pygame.Rect(44, 20, 18, 20), 2)
+    pygame.draw.ellipse(sprite, dark, pygame.Rect(49, 25, 4, 6))
+    pygame.draw.ellipse(sprite, dark, pygame.Rect(57, 26, 3, 5))
+    for x in (47, 53, 59):
+        pygame.draw.circle(sprite, bone_shadow, (x, 41), 4)
+    for x in (22, 34, 45):
+        pygame.draw.line(sprite, bone_shadow, (x, 43), (x - 1, 62), 5)
+        pygame.draw.line(sprite, outline, (x, 43), (x - 1, 62), 1)
+        pygame.draw.circle(sprite, bone, (x - 1, 62), 4)
+
+    return sprite
+
+
+def generate_malice_robotic() -> pygame.Surface:
+    """Robotic Malice skin: angular gray chassis, panel lights, vents, and heavy legs."""
+    sprite = make_surface()
+    outline = (38, 41, 45)
+    gray = (128, 132, 126)
+    gray_dark = (73, 77, 78)
+    pale = (204, 207, 199)
+    red = (199, 69, 45)
+    green = (55, 153, 93)
+    blue = (69, 134, 169)
+
+    pygame.draw.polygon(sprite, gray, [(6, 35), (25, 23), (46, 22), (59, 34), (49, 51), (19, 50)])
+    pygame.draw.polygon(sprite, outline, [(6, 35), (25, 23), (46, 22), (59, 34), (49, 51), (19, 50)], 2)
+    pygame.draw.polygon(sprite, gray_dark, [(45, 14), (60, 20), (56, 35), (42, 31)])
+    pygame.draw.polygon(sprite, outline, [(45, 14), (60, 20), (56, 35), (42, 31)], 2)
+    pygame.draw.rect(sprite, red, pygame.Rect(49, 17, 6, 7), border_radius=1)
+    pygame.draw.rect(sprite, green, pygame.Rect(53, 27, 4, 5), border_radius=1)
+    pygame.draw.rect(sprite, blue, pygame.Rect(47, 27, 4, 5), border_radius=1)
+    pygame.draw.line(sprite, pale, (13, 34), (40, 34), 3)
+    pygame.draw.line(sprite, outline, (24, 24), (22, 49), 2)
+    pygame.draw.line(sprite, outline, (40, 22), (47, 49), 2)
+    for x in (18, 30, 43):
+        pygame.draw.line(sprite, gray_dark, (x, 48), (x, 63), 6)
+        pygame.draw.line(sprite, outline, (x, 48), (x, 63), 1)
+        pygame.draw.rect(sprite, gray, pygame.Rect(x - 5, 58, 11, 6), border_radius=2)
+
+    return sprite
+
+
 def generate_malice_tiger(frame: int) -> pygame.Surface:
     """Hunter's Rage Tiger: blue striped body, yellow claws, angry face."""
     sprite = make_surface()
@@ -772,6 +858,92 @@ def generate_malice_dinosaur(frame: int) -> pygame.Surface:
     pygame.draw.line(sprite, yellow, (43 - leg_shift, 61), (49 - leg_shift, 63), 2)
     pygame.draw.line(sprite, blue_dark, (52, 32), (62, 42), 4)
     pygame.draw.line(sprite, yellow, (62, 42), (64, 37), 2)
+    return sprite
+
+
+def generate_malice_bug_dinosaur(frame: int) -> pygame.Surface:
+    """Bug skin Hunter's Rage dinosaur: green plated insect-dino with antennae."""
+    sprite = make_surface()
+    outline = (48, 55, 44)
+    green = (140, 163, 83)
+    green_dark = (75, 105, 54)
+    pale = (219, 222, 199)
+    dark = (37, 39, 34)
+    leg_shift = (-2, 2, 0)[frame % 3]
+
+    pygame.draw.ellipse(sprite, green, pygame.Rect(10, 25, 42, 20))
+    pygame.draw.ellipse(sprite, outline, pygame.Rect(10, 25, 42, 20), 2)
+    pygame.draw.polygon(sprite, green, [(9, 33), (0, 26), (3, 44)])
+    pygame.draw.line(sprite, outline, (10, 33), (1, 27), 2)
+    pygame.draw.ellipse(sprite, pale, pygame.Rect(42, 17, 19, 18))
+    pygame.draw.ellipse(sprite, outline, pygame.Rect(42, 17, 19, 18), 2)
+    pygame.draw.ellipse(sprite, dark, pygame.Rect(49, 21, 4, 6))
+    pygame.draw.arc(sprite, outline, pygame.Rect(45, 4, 18, 16), 3.5, 5.6, 2)
+    pygame.draw.arc(sprite, outline, pygame.Rect(39, 4, 18, 18), 3.4, 5.4, 2)
+    for x in (20, 31, 42):
+        pygame.draw.polygon(sprite, green_dark, [(x, 25), (x + 4, 9), (x + 9, 25)])
+        pygame.draw.lines(sprite, outline, True, [(x, 25), (x + 4, 9), (x + 9, 25)], 1)
+    for x in (20, 32, 44):
+        pygame.draw.line(sprite, green_dark, (x, 43), (x + leg_shift, 61), 5)
+        pygame.draw.line(sprite, outline, (x, 43), (x + leg_shift, 61), 1)
+        pygame.draw.line(sprite, outline, (x + leg_shift - 4, 62), (x + leg_shift + 4, 61), 2)
+    return sprite
+
+
+def generate_malice_bones_dinosaur(frame: int) -> pygame.Surface:
+    """Bones skin Hunter's Rage dinosaur: skeletal long body with ribs and skull."""
+    sprite = make_surface()
+    outline = (73, 74, 67)
+    bone = (221, 220, 201)
+    shadow = (173, 172, 154)
+    dark = (39, 39, 35)
+    leg_shift = (-2, 2, 0)[frame % 3]
+
+    pygame.draw.ellipse(sprite, bone, pygame.Rect(12, 27, 42, 17))
+    pygame.draw.ellipse(sprite, outline, pygame.Rect(12, 27, 42, 17), 2)
+    pygame.draw.arc(sprite, shadow, pygame.Rect(0, 19, 26, 28), 1.5, 4.7, 5)
+    pygame.draw.ellipse(sprite, bone, pygame.Rect(43, 16, 19, 18))
+    pygame.draw.ellipse(sprite, outline, pygame.Rect(43, 16, 19, 18), 2)
+    pygame.draw.ellipse(sprite, dark, pygame.Rect(51, 20, 4, 6))
+    pygame.draw.line(sprite, outline, (51, 30), (62, 31), 2)
+    for x in (20, 28, 36, 44):
+        pygame.draw.arc(sprite, outline, pygame.Rect(x - 3, 27, 9, 18), 1.4, 4.6, 2)
+    for x in (24, 42):
+        pygame.draw.line(sprite, shadow, (x, 42), (x + leg_shift, 61), 5)
+        pygame.draw.line(sprite, outline, (x, 42), (x + leg_shift, 61), 1)
+        pygame.draw.circle(sprite, bone, (x + leg_shift, 61), 4)
+    pygame.draw.line(sprite, shadow, (53, 31), (63, 42), 4)
+    pygame.draw.circle(sprite, bone, (63, 42), 3)
+    return sprite
+
+
+def generate_malice_robotic_dinosaur(frame: int) -> pygame.Surface:
+    """Robotic skin Hunter's Rage dinosaur: metal dino chassis with panel lights."""
+    sprite = make_surface()
+    outline = (36, 39, 43)
+    gray = (130, 133, 127)
+    gray_dark = (71, 75, 77)
+    pale = (206, 209, 201)
+    red = (207, 76, 48)
+    green = (55, 154, 91)
+    leg_shift = (-2, 2, 0)[frame % 3]
+
+    pygame.draw.polygon(sprite, gray, [(9, 31), (21, 23), (48, 23), (57, 35), (48, 48), (18, 47)])
+    pygame.draw.polygon(sprite, outline, [(9, 31), (21, 23), (48, 23), (57, 35), (48, 48), (18, 47)], 2)
+    pygame.draw.polygon(sprite, gray_dark, [(42, 14), (61, 19), (58, 34), (43, 31)])
+    pygame.draw.polygon(sprite, outline, [(42, 14), (61, 19), (58, 34), (43, 31)], 2)
+    pygame.draw.rect(sprite, red, pygame.Rect(49, 17, 6, 6), border_radius=1)
+    pygame.draw.rect(sprite, green, pygame.Rect(54, 27, 4, 5), border_radius=1)
+    pygame.draw.line(sprite, pale, (15, 32), (39, 32), 3)
+    pygame.draw.polygon(sprite, gray_dark, [(11, 31), (0, 25), (4, 42)])
+    pygame.draw.line(sprite, outline, (11, 31), (1, 25), 2)
+    for x in (21, 32, 43):
+        pygame.draw.line(sprite, outline, (x, 24), (x + 3, 47), 2)
+    for x in (24, 43):
+        pygame.draw.line(sprite, gray_dark, (x, 45), (x + leg_shift, 62), 6)
+        pygame.draw.rect(sprite, gray, pygame.Rect(x + leg_shift - 5, 58, 12, 6), border_radius=2)
+        pygame.draw.rect(sprite, outline, pygame.Rect(x + leg_shift - 5, 58, 12, 6), 1, border_radius=2)
+    pygame.draw.line(sprite, gray_dark, (54, 33), (63, 43), 4)
     return sprite
 
 
@@ -1365,10 +1537,25 @@ def main() -> None:
     save_if_missing("show_runner_mastery_2.png", generate_show_runner_mastery_2())
     save_if_missing("show_runner_mastery_3.png", generate_show_runner_mastery_3())
     save_if_missing("malice.png", generate_malice())
+    save_if_missing("malice_bug.png", generate_malice_bug())
+    save_if_missing("malice_bones.png", generate_malice_bones())
+    save_if_missing("malice_robotic.png", generate_malice_robotic())
     for frame in range(3):
         save_if_missing(f"malice_tiger_{frame}.png", generate_malice_tiger(frame))
         save_if_missing(f"malice_bird_{frame}.png", generate_malice_bird(frame))
         save_if_missing(f"malice_dinosaur_{frame}.png", generate_malice_dinosaur(frame))
+        save_animation_if_missing(
+            f"malice_bug_dinosaur_{frame}.png",
+            generate_malice_bug_dinosaur(frame),
+        )
+        save_animation_if_missing(
+            f"malice_bones_dinosaur_{frame}.png",
+            generate_malice_bones_dinosaur(frame),
+        )
+        save_animation_if_missing(
+            f"malice_robotic_dinosaur_{frame}.png",
+            generate_malice_robotic_dinosaur(frame),
+        )
     save_if_missing("vengance_bot.png", generate_vengance_bot())
     save_if_missing("vengance_wick_wonalds.png", generate_vengance_wick_wonalds())
     save_if_missing("vengance_mlg.png", generate_vengance_mlg())

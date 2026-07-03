@@ -23,7 +23,7 @@ class KillerAbilitiesMixin:
         if self.player_role != "Killer" or self.survivor is None:
             return
 
-        form = self.player.start_hunter_rage()
+        form = self.player.start_hunter_rage(self.player.skin_id)
         if form is None:
             return
 
@@ -226,4 +226,3 @@ class KillerAbilitiesMixin:
         self.survivor.update_rect()
         self.resolve_wall_overlap(self.survivor)
         self.player.show_hook_cooldown = SHOW_RUNNER_HOOK_COOLDOWN
-

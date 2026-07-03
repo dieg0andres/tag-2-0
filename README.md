@@ -82,7 +82,7 @@ python tools/generate_assets.py
   - shows power: press A to speed Show Runner up by 69% for 12.5 seconds.
 - Malice has Hunter's Rage and form abilities:
   - In Search For Bodies: press I to pass through walls for 4 seconds. The 20-second cooldown starts after the ability ends.
-  - Hunter's Rage: press H to randomly become Tiger, Bird, or Dinosaur for 20 seconds.
+  - Hunter's Rage: press H to randomly become Tiger, Bird, or Dinosaur for 20 seconds. Selecting Bug, Bones, or Robotic adds only that skin's matching Dinosaur form to the random form pool.
   - Tiger form: moves 69% faster, can still attack with Space, and can press I to go invisible for 5 seconds. While invisible, the AI survivor cannot see Tiger. The invisibility cooldown is 5 seconds after Tiger becomes visible again.
   - Bird form: flies through walls. Press I to summon 2 helper birds that move randomly and slow the survivor by 50% on touch. Press A to shoot white bird poop that stuns the survivor.
   - Dinosaur form: moves 10% slower. Press S to stomp and create a shockwave that kills the survivor if they are close enough. Press R to roar and freeze the survivor for 16 seconds.
@@ -126,6 +126,11 @@ python tools/generate_assets.py
   - Mastery 1: unlocks after killing 20 survivors as Show Runner.
   - Mastery 2: unlocks after killing 40 survivors as Show Runner.
   - Mastery 3: unlocks after killing 61 survivors as Show Runner.
+- Malice:
+  - Bug: unlocks after 3 player wins as Malice while Hunter's Rage bird form is active at round end.
+  - Bones: unlocks after 3 player losses as Explorer.
+  - Robotic: unlocks after 8 player wins as Malice.
+  - Selecting Bug, Bones, or Robotic adds only that skin's matching dinosaur form to Hunter's Rage. The special forms use the same Dinosaur controls and effects.
 - Vengance Bot:
   - Wick Wonalds: unlocks after the player survives Vengance Bot 2 times as Survivor. The survives do not need to be in a row.
   - MLG: unlocks when Vengance Bot kills the survivor with a landmine after placing 2 or fewer landmines that round.
@@ -176,9 +181,15 @@ The reference pictures were translated into simple 64 x 64 transparent top-down 
 - `show_runner_mastery_2.png`: based on the second Mastery drawing. It keeps the blue crystal crown, jagged dark half, and floating blue fragments.
 - `show_runner_mastery_3.png`: based on the third Mastery drawing. It keeps the red crown, blue-gray body, sharp split face, and stronger Mastery silhouette.
 - `malice.png`: based on the blue clawed shark-like drawing. It keeps the gray shark head, red eyes, teeth, blue limbs, and claws.
+- `malice_bug.png`: based on the green bug-like drawing. It keeps the long insect body, dark eyes, antennae, green plates, and hooked legs.
+- `malice_bones.png`: based on the pale skeleton drawing. It keeps the skull, rib-cage body, curled tail, bone legs, and tooth-like details.
+- `malice_robotic.png`: based on the gray robot drawing. It keeps the angular metal body, panel seams, colored indicator lights, vents, and blocky legs.
 - `malice_tiger_0.png` through `malice_tiger_2.png`: Hunter's Rage Tiger animation frames. They keep the blue body, orange stripes, yellow eyes/claws, and angry toothy face from the tiger reference.
 - `malice_bird_0.png` through `malice_bird_2.png`: Hunter's Rage Bird animation frames. They keep the blue body, orange wings, yellow beak, and yellow legs from the bird reference.
 - `malice_dinosaur_0.png` through `malice_dinosaur_2.png`: Hunter's Rage Dinosaur animation frames. They keep the long blue dinosaur body, orange back plates, yellow claws, and strong stomp silhouette.
+- `animations/malice_bug_dinosaur_0.png` through `animations/malice_bug_dinosaur_2.png`: Bug skin Hunter's Rage dinosaur frames with green plates, antennae, and insect legs.
+- `animations/malice_bones_dinosaur_0.png` through `animations/malice_bones_dinosaur_2.png`: Bones skin Hunter's Rage dinosaur frames with ribs, skull, pale bones, and a curled tail.
+- `animations/malice_robotic_dinosaur_0.png` through `animations/malice_robotic_dinosaur_2.png`: Robotic skin Hunter's Rage dinosaur frames with metal panels, colored lights, and blocky legs.
 - `vengance_bot.png`: based on the gray robot drawing. It keeps the box head, red eyes, green mouth mark, thin arms, and tall gray body.
 - `vengance_wick_wonalds.png`: based on the Wick Wonalds drawing. It keeps the menu-board head, gray body, and yellow W detail.
 - `vengance_mlg.png`: based on the MLG drawing. It keeps the green body, white MLG head, green cap, and purple launcher.

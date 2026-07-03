@@ -71,10 +71,19 @@ class AssetMixin:
 
     def load_animation_sprites(self) -> dict[str, list[pygame.Surface]]:
         animations: dict[str, list[pygame.Surface]] = {}
-        for form in ("tiger", "bird", "dinosaur"):
+        for form in (
+            "tiger",
+            "bird",
+            "dinosaur",
+            "bug_dinosaur",
+            "bones_dinosaur",
+            "robotic_dinosaur",
+        ):
             frames: list[pygame.Surface] = []
             for index in range(3):
-                path = SPRITE_DIR / f"malice_{form}_{index}.png"
+                animation_path = ANIMATION_DIR / f"malice_{form}_{index}.png"
+                sprite_path = SPRITE_DIR / f"malice_{form}_{index}.png"
+                path = animation_path if animation_path.exists() else sprite_path
                 if not path.exists():
                     continue
                 try:

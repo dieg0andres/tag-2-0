@@ -30,6 +30,9 @@ class PersistenceMixin:
                 "ducky_losses": 0,
                 "ducky_daddys_belt_wins": 0,
                 "ducky_ogel_wins": 0,
+                "malice_bird_form_wins": 0,
+                "explorer_losses": 0,
+                "malice_wins": 0,
             },
         }
 
@@ -82,6 +85,12 @@ class PersistenceMixin:
             and clean_progress.get("ducky_ogel_wins", 0) >= 1
         ):
             clean_unlocked.add("ducky_subject_5_png")
+        if clean_progress.get("malice_bird_form_wins", 0) >= MALICE_BIRD_FORM_WINS:
+            clean_unlocked.add("malice_bug")
+        if clean_progress.get("explorer_losses", 0) >= MALICE_BONES_EXPLORER_LOSSES:
+            clean_unlocked.add("malice_bones")
+        if clean_progress.get("malice_wins", 0) >= MALICE_ROBOTIC_WINS:
+            clean_unlocked.add("malice_robotic")
 
         return {
             "total_wins": max(0, wins),
@@ -187,6 +196,18 @@ class PersistenceMixin:
             if wins >= VENGANCE_BOT_MASTERY_3_WINS:
                 self.unlock_skin("vengance_bot_mastery_3", "79 Vengance Bot wins completed")
 
+        if self.player_role == "Killer" and self.round_killer == "malice":
+            if isinstance(self.player, Killer) and self.player.is_malice_bird():
+                bird_form_wins = self.challenge_progress.get("malice_bird_form_wins", 0) + 1
+                self.challenge_progress["malice_bird_form_wins"] = bird_form_wins
+                if bird_form_wins >= MALICE_BIRD_FORM_WINS:
+                    self.unlock_skin("malice_bug", "3 Malice bird-form wins completed")
+
+            wins = self.challenge_progress.get("malice_wins", 0) + 1
+            self.challenge_progress["malice_wins"] = wins
+            if wins >= MALICE_ROBOTIC_WINS:
+                self.unlock_skin("malice_robotic", "8 Malice wins completed")
+
         if self.player_role == "Survivor" and self.round_killer == "vengance_bot":
             self.record_vengance_bot_survive()
 
@@ -200,6 +221,12 @@ class PersistenceMixin:
                 self.unlock_skin("ducky_inverted", "lost twice as Ducky")
             if losses >= DUCKY_OGEL_LOSSES:
                 self.unlock_skin("ducky_ogel", "lost 4 times as Ducky")
+
+        if self.player_role == "Survivor" and self.selected_player_survivor == "survivor_explorer":
+            losses = self.challenge_progress.get("explorer_losses", 0) + 1
+            self.challenge_progress["explorer_losses"] = losses
+            if losses >= MALICE_BONES_EXPLORER_LOSSES:
+                self.unlock_skin("malice_bones", "lost 3 rounds as Explorer")
 
         self.save_progress()
 
@@ -242,6 +269,15 @@ class PersistenceMixin:
             target = self.vengance_bot_mastery_win_target(skin_id)
             wins = self.challenge_progress.get("vengance_bot_wins", 0)
             return f"Vengance Bot wins {wins}/{target}"
+        if skin_id == "malice_bug":
+            wins = self.challenge_progress.get("malice_bird_form_wins", 0)
+            return f"Malice bird wins {wins}/{MALICE_BIRD_FORM_WINS}"
+        if skin_id == "malice_bones":
+            losses = self.challenge_progress.get("explorer_losses", 0)
+            return f"Explorer losses {losses}/{MALICE_BONES_EXPLORER_LOSSES}"
+        if skin_id == "malice_robotic":
+            wins = self.challenge_progress.get("malice_wins", 0)
+            return f"Malice wins {wins}/{MALICE_ROBOTIC_WINS}"
         return SKINS[skin_id]["challenge"]
 
     def show_runner_mastery_kill_target(self, skin_id: str) -> int:
@@ -317,6 +353,18 @@ class PersistenceMixin:
             wins = self.challenge_progress.get("vengance_bot_wins", 0)
             remaining = max(0, target - wins)
             return f"Win {remaining} more round{'s' if remaining != 1 else ''} as Vengance Bot."
+        if skin_id == "malice_bug":
+            wins = self.challenge_progress.get("malice_bird_form_wins", 0)
+            remaining = max(0, MALICE_BIRD_FORM_WINS - wins)
+            return f"Win {remaining} more Malice round{'s' if remaining != 1 else ''} while Hunter's Rage bird form is active at round end."
+        if skin_id == "malice_bones":
+            losses = self.challenge_progress.get("explorer_losses", 0)
+            remaining = max(0, MALICE_BONES_EXPLORER_LOSSES - losses)
+            return f"Choose Explorer as Survivor and lose {remaining} more round{'s' if remaining != 1 else ''}."
+        if skin_id == "malice_robotic":
+            wins = self.challenge_progress.get("malice_wins", 0)
+            remaining = max(0, MALICE_ROBOTIC_WINS - wins)
+            return f"Win {remaining} more round{'s' if remaining != 1 else ''} as Malice."
         return SKINS[skin_id]["challenge"]
 
     def skin_progress_text(self) -> str:
@@ -325,4 +373,3 @@ class PersistenceMixin:
         if unlocked_count == total_count:
             return "All killer cosmetics unlocked."
         return f"Killer cosmetics unlocked: {unlocked_count}/{total_count}. Keep clearing challenges."
-

@@ -133,6 +133,24 @@ SKINS = {
         "challenge": "Win 79 rounds as Vengance Bot.",
         "type": "mastery",
     },
+    "malice_bug": {
+        "killer_id": "malice",
+        "name": "Bug",
+        "sprite_key": "malice_bug",
+        "challenge": "Win 3 rounds as Malice while in bird form.",
+    },
+    "malice_bones": {
+        "killer_id": "malice",
+        "name": "Bones",
+        "sprite_key": "malice_bones",
+        "challenge": "Lose 3 rounds as Explorer.",
+    },
+    "malice_robotic": {
+        "killer_id": "malice",
+        "name": "Robotic",
+        "sprite_key": "malice_robotic",
+        "challenge": "Win 8 rounds as Malice.",
+    },
 }
 
 SURVIVORS = {

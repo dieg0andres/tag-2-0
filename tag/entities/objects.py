@@ -799,6 +799,17 @@ class Survivor(Character):
 
 
 class Killer(Character):
+    BASE_MALICE_FORMS = ("tiger", "bird", "dinosaur")
+    MALICE_SKIN_DINOSAUR_FORMS = {
+        "malice_bug": "bug_dinosaur",
+        "malice_bones": "bones_dinosaur",
+        "malice_robotic": "robotic_dinosaur",
+    }
+    MALICE_DINOSAUR_FORMS = (
+        "dinosaur",
+        *MALICE_SKIN_DINOSAUR_FORMS.values(),
+    )
+
     def __init__(
         self,
         killer_id: str,
@@ -863,7 +874,7 @@ class Killer(Character):
         return self.is_hunter_rage_active() and self.malice_form == "bird"
 
     def is_malice_dinosaur(self) -> bool:
-        return self.is_hunter_rage_active() and self.malice_form == "dinosaur"
+        return self.is_hunter_rage_active() and self.malice_form in self.MALICE_DINOSAUR_FORMS
 
     def is_subslasher(self) -> bool:
         return self.killer_id == "subslasher"
@@ -999,11 +1010,19 @@ class Killer(Character):
             return f"I: cooldown {self.wall_phase_cooldown:.0f}s"
         return "I: phase ready"
 
-    def start_hunter_rage(self) -> str | None:
+    def hunter_rage_forms(self, selected_skin: str | None = None) -> tuple[str, ...]:
+        forms = list(self.BASE_MALICE_FORMS)
+        skin_id = selected_skin if selected_skin is not None else self.skin_id
+        skin_form = self.MALICE_SKIN_DINOSAUR_FORMS.get(skin_id)
+        if skin_form is not None:
+            forms.append(skin_form)
+        return tuple(forms)
+
+    def start_hunter_rage(self, selected_skin: str | None = None) -> str | None:
         if not self.is_malice() or self.is_hunter_rage_active() or self.malice_hunter_cooldown > 0:
             return None
 
-        self.malice_form = random.choice(("tiger", "bird", "dinosaur"))
+        self.malice_form = random.choice(self.hunter_rage_forms(selected_skin))
         self.malice_form_timer = MALICE_HUNTER_RAGE_DURATION
         self.malice_animation_index = 0
         self.malice_animation_timer = 0.0
