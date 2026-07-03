@@ -28,6 +28,7 @@ class Game(AssetMixin, PersistenceMixin, WorldMixin, InputMixin, SurvivorAbiliti
         pygame.display.set_caption("Tag 2.0")
         settings.resize_layout(WIDTH, HEIGHT)
         self.screen = pygame.display.set_mode((settings.WIDTH, settings.HEIGHT), WINDOW_FLAGS)
+        self.display_size = self.screen.get_size()
         self.clock = pygame.time.Clock()
 
         self.font_small = pygame.font.SysFont("arial", 18)
@@ -118,9 +119,20 @@ class Game(AssetMixin, PersistenceMixin, WorldMixin, InputMixin, SurvivorAbiliti
         self.menu_buttons["back"].rect.topleft = (28, 28)
 
     def handle_window_resize(self, width: int, height: int) -> None:
+        target_size = (
+            max(settings.MIN_WIDTH, int(width)),
+            max(settings.MIN_HEIGHT, int(height)),
+        )
+        if target_size == self.display_size:
+            return
+
         old_arena = ARENA_RECT.copy()
-        new_width, new_height = settings.resize_layout(width, height)
+        new_width, new_height = settings.resize_layout(*target_size)
+        if (new_width, new_height) == self.display_size:
+            return
+
         self.screen = pygame.display.set_mode((new_width, new_height), WINDOW_FLAGS)
+        self.display_size = self.screen.get_size()
         self.update_menu_buttons()
         self.walls = self.create_walls()
         self.rescale_world_for_resize(old_arena, ARENA_RECT)

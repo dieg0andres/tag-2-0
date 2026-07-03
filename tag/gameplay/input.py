@@ -18,17 +18,21 @@ from tag.utils.vector import facing_axis, safe_normalize, vector_from_keys
 
 class InputMixin:
     def handle_events(self) -> None:
+        latest_resize_size: tuple[int, int] | None = None
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
             elif self.is_resize_event(event):
-                width = getattr(event, "w", None) or getattr(event, "x", None) or self.window_width()
-                height = getattr(event, "h", None) or getattr(event, "y", None) or self.window_height()
-                self.handle_window_resize(width, height)
+                resize_size = self.resize_event_size(event)
+                if resize_size is not None:
+                    latest_resize_size = resize_size
             elif event.type == pygame.KEYDOWN:
                 self.handle_keydown(event.key)
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 self.handle_click(event.pos)
+
+        if latest_resize_size is not None and self.running:
+            self.handle_window_resize(*latest_resize_size)
 
     def is_resize_event(self, event: pygame.event.Event) -> bool:
         resize_types = {pygame.VIDEORESIZE}
@@ -36,6 +40,16 @@ class InputMixin:
             if hasattr(pygame, name):
                 resize_types.add(getattr(pygame, name))
         return event.type in resize_types
+
+    def resize_event_size(self, event: pygame.event.Event) -> tuple[int, int] | None:
+        width = getattr(event, "w", None)
+        height = getattr(event, "h", None)
+        if width is None or height is None:
+            width = getattr(event, "x", None)
+            height = getattr(event, "y", None)
+        if width is None or height is None:
+            return None
+        return int(width), int(height)
 
     def handle_keydown(self, key: int) -> None:
         if key == pygame.K_ESCAPE:
