@@ -13,6 +13,9 @@ from tag.utils.text import draw_text
 from tag.utils.vector import facing_axis, safe_normalize
 
 
+DIRECTIONAL_SPRITE_TILT_DEGREES = 35
+
+
 @dataclass
 class Wall:
     rect: pygame.Rect
@@ -537,6 +540,7 @@ class Character:
         self.is_moving = False
         self.sprite_alpha = 255
         self.facing = pygame.Vector2(0, 1)
+        self.directional_sprite_cache: dict[tuple[int, bool, int], pygame.Surface] = {}
         self.rect = pygame.Rect(0, 0, CHARACTER_COLLISION_SIZE, CHARACTER_COLLISION_SIZE)
         self.rect.center = (round(self.pos.x), round(self.pos.y))
 
@@ -638,6 +642,32 @@ class Character:
         self.ai_nudge = pygame.Vector2(math.cos(angle), math.sin(angle))
         self.ai_nudge_timer = random.uniform(0.25, 0.55)
 
+    def directional_sprite_bucket(self) -> tuple[bool, int]:
+        facing = safe_normalize(self.facing)
+        if facing.length_squared() == 0:
+            return False, 0
+
+        mirrored = facing.x < -0.01
+        angle = 0
+        if facing.y < -0.01:
+            angle = -DIRECTIONAL_SPRITE_TILT_DEGREES if mirrored else DIRECTIONAL_SPRITE_TILT_DEGREES
+        elif facing.y > 0.01:
+            angle = DIRECTIONAL_SPRITE_TILT_DEGREES if mirrored else -DIRECTIONAL_SPRITE_TILT_DEGREES
+        return mirrored, angle
+
+    def directional_sprite(self, sprite: pygame.Surface) -> pygame.Surface:
+        mirrored, angle = self.directional_sprite_bucket()
+        cache_key = (id(sprite), mirrored, angle)
+        cached = self.directional_sprite_cache.get(cache_key)
+        if cached is not None:
+            return cached
+
+        transformed = pygame.transform.flip(sprite, True, False) if mirrored else sprite
+        if angle != 0:
+            transformed = pygame.transform.rotozoom(transformed, angle, 1.0)
+        self.directional_sprite_cache[cache_key] = transformed
+        return transformed
+
     def draw(self, surface: pygame.Surface, font: pygame.font.Font, label_alpha: int = 255) -> None:
         draw_rect = pygame.Rect(0, 0, SPRITE_DRAW_SIZE, SPRITE_DRAW_SIZE)
         draw_rect.center = self.rect.center
@@ -647,23 +677,17 @@ class Character:
             sprite = self.walk_frames[self.walk_animation_index % len(self.walk_frames)]
 
         if sprite is not None:
+            sprite = self.directional_sprite(sprite)
+            sprite_rect = sprite.get_rect(center=draw_rect.center)
             if self.sprite_alpha < 255:
                 faded = sprite.copy()
                 faded.set_alpha(self.sprite_alpha)
-                surface.blit(faded, draw_rect)
+                surface.blit(faded, sprite_rect)
             else:
-                surface.blit(sprite, draw_rect)
+                surface.blit(sprite, sprite_rect)
         else:
             pygame.draw.ellipse(surface, self.color, draw_rect)
             pygame.draw.ellipse(surface, (15, 23, 42), draw_rect, 3)
-
-        # Sprites stay readable when fixed; this arrow shows current facing.
-        facing = safe_normalize(self.facing)
-        if facing.length_squared() > 0:
-            start = pygame.Vector2(self.rect.center)
-            end = start + facing * 31
-            pygame.draw.line(surface, (255, 255, 255), start, end, 3)
-            pygame.draw.circle(surface, (255, 255, 255), end, 4)
 
         self.draw_name_label(surface, font, label_alpha)
         self.is_moving = False
@@ -904,12 +928,6 @@ class Killer(Character):
             start = pygame.Vector2(self.rect.center) + direction * 24
             end = pygame.Vector2(self.rect.center) + direction * 35
             pygame.draw.line(surface, (226, 232, 240), start, end, 3)
-
-        facing = safe_normalize(self.facing)
-        if facing.length_squared() > 0:
-            start = pygame.Vector2(self.rect.center)
-            end = start + facing * 31
-            pygame.draw.line(surface, (255, 255, 255), start, end, 3)
 
         self.draw_name_label(surface, font, label_alpha)
         self.draw_stun_effect(surface, font)
