@@ -52,6 +52,8 @@ python tools/generate_assets.py
 - R: Vengance Bot only, activate robot slash during play
 - C: Vengance Bot only, place explosion landmine during play
 - Drag the window corners or use the OS maximize button to resize the game
+- Enter/Space on the score screen: continue to one more round
+- Q or Quit on the score screen: end the run with your current score
 - Escape: quit
 - R: restart from the win/loss screen
 
@@ -59,14 +61,16 @@ python tools/generate_assets.py
 
 - Each round lasts 60 seconds.
 - Each round has one killer: Ducky, Subslasher, Show Runner, Malice, or Vengance Bot.
+- Each new run starts at score 0. Winning a round adds 1 point.
+- After a win, choose whether to continue to one more randomly assigned round or quit with your current score.
 - Your role is randomly assigned.
 - If your role is Killer, you play as the killer you selected on the setup screen.
 - If your role is Survivor, the AI killer is still chosen randomly and you choose your survivor character.
 - If your role is Killer, the AI survivor character is chosen randomly.
 - Killer skins are selected only after your role is revealed as Killer.
 - Skins are killer-specific and must be unlocked by completing challenges.
-- Survivor mode: survive two 60-second lives. A hit ends the current life and starts the next one; a hit on the final life loses.
-- Killer mode: chase the AI survivor and land an attack before time expires.
+- Survivor mode: survive one 60-second round to score. Getting caught ends the run.
+- Killer mode: chase the AI survivor and land an attack before time expires to score. If time expires, the run ends.
 - Ducky uses Lunge Swing: short windup, fast forward lunge, rectangular hitbox.
 - Ducky has two player-controlled abilities:
   - crying swing: press C to throw a metal belt with a mace at the end. If the mace hits the survivor, Ducky wins. The ability has a short cooldown.

@@ -62,6 +62,8 @@ class Game(AssetMixin, PersistenceMixin, WorldMixin, InputMixin, SurvivorAbiliti
         self.survivor_slow_timer = 0.0
         self.survivor_flash_timer = 0.0
         self.explorer_taming_timer = 0.0
+        self.score = 0
+        self.final_score = 0
         self.player_won = False
         self.end_reason = ""
 
@@ -98,6 +100,8 @@ class Game(AssetMixin, PersistenceMixin, WorldMixin, InputMixin, SurvivorAbiliti
             "reveal": Button(pygame.Rect(0, 0, 220, 58), "Reveal Role"),
             "begin": Button(pygame.Rect(0, 0, 220, 58), "Begin Round"),
             "back": Button(pygame.Rect(0, 0, 130, 46), "Back"),
+            "continue": Button(pygame.Rect(0, 0, 220, 58), "Continue"),
+            "quit_run": Button(pygame.Rect(0, 0, 220, 58), "Quit"),
         }
         self.update_menu_buttons()
 
@@ -124,6 +128,9 @@ class Game(AssetMixin, PersistenceMixin, WorldMixin, InputMixin, SurvivorAbiliti
         self.menu_buttons["reveal"].rect.center = (center_x, min(max(548, height - 175), height - 82))
         self.menu_buttons["begin"].rect.center = (center_x, min(max(585, height - 110), height - 55))
         self.menu_buttons["back"].rect.topleft = (28, 28)
+        score_y = min(max(560, height - 140), height - 80)
+        self.menu_buttons["continue"].rect.center = (center_x - 130, score_y)
+        self.menu_buttons["quit_run"].rect.center = (center_x + 130, score_y)
 
     def handle_window_resize(self, width: int, height: int) -> None:
         target_size = (

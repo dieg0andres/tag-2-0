@@ -18,6 +18,28 @@ from tag.utils.vector import facing_axis, safe_normalize, vector_from_keys
 
 
 class RoundFlowMixin:
+    def start_new_score_run(self) -> None:
+        self.score = 0
+        self.final_score = 0
+        self.player_won = False
+        self.end_reason = ""
+        self.skin_notice = ""
+        self.reveal_role()
+
+    def continue_score_run(self) -> None:
+        self.player_won = False
+        self.end_reason = ""
+        self.skin_notice = ""
+        self.reveal_role()
+
+    def finish_score_run(self) -> None:
+        self.close_killer_intro_video()
+        self.final_score = self.score
+        self.player_won = True
+        self.end_reason = f"Final score: {self.final_score}. You ended the run after a win."
+        self.state = GameState.GAME_OVER
+        self.stop_music()
+
     def reveal_role(self) -> None:
         self.player_role = random.choice(["Survivor", "Killer"])
         if self.player_role == "Killer":
@@ -307,6 +329,7 @@ class RoundFlowMixin:
     def reset_to_title(self) -> None:
         self.close_killer_intro_video()
         self.state = GameState.TITLE
+        self.final_score = self.score
         self.player = None
         self.survivor = None
         self.killers = []
@@ -336,36 +359,23 @@ class RoundFlowMixin:
         self.stop_music()
 
     def handle_survivor_hit(self, killer_name: str) -> None:
-        if self.survivor_life_number >= SURVIVOR_TOTAL_LIVES:
-            self.end_round(False, f"{killer_name} caught you on your final life.")
-            return
-
-        self.survivor_life_number += 1
-        self.survivor_status_message = "Hit! Final life."
-        self.round_killer = random.choice(KILLER_IDS)
-        self.begin_round()
+        self.end_round(False, f"{killer_name} caught you.")
 
     def handle_survivor_timer_success(self) -> None:
-        if self.survivor_life_number >= SURVIVOR_TOTAL_LIVES:
-            self.end_round(True, "You survived both survivor lives.")
-            return
-
-        if self.round_killer == "vengance_bot":
-            self.record_vengance_bot_survive()
-
-        self.survivor_life_number += 1
-        self.survivor_status_message = "Final life - keep running!"
-        self.round_killer = random.choice(KILLER_IDS)
-        self.begin_round()
+        self.end_round(True, "You survived the killer.")
 
     def end_round(self, player_won: bool, reason: str) -> None:
         self.close_killer_intro_video()
         self.player_won = player_won
         self.end_reason = reason
         if player_won:
+            self.score += 1
+            self.final_score = self.score
             self.record_win()
+            self.state = GameState.SCORE_SCREEN
         else:
+            self.final_score = self.score
             self.record_loss()
-        self.state = GameState.GAME_OVER
+            self.state = GameState.GAME_OVER
         self.stop_music()
         self.play_sound("win" if player_won else "lose")

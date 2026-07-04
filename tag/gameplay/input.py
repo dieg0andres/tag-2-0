@@ -65,7 +65,7 @@ class InputMixin:
 
         if self.state == GameState.TITLE:
             if key in (pygame.K_RETURN, pygame.K_SPACE):
-                self.reveal_role()
+                self.start_new_score_run()
 
         elif self.state == GameState.ROUND_SETUP:
             selected_index = self.killer_index_from_key(key)
@@ -167,6 +167,12 @@ class InputMixin:
                 if self.player.is_malice_dinosaur():
                     self.use_malice_dinosaur_stomp()
 
+        elif self.state == GameState.SCORE_SCREEN:
+            if key in (pygame.K_RETURN, pygame.K_SPACE):
+                self.continue_score_run()
+            elif key == pygame.K_q:
+                self.finish_score_run()
+
         elif self.state == GameState.GAME_OVER:
             if key == pygame.K_r:
                 self.reset_to_title()
@@ -177,7 +183,7 @@ class InputMixin:
 
         elif self.state == GameState.TITLE:
             if self.menu_buttons["play"].contains(pos):
-                self.reveal_role()
+                self.start_new_score_run()
 
         elif self.state == GameState.ROUND_SETUP:
             clicked_killer = self.killer_from_card_click(pos)
@@ -219,6 +225,13 @@ class InputMixin:
 
         elif self.state == GameState.KILLER_INTRO:
             self.skip_killer_intro()
+
+        elif self.state == GameState.SCORE_SCREEN:
+            if self.menu_buttons["continue"].contains(pos):
+                self.continue_score_run()
+                return
+            if self.menu_buttons["quit_run"].contains(pos):
+                self.finish_score_run()
 
     def handle_survivor_keydown(self, key: int) -> None:
         if not isinstance(self.player, Survivor):

@@ -12,7 +12,7 @@ class GameOverScreenMixin:
         self.draw_arena_preview()
         draw_vignette(self.screen, 120)
 
-        result = "YOU WIN" if self.player_won else "YOU LOSE"
+        result = "RUN COMPLETE" if self.player_won else "YOU LOSE"
         color = COLORS["success"] if self.player_won else COLORS["danger"]
         center_x = self.window_center_x()
         width, height = self.screen.get_size()
@@ -28,13 +28,21 @@ class GameOverScreenMixin:
             pygame.Rect(panel.left + 48, panel.top + 140, panel.width - 96, 70),
             4,
         )
+        draw_text(
+            self.screen,
+            self.font_large,
+            f"Final Score: {self.final_score}",
+            COLORS["gold"],
+            (center_x, panel.top + 210),
+            True,
+        )
         skin_text = self.skin_progress_text()
         draw_wrapped_text(
             self.screen,
             self.font_small,
             skin_text,
             COLORS["gold"],
-            pygame.Rect(panel.left + 58, panel.top + 220, panel.width - 116, 44),
+            pygame.Rect(panel.left + 58, panel.top + 270, panel.width - 116, 44),
             3,
         )
         if self.skin_notice:
@@ -43,7 +51,7 @@ class GameOverScreenMixin:
                 self.font_small,
                 self.skin_notice,
                 COLORS["success"],
-                pygame.Rect(panel.left + 58, panel.top + 265, panel.width - 116, 36),
+                pygame.Rect(panel.left + 58, panel.top + 315, panel.width - 116, 36),
                 3,
             )
         draw_text(

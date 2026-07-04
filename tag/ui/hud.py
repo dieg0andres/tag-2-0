@@ -9,7 +9,6 @@ from tag.config.settings import (
     COMBAT_PANEL_RECT,
     SIDE_PANEL_RECT,
     STATUS_PANEL_RECT,
-    SURVIVOR_TOTAL_LIVES,
     TIMER_PANEL_RECT,
     TOP_BAR_HEIGHT,
     TRASHY_GUN_TARGET_HITS,
@@ -235,7 +234,7 @@ class HudMixin:
                 return ["G: Gun Maker / homing gun", "Space: hit 3 Gun Maker overlaps", "Gun passes through walls and stuns", "C: Shock Wave Cannon; T: turret"]
             if self.player.survivor_id == "survivor_kevin":
                 return ["Move: WASD or arrows", "P: Punch in front for 5s", "S: Double Speed, +89% speed"]
-            return ["Move: WASD or arrows", "Survive both lives until timer ends"]
+            return ["Move: WASD or arrows", "Survive until the timer ends"]
 
         if not isinstance(self.player, Killer):
             return []
@@ -298,10 +297,9 @@ class HudMixin:
         arena = ARENA_LAYOUTS[layout_id % len(ARENA_LAYOUTS)]
         arena_label = ellipsize(self.font_small, f"Arena: {arena['name']}", max(140, width // 6))
         arena_width = self.font_small.size(arena_label)[0] + 24
-        life_label = f"Life {self.survivor_life_number}/{SURVIVOR_TOTAL_LIVES}" if self.player_role == "Survivor" else ""
-        life_width = self.font_small.size(life_label)[0] + 24 if life_label else 0
-        life_gap = 10 if life_label else 0
-        if cursor_x + arena_width + life_gap + life_width <= controls_left - 10:
+        score_label = f"Score: {self.score}"
+        score_width = self.font_small.size(score_label)[0] + 24
+        if cursor_x + arena_width + 10 + score_width <= controls_left - 10:
             arena_pill = draw_pill(
                 self.screen,
                 self.font_small,
@@ -313,16 +311,15 @@ class HudMixin:
             )
             cursor_x = arena_pill.right + 10
 
-        if self.player_role == "Survivor":
-            draw_pill(
-                self.screen,
-                self.font_small,
-                life_label,
-                (cursor_x, 19),
-                fg=COLORS["success"],
-                bg=(17, 43, 34),
-                border=(34, 197, 94),
-            )
+        draw_pill(
+            self.screen,
+            self.font_small,
+            score_label,
+            (cursor_x, 19),
+            fg=COLORS["success"],
+            bg=(17, 43, 34),
+            border=(34, 197, 94),
+        )
 
         draw_pill(
             self.screen,
@@ -335,10 +332,7 @@ class HudMixin:
         )
 
     def hud_role_text(self, killer_name: str) -> str:
-        text = f"Role: {self.player_role}  |  Round killer: {killer_name}"
-        if self.player_role == "Survivor":
-            text += f"  |  Life: {self.survivor_life_number}/{SURVIVOR_TOTAL_LIVES}"
-        return text
+        return f"Role: {self.player_role}  |  Round killer: {killer_name}  |  Score: {self.score}"
 
     def survivor_ability_status(self) -> str:
         if not isinstance(self.player, Survivor):
