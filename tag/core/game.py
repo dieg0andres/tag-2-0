@@ -71,6 +71,8 @@ class Game(AssetMixin, PersistenceMixin, WorldMixin, InputMixin, SurvivorAbiliti
         self.high_score_notice = ""
         self.high_score_name_rect = pygame.Rect(0, 0, 0, 0)
         self.high_score_message_rect = pygame.Rect(0, 0, 0, 0)
+        self.setup_leaderboard_sync()
+        self.queue_startup_leaderboard_sync()
         self.player_won = False
         self.end_reason = ""
 
@@ -230,9 +232,11 @@ class Game(AssetMixin, PersistenceMixin, WorldMixin, InputMixin, SurvivorAbiliti
         while self.running:
             dt = self.clock.tick(FPS) / 1000.0
             self.handle_events()
+            self.poll_leaderboard_tasks()
             self.update(dt)
             self.draw()
 
+        self.shutdown_leaderboard_sync()
         pygame.quit()
 
     def smoke_test(self) -> None:
@@ -240,6 +244,8 @@ class Game(AssetMixin, PersistenceMixin, WorldMixin, InputMixin, SurvivorAbiliti
         self.player_role = "Killer"
         self.begin_round()
         for _ in range(12):
+            self.poll_leaderboard_tasks()
             self.update(1 / FPS)
             self.draw()
+        self.shutdown_leaderboard_sync()
         pygame.quit()

@@ -89,7 +89,15 @@ class HighScoreScreenMixin:
         draw_panel(self.screen, panel, fill=(12, 18, 34), border=COLORS["primary"], radius=26, width=2, glow=COLORS["primary"])
 
         draw_text(self.screen, self.font_large, "HIGH SCORES", COLORS["text"], (center_x, panel.top + 54), True)
-        draw_text(self.screen, self.font_small, "Top 10 local scores", COLORS["muted"], (center_x, panel.top + 100), True)
+        source = getattr(self, "leaderboard_source", "local")
+        pending_sync = hasattr(self, "leaderboard_task_pending") and self.leaderboard_task_pending()
+        if source == "online":
+            subtitle = "Top 10 online scores"
+        elif pending_sync:
+            subtitle = "Top 10 local fallback scores - syncing online"
+        else:
+            subtitle = "Top 10 local fallback scores"
+        draw_text(self.screen, self.font_small, subtitle, COLORS["muted"], (center_x, panel.top + 100), True)
         if self.high_score_notice:
             draw_text(self.screen, self.font_small, self.high_score_notice, COLORS["success"], (center_x, panel.top + 124), True)
 

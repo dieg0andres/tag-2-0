@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+from concurrent.futures import Future, ThreadPoolExecutor
 from datetime import date
 import json
 import math
 import random
 import sys
+import time
 from pathlib import Path
 
 import pygame
@@ -13,6 +15,15 @@ from tag.config.settings import *
 from tag.core.state import GameState
 from tag.data.content import *
 from tag.entities.objects import *
+from tag.persistence.leaderboard_service import (
+    LeaderboardSyncResult,
+    clean_leaderboard_entry,
+    refresh_online_scores,
+    score_qualifies_for_entries,
+    sorted_leaderboard_entries,
+    startup_sync,
+    submit_score_and_refresh,
+)
 from tag.utils.text import draw_text, draw_wrapped_text, draw_wrapped_text_left
 from tag.utils.vector import facing_axis, safe_normalize, vector_from_keys
 
@@ -116,42 +127,10 @@ class PersistenceMixin:
             pass
 
     def clean_high_score_entry(self, entry: object) -> dict[str, object] | None:
-        if not isinstance(entry, dict):
-            return None
-
-        score = entry.get("score", 0)
-        if isinstance(score, bool):
-            score = 0
-        elif isinstance(score, int):
-            score = max(0, score)
-        elif isinstance(score, str) and score.isdigit():
-            score = int(score)
-        else:
-            return None
-
-        entry_date = entry.get("date", "")
-        if not isinstance(entry_date, str):
-            entry_date = ""
-
-        name = entry.get("name", "Player")
-        if not isinstance(name, str):
-            name = "Player"
-        name = name.strip()[:HIGH_SCORE_NAME_LIMIT] or "Player"
-
-        message = entry.get("message", "")
-        if not isinstance(message, str):
-            message = ""
-        message = message.strip()[:HIGH_SCORE_MESSAGE_LIMIT]
-
-        return {
-            "date": entry_date[:32],
-            "name": name,
-            "score": score,
-            "message": message,
-        }
+        return clean_leaderboard_entry(entry)
 
     def sorted_high_scores(self, entries: list[dict[str, object]]) -> list[dict[str, object]]:
-        return sorted(entries, key=lambda entry: int(entry.get("score", 0)), reverse=True)[:HIGH_SCORE_LIMIT]
+        return sorted_leaderboard_entries(entries)
 
     def load_high_scores(self) -> list[dict[str, object]]:
         if not HIGH_SCORE_FILE.exists():
@@ -172,23 +151,129 @@ class PersistenceMixin:
                 entries.append(entry)
         return self.sorted_high_scores(entries)
 
-    def save_high_scores(self) -> None:
-        self.high_scores = self.sorted_high_scores(self.high_scores)
+    def write_high_scores(self, entries: list[dict[str, object]]) -> None:
+        scores = self.sorted_high_scores(entries)
         try:
             HIGH_SCORE_FILE.write_text(
-                json.dumps(self.high_scores, indent=2),
+                json.dumps(scores, indent=2),
                 encoding="utf-8",
             )
         except OSError:
             pass
 
+    def save_high_scores(self) -> None:
+        self.high_scores = self.sorted_high_scores(self.high_scores)
+        self.write_high_scores(self.high_scores)
+
+    def setup_leaderboard_sync(self) -> None:
+        self.online_high_scores: list[dict[str, object]] = []
+        self.leaderboard_online_available = False
+        self.leaderboard_loaded_at: float | None = None
+        self.leaderboard_scores_dirty = False
+        self.leaderboard_source = "local"
+        self.leaderboard_tasks: list[tuple[str, Future]] = []
+        self.leaderboard_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="leaderboard")
+
+    def shutdown_leaderboard_sync(self) -> None:
+        executor = getattr(self, "leaderboard_executor", None)
+        if executor is not None:
+            executor.shutdown(wait=False, cancel_futures=True)
+            self.leaderboard_executor = None
+
+    def leaderboard_task_pending(self, task_name: str | None = None) -> bool:
+        for pending_name, future in getattr(self, "leaderboard_tasks", []):
+            if future.done():
+                continue
+            if task_name is None or pending_name == task_name:
+                return True
+        return False
+
+    def queue_leaderboard_task(self, task_name: str, task_func, *args) -> None:
+        executor = getattr(self, "leaderboard_executor", None)
+        if executor is None:
+            return
+        future = executor.submit(task_func, *args)
+        self.leaderboard_tasks.append((task_name, future))
+
+    def queue_startup_leaderboard_sync(self) -> None:
+        if self.leaderboard_task_pending("startup"):
+            return
+        local_scores = self.load_high_scores()
+        self.high_scores = local_scores
+        self.queue_leaderboard_task("startup", startup_sync, local_scores)
+
+    def queue_leaderboard_refresh(self) -> None:
+        if self.leaderboard_task_pending():
+            return
+        self.queue_leaderboard_task("refresh", refresh_online_scores)
+
+    def poll_leaderboard_tasks(self) -> None:
+        remaining_tasks: list[tuple[str, Future]] = []
+        for task_name, future in self.leaderboard_tasks:
+            if not future.done():
+                remaining_tasks.append((task_name, future))
+                continue
+
+            try:
+                result = future.result()
+            except Exception:
+                self.apply_leaderboard_error(task_name)
+            else:
+                self.apply_leaderboard_result(task_name, result)
+
+        self.leaderboard_tasks = remaining_tasks
+
+    def apply_leaderboard_result(self, task_name: str, result: LeaderboardSyncResult) -> None:
+        scores = self.sorted_high_scores(result.scores)
+        self.online_high_scores = scores
+        self.high_scores = scores
+        self.leaderboard_online_available = True
+        self.leaderboard_loaded_at = time.monotonic()
+        self.leaderboard_scores_dirty = False
+        self.leaderboard_source = "online"
+
+        local_cache = scores
+        if result.remaining_local_scores:
+            local_cache = self.sorted_high_scores([*scores, *result.remaining_local_scores])
+        self.write_high_scores(local_cache)
+
+        if task_name == "startup" and result.posted_count:
+            self.high_score_notice = f"Online leaderboard synced {result.posted_count} local score{'s' if result.posted_count != 1 else ''}."
+        elif task_name == "submit":
+            self.high_score_notice = "High score submitted online."
+        elif task_name == "refresh":
+            self.high_score_notice = "Online leaderboard updated."
+        else:
+            self.high_score_notice = "Online leaderboard loaded."
+
+    def apply_leaderboard_error(self, task_name: str) -> None:
+        self.leaderboard_online_available = False
+        self.leaderboard_source = "local"
+        self.high_scores = self.load_high_scores()
+        if task_name == "submit":
+            self.leaderboard_scores_dirty = True
+            self.high_score_notice = "Online leaderboard unavailable. Score saved locally."
+        else:
+            self.high_score_notice = "Online leaderboard unavailable. Showing local scores."
+
+    def online_high_scores_stale(self) -> bool:
+        if not self.leaderboard_online_available or self.leaderboard_loaded_at is None:
+            return True
+        if self.leaderboard_scores_dirty:
+            return True
+        return time.monotonic() - self.leaderboard_loaded_at > LEADERBOARD_CACHE_TTL_SECONDS
+
     def high_score_qualifies(self, score: int) -> bool:
         score = max(0, int(score))
-        self.high_scores = self.load_high_scores()
-        if len(self.high_scores) < HIGH_SCORE_LIMIT:
-            return True
-        lowest_score = int(self.high_scores[-1].get("score", 0))
-        return score > lowest_score
+        if self.online_high_scores_stale():
+            self.queue_leaderboard_refresh()
+
+        if self.leaderboard_online_available:
+            self.high_scores = self.sorted_high_scores(self.online_high_scores)
+        else:
+            self.high_scores = self.load_high_scores()
+            self.leaderboard_source = "local"
+        return score_qualifies_for_entries(score, self.high_scores)
 
     def reset_high_score_entry(self) -> None:
         self.high_score_name = ""
@@ -201,7 +286,12 @@ class PersistenceMixin:
         self.state = GameState.HIGH_SCORE_ENTRY
 
     def show_high_score_board(self) -> None:
-        self.high_scores = self.load_high_scores()
+        if self.leaderboard_online_available and not self.leaderboard_task_pending("submit"):
+            self.high_scores = self.sorted_high_scores(self.online_high_scores)
+            self.leaderboard_source = "online"
+        else:
+            self.high_scores = self.load_high_scores()
+            self.leaderboard_source = "local"
         self.state = GameState.HIGH_SCORE_BOARD
 
     def submit_high_score(self) -> None:
@@ -215,7 +305,9 @@ class PersistenceMixin:
         }
         self.high_scores = self.sorted_high_scores([entry, *self.load_high_scores()])
         self.save_high_scores()
-        self.high_score_notice = "High score saved."
+        self.leaderboard_scores_dirty = True
+        self.high_score_notice = "High score saved locally. Syncing online..."
+        self.queue_leaderboard_task("submit", submit_score_and_refresh, entry)
         self.show_high_score_board()
 
     def skip_high_score_entry(self) -> None:
