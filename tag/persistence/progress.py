@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import date
 import json
 import math
 import random
@@ -113,6 +114,113 @@ class PersistenceMixin:
             )
         except OSError:
             pass
+
+    def clean_high_score_entry(self, entry: object) -> dict[str, object] | None:
+        if not isinstance(entry, dict):
+            return None
+
+        score = entry.get("score", 0)
+        if isinstance(score, bool):
+            score = 0
+        elif isinstance(score, int):
+            score = max(0, score)
+        elif isinstance(score, str) and score.isdigit():
+            score = int(score)
+        else:
+            return None
+
+        entry_date = entry.get("date", "")
+        if not isinstance(entry_date, str):
+            entry_date = ""
+
+        name = entry.get("name", "Player")
+        if not isinstance(name, str):
+            name = "Player"
+        name = name.strip()[:HIGH_SCORE_NAME_LIMIT] or "Player"
+
+        message = entry.get("message", "")
+        if not isinstance(message, str):
+            message = ""
+        message = message.strip()[:HIGH_SCORE_MESSAGE_LIMIT]
+
+        return {
+            "date": entry_date[:32],
+            "name": name,
+            "score": score,
+            "message": message,
+        }
+
+    def sorted_high_scores(self, entries: list[dict[str, object]]) -> list[dict[str, object]]:
+        return sorted(entries, key=lambda entry: int(entry.get("score", 0)), reverse=True)[:HIGH_SCORE_LIMIT]
+
+    def load_high_scores(self) -> list[dict[str, object]]:
+        if not HIGH_SCORE_FILE.exists():
+            return []
+
+        try:
+            data = json.loads(HIGH_SCORE_FILE.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return []
+
+        if not isinstance(data, list):
+            return []
+
+        entries: list[dict[str, object]] = []
+        for item in data:
+            entry = self.clean_high_score_entry(item)
+            if entry is not None:
+                entries.append(entry)
+        return self.sorted_high_scores(entries)
+
+    def save_high_scores(self) -> None:
+        self.high_scores = self.sorted_high_scores(self.high_scores)
+        try:
+            HIGH_SCORE_FILE.write_text(
+                json.dumps(self.high_scores, indent=2),
+                encoding="utf-8",
+            )
+        except OSError:
+            pass
+
+    def high_score_qualifies(self, score: int) -> bool:
+        score = max(0, int(score))
+        self.high_scores = self.load_high_scores()
+        if len(self.high_scores) < HIGH_SCORE_LIMIT:
+            return True
+        lowest_score = int(self.high_scores[-1].get("score", 0))
+        return score > lowest_score
+
+    def reset_high_score_entry(self) -> None:
+        self.high_score_name = ""
+        self.high_score_message = ""
+        self.high_score_active_field = "name"
+        self.high_score_notice = ""
+
+    def show_high_score_entry(self) -> None:
+        self.reset_high_score_entry()
+        self.state = GameState.HIGH_SCORE_ENTRY
+
+    def show_high_score_board(self) -> None:
+        self.high_scores = self.load_high_scores()
+        self.state = GameState.HIGH_SCORE_BOARD
+
+    def submit_high_score(self) -> None:
+        name = self.high_score_name.strip()[:HIGH_SCORE_NAME_LIMIT] or "Player"
+        message = self.high_score_message.strip()[:HIGH_SCORE_MESSAGE_LIMIT]
+        entry = {
+            "date": date.today().isoformat(),
+            "name": name,
+            "score": max(0, int(self.final_score)),
+            "message": message,
+        }
+        self.high_scores = self.sorted_high_scores([entry, *self.load_high_scores()])
+        self.save_high_scores()
+        self.high_score_notice = "High score saved."
+        self.show_high_score_board()
+
+    def skip_high_score_entry(self) -> None:
+        self.high_score_notice = "High score skipped."
+        self.show_high_score_board()
 
     def fried_chicken_unlocked(self) -> bool:
         return self.skin_unlocked("fried_chicken")

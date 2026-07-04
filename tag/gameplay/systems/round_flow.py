@@ -37,8 +37,15 @@ class RoundFlowMixin:
         self.final_score = self.score
         self.player_won = True
         self.end_reason = f"Final score: {self.final_score}. You ended the run after a win."
-        self.state = GameState.GAME_OVER
         self.stop_music()
+        self.finish_run_with_score()
+
+    def finish_run_with_score(self) -> None:
+        if self.high_score_qualifies(self.final_score):
+            self.show_high_score_entry()
+            return
+
+        self.state = GameState.GAME_OVER
 
     def reveal_role(self) -> None:
         self.player_role = random.choice(["Survivor", "Killer"])
@@ -376,6 +383,6 @@ class RoundFlowMixin:
         else:
             self.final_score = self.score
             self.record_loss()
-            self.state = GameState.GAME_OVER
+            self.finish_run_with_score()
         self.stop_music()
         self.play_sound("win" if player_won else "lose")

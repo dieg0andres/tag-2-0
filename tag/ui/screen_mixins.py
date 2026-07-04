@@ -6,6 +6,7 @@ from tag.core.state import GameState
 from tag.ui.hud import HudMixin
 from tag.ui.screens.game_over import GameOverScreenMixin
 from tag.ui.screens.gameplay import GameplayScreenMixin
+from tag.ui.screens.high_scores import HighScoreScreenMixin
 from tag.ui.screens.role_reveal import RoleRevealScreenMixin
 from tag.ui.screens.score import ScoreScreenMixin
 from tag.ui.screens.setup import SetupScreenMixin
@@ -19,6 +20,7 @@ class UIMixin(
     RoleRevealScreenMixin,
     SkinSelectScreenMixin,
     ScoreScreenMixin,
+    HighScoreScreenMixin,
     GameplayScreenMixin,
     HudMixin,
     GameOverScreenMixin,
@@ -40,6 +42,10 @@ class UIMixin(
             self.draw_gameplay()
         elif self.state == GameState.SCORE_SCREEN:
             self.draw_score_screen()
+        elif self.state == GameState.HIGH_SCORE_ENTRY:
+            self.draw_high_score_entry()
+        elif self.state == GameState.HIGH_SCORE_BOARD:
+            self.draw_high_score_board()
         elif self.state == GameState.GAME_OVER:
             self.draw_game_over()
 

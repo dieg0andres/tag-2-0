@@ -31,3 +31,4 @@ dist/
 
 # Local player progress
 save_data.json
+high_scores.json

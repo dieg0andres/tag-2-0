@@ -64,6 +64,13 @@ class Game(AssetMixin, PersistenceMixin, WorldMixin, InputMixin, SurvivorAbiliti
         self.explorer_taming_timer = 0.0
         self.score = 0
         self.final_score = 0
+        self.high_scores = self.load_high_scores()
+        self.high_score_name = ""
+        self.high_score_message = ""
+        self.high_score_active_field = "name"
+        self.high_score_notice = ""
+        self.high_score_name_rect = pygame.Rect(0, 0, 0, 0)
+        self.high_score_message_rect = pygame.Rect(0, 0, 0, 0)
         self.player_won = False
         self.end_reason = ""
 
@@ -102,6 +109,9 @@ class Game(AssetMixin, PersistenceMixin, WorldMixin, InputMixin, SurvivorAbiliti
             "back": Button(pygame.Rect(0, 0, 130, 46), "Back"),
             "continue": Button(pygame.Rect(0, 0, 220, 58), "Continue"),
             "quit_run": Button(pygame.Rect(0, 0, 220, 58), "Quit"),
+            "submit_high_score": Button(pygame.Rect(0, 0, 220, 58), "Submit"),
+            "skip_high_score": Button(pygame.Rect(0, 0, 220, 58), "Skip"),
+            "title": Button(pygame.Rect(0, 0, 220, 58), "Title"),
         }
         self.update_menu_buttons()
 
@@ -131,6 +141,10 @@ class Game(AssetMixin, PersistenceMixin, WorldMixin, InputMixin, SurvivorAbiliti
         score_y = min(max(560, height - 140), height - 80)
         self.menu_buttons["continue"].rect.center = (center_x - 130, score_y)
         self.menu_buttons["quit_run"].rect.center = (center_x + 130, score_y)
+        high_score_y = min(max(610, height - 95), height - 54)
+        self.menu_buttons["submit_high_score"].rect.center = (center_x - 130, high_score_y)
+        self.menu_buttons["skip_high_score"].rect.center = (center_x + 130, high_score_y)
+        self.menu_buttons["title"].rect.center = (center_x, high_score_y)
 
     def handle_window_resize(self, width: int, height: int) -> None:
         target_size = (

@@ -28,6 +28,8 @@ class InputMixin:
                     latest_resize_size = resize_size
             elif event.type == pygame.KEYDOWN:
                 self.handle_keydown(event.key)
+            elif event.type == pygame.TEXTINPUT:
+                self.handle_textinput(event.text)
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 self.handle_click(event.pos)
 
@@ -173,6 +175,18 @@ class InputMixin:
             elif key == pygame.K_q:
                 self.finish_score_run()
 
+        elif self.state == GameState.HIGH_SCORE_ENTRY:
+            if key in (pygame.K_RETURN, pygame.K_KP_ENTER):
+                self.submit_high_score()
+            elif key == pygame.K_BACKSPACE:
+                self.delete_high_score_character()
+            elif key in (pygame.K_TAB, pygame.K_UP, pygame.K_DOWN):
+                self.toggle_high_score_field()
+
+        elif self.state == GameState.HIGH_SCORE_BOARD:
+            if key in (pygame.K_RETURN, pygame.K_SPACE, pygame.K_r):
+                self.reset_to_title()
+
         elif self.state == GameState.GAME_OVER:
             if key == pygame.K_r:
                 self.reset_to_title()
@@ -232,6 +246,48 @@ class InputMixin:
                 return
             if self.menu_buttons["quit_run"].contains(pos):
                 self.finish_score_run()
+
+        elif self.state == GameState.HIGH_SCORE_ENTRY:
+            if self.high_score_name_rect.collidepoint(pos):
+                self.high_score_active_field = "name"
+                return
+            if self.high_score_message_rect.collidepoint(pos):
+                self.high_score_active_field = "message"
+                return
+            if self.menu_buttons["submit_high_score"].contains(pos):
+                self.submit_high_score()
+                return
+            if self.menu_buttons["skip_high_score"].contains(pos):
+                self.skip_high_score_entry()
+
+        elif self.state == GameState.HIGH_SCORE_BOARD:
+            if self.menu_buttons["title"].contains(pos):
+                self.reset_to_title()
+
+    def handle_textinput(self, text: str) -> None:
+        if self.state != GameState.HIGH_SCORE_ENTRY:
+            return
+        if not text or not text.isprintable():
+            return
+
+        if self.high_score_active_field == "message":
+            remaining = HIGH_SCORE_MESSAGE_LIMIT - len(self.high_score_message)
+            if remaining > 0:
+                self.high_score_message += text[:remaining]
+            return
+
+        remaining = HIGH_SCORE_NAME_LIMIT - len(self.high_score_name)
+        if remaining > 0:
+            self.high_score_name += text[:remaining]
+
+    def delete_high_score_character(self) -> None:
+        if self.high_score_active_field == "message":
+            self.high_score_message = self.high_score_message[:-1]
+            return
+        self.high_score_name = self.high_score_name[:-1]
+
+    def toggle_high_score_field(self) -> None:
+        self.high_score_active_field = "message" if self.high_score_active_field == "name" else "name"
 
     def handle_survivor_keydown(self, key: int) -> None:
         if not isinstance(self.player, Survivor):

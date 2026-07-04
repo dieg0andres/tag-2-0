@@ -54,6 +54,8 @@ python tools/generate_assets.py
 - Drag the window corners or use the OS maximize button to resize the game
 - Enter/Space on the score screen: continue to one more round
 - Q or Quit on the score screen: end the run with your current score
+- High score entry: type a name and optional message, Tab switches fields, Enter submits, Skip skips saving
+- Scoreboard screen: Enter, Space, R, or Title returns to the title screen
 - Escape: quit
 - R: restart from the win/loss screen
 
@@ -63,6 +65,9 @@ python tools/generate_assets.py
 - Each round has one killer: Ducky, Subslasher, Show Runner, Malice, or Vengance Bot.
 - Each new run starts at score 0. Winning a round adds 1 point.
 - After a win, choose whether to continue to one more randomly assigned round or quit with your current score.
+- The game keeps a local top-10 high score board in `high_scores.json`.
+- When a run ends by loss or by quitting from the score screen, qualifying scores prompt for a name and optional message before showing the scoreboard.
+- High score names are limited to 20 characters, optional messages are limited to 50 characters, and blank submitted names are saved as `Player`.
 - Your role is randomly assigned.
 - If your role is Killer, you play as the killer you selected on the setup screen.
 - If your role is Survivor, the AI killer is still chosen randomly and you choose your survivor character.
