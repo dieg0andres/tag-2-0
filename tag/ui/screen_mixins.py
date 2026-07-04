@@ -22,7 +22,9 @@ class UIMixin(
     GameOverScreenMixin,
 ):
     def draw(self) -> None:
-        if self.state == GameState.TITLE:
+        if self.state == GameState.GAME_INTRO:
+            self.draw_game_intro()
+        elif self.state == GameState.TITLE:
             self.draw_title()
         elif self.state == GameState.ROUND_SETUP:
             self.draw_round_setup()
@@ -30,6 +32,8 @@ class UIMixin(
             self.draw_role_reveal()
         elif self.state == GameState.KILLER_SKIN_SELECT:
             self.draw_killer_skin_select()
+        elif self.state == GameState.KILLER_INTRO:
+            self.draw_killer_intro()
         elif self.state == GameState.PLAYING:
             self.draw_gameplay()
         elif self.state == GameState.GAME_OVER:

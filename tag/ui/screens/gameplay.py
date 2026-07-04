@@ -20,6 +20,40 @@ from tag.utils.text import draw_text
 
 
 class GameplayScreenMixin:
+    def draw_game_intro(self) -> None:
+        self.screen.fill((0, 0, 0))
+        video = self.killer_intro_video
+        if video is None:
+            self.finish_game_intro()
+            return
+
+        try:
+            if not video.active:
+                self.finish_game_intro()
+                return
+            video.draw(self.screen, self.killer_intro_rect.topleft, force_draw=True)
+            if not video.active:
+                self.finish_game_intro()
+        except Exception:
+            self.finish_game_intro()
+
+    def draw_killer_intro(self) -> None:
+        self.screen.fill((0, 0, 0))
+        video = self.killer_intro_video
+        if video is None:
+            self.finish_killer_intro()
+            return
+
+        try:
+            if not video.active:
+                self.finish_killer_intro()
+                return
+            video.draw(self.screen, self.killer_intro_rect.topleft, force_draw=True)
+            if not video.active:
+                self.finish_killer_intro()
+        except Exception:
+            self.finish_killer_intro()
+
     def draw_gameplay(self) -> None:
         self.screen.fill((12, 19, 32))
         self.draw_arena()

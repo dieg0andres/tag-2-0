@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib.util
 import json
 import math
 import random
@@ -156,8 +157,122 @@ class RoundFlowMixin:
             )
             self.killers = [self.player]
 
+        self.start_killer_intro_or_playing()
+
+    def start_killer_intro_or_playing(self) -> None:
+        self.close_killer_intro_video()
+        self.stop_music()
+        if self.start_killer_intro_video():
+            self.state = GameState.KILLER_INTRO
+            return
+
         self.state = GameState.PLAYING
         self.start_round_music()
+
+    def start_killer_intro_video(self) -> bool:
+        video_path = self.killer_intro_video_paths.get(self.round_killer)
+        if video_path is None or not video_path.exists():
+            return False
+
+        return self.start_intro_video(video_path)
+
+    def start_game_intro_or_title(self) -> None:
+        self.close_killer_intro_video()
+        self.stop_music()
+        if self.game_intro_played:
+            self.state = GameState.TITLE
+            return
+
+        self.game_intro_played = True
+        if self.game_intro_video_path is not None and self.start_intro_video(self.game_intro_video_path):
+            self.state = GameState.GAME_INTRO
+            return
+
+        self.state = GameState.TITLE
+
+    def start_intro_video(self, video_path: Path) -> bool:
+        try:
+            Video, reader = self.pyvidplayer_video_class()
+            try:
+                video = Video(str(video_path), use_pygame_audio=True, reader=reader)
+            except Exception:
+                video = Video(str(video_path), use_pygame_audio=True, no_audio=True, reader=reader)
+            self.killer_intro_video = video
+            self.resize_killer_intro_video()
+            video.play()
+            self.killer_intro_error = ""
+            return True
+        except Exception as exc:
+            self.killer_intro_video = None
+            self.killer_intro_error = f"Intro video skipped: {exc}"
+            return False
+
+    def pyvidplayer_video_class(self):
+        original_find_spec = importlib.util.find_spec
+
+        def guarded_find_spec(name: str, *args, **kwargs):
+            if name == "tkinter":
+                # This Python exposes tkinter metadata without the native _tkinter module.
+                return None
+            return original_find_spec(name, *args, **kwargs)
+
+        importlib.util.find_spec = guarded_find_spec
+        try:
+            from pyvidplayer2 import READER_FFMPEG, Video
+        finally:
+            importlib.util.find_spec = original_find_spec
+
+        return Video, READER_FFMPEG
+
+    def resize_killer_intro_video(self) -> None:
+        video = self.killer_intro_video
+        if video is None:
+            self.killer_intro_rect = pygame.Rect(0, 0, 0, 0)
+            return
+
+        width, height = self.screen.get_size()
+        aspect = getattr(video, "aspect_ratio", 16 / 9)
+        if width / height > aspect:
+            video_height = height
+            video_width = round(video_height * aspect)
+        else:
+            video_width = width
+            video_height = round(video_width / aspect)
+
+        self.killer_intro_rect = pygame.Rect(0, 0, video_width, video_height)
+        self.killer_intro_rect.center = (width // 2, height // 2)
+        try:
+            video.resize(self.killer_intro_rect.size)
+        except Exception:
+            pass
+
+    def close_killer_intro_video(self) -> None:
+        video = getattr(self, "killer_intro_video", None)
+        if video is None:
+            return
+        try:
+            video.close()
+        except Exception:
+            pass
+        self.killer_intro_video = None
+        self.killer_intro_rect = pygame.Rect(0, 0, 0, 0)
+
+    def finish_killer_intro(self) -> None:
+        self.close_killer_intro_video()
+        self.state = GameState.PLAYING
+        self.start_round_music()
+
+    def skip_killer_intro(self) -> None:
+        if self.state == GameState.KILLER_INTRO:
+            self.finish_killer_intro()
+
+    def finish_game_intro(self) -> None:
+        self.close_killer_intro_video()
+        self.state = GameState.TITLE
+
+    def skip_game_intro(self) -> None:
+        if self.state == GameState.GAME_INTRO:
+            self.finish_game_intro()
 
     def spawn_position(
         self,
@@ -190,6 +305,7 @@ class RoundFlowMixin:
         return self.round_killer
 
     def reset_to_title(self) -> None:
+        self.close_killer_intro_video()
         self.state = GameState.TITLE
         self.player = None
         self.survivor = None
@@ -243,6 +359,7 @@ class RoundFlowMixin:
         self.begin_round()
 
     def end_round(self, player_won: bool, reason: str) -> None:
+        self.close_killer_intro_video()
         self.player_won = player_won
         self.end_reason = reason
         if player_won:

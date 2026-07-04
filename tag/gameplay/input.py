@@ -52,6 +52,13 @@ class InputMixin:
         return int(width), int(height)
 
     def handle_keydown(self, key: int) -> None:
+        if self.state == GameState.GAME_INTRO:
+            self.skip_game_intro()
+            return
+        if self.state == GameState.KILLER_INTRO:
+            self.skip_killer_intro()
+            return
+
         if key == pygame.K_ESCAPE:
             self.running = False
             return
@@ -165,7 +172,10 @@ class InputMixin:
                 self.reset_to_title()
 
     def handle_click(self, pos: tuple[int, int]) -> None:
-        if self.state == GameState.TITLE:
+        if self.state == GameState.GAME_INTRO:
+            self.skip_game_intro()
+
+        elif self.state == GameState.TITLE:
             if self.menu_buttons["play"].contains(pos):
                 self.reveal_role()
 
@@ -206,6 +216,9 @@ class InputMixin:
 
             if self.menu_buttons["begin"].contains(pos):
                 self.begin_round_from_skin_select()
+
+        elif self.state == GameState.KILLER_INTRO:
+            self.skip_killer_intro()
 
     def handle_survivor_keydown(self, key: int) -> None:
         if not isinstance(self.player, Survivor):

@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import math
 import random
+import re
 import sys
 from pathlib import Path
 
@@ -17,6 +18,40 @@ from tag.utils.vector import facing_axis, safe_normalize, vector_from_keys
 
 
 class AssetMixin:
+    def load_game_intro_video(self) -> Path | None:
+        path = VIDEO_DIR / "game_intro_video.mp4"
+        return path if path.exists() else None
+
+    def load_killer_intro_videos(self) -> dict[str, Path]:
+        videos: dict[str, Path] = {}
+        if not VIDEO_DIR.exists():
+            return videos
+
+        video_extensions = {".mp4", ".mov", ".m4v", ".avi", ".mkv", ".webm"}
+        for path in sorted(VIDEO_DIR.iterdir()):
+            if not path.is_file() or path.suffix.lower() not in video_extensions:
+                continue
+
+            filename = self.normalized_video_name(path.stem)
+            for killer_id, data in KILLERS.items():
+                candidates = [
+                    killer_id,
+                    data["name"],
+                    data.get("alias", ""),
+                ]
+                if any(
+                    self.normalized_video_name(candidate) in filename
+                    for candidate in candidates
+                    if candidate
+                ):
+                    videos[killer_id] = path
+                    break
+
+        return videos
+
+    def normalized_video_name(self, name: str) -> str:
+        return re.sub(r"[^a-z0-9]+", "", name.lower())
+
     def load_sprites(self) -> dict[str, pygame.Surface]:
         sprites: dict[str, pygame.Surface] = {}
         for key, path in self.sprite_paths().items():

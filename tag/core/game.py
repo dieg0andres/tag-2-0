@@ -68,6 +68,12 @@ class Game(AssetMixin, PersistenceMixin, WorldMixin, InputMixin, SurvivorAbiliti
         self.sprites = self.load_sprites()
         self.walk_sprites = self.load_walk_sprites()
         self.animation_sprites = self.load_animation_sprites()
+        self.game_intro_video_path = self.load_game_intro_video()
+        self.game_intro_played = False
+        self.killer_intro_video_paths = self.load_killer_intro_videos()
+        self.killer_intro_video = None
+        self.killer_intro_rect = pygame.Rect(0, 0, 0, 0)
+        self.killer_intro_error = ""
         self.walls = self.create_walls()
         self.player: Character | None = None
         self.survivor: Survivor | None = None
@@ -99,6 +105,7 @@ class Game(AssetMixin, PersistenceMixin, WorldMixin, InputMixin, SurvivorAbiliti
         self.music_tracks: dict[str, Path] = {}
         self.sounds: dict[str, pygame.mixer.Sound] = {}
         self.setup_audio()
+        self.start_game_intro_or_title()
 
     def window_width(self) -> int:
         return self.screen.get_width()
@@ -136,6 +143,7 @@ class Game(AssetMixin, PersistenceMixin, WorldMixin, InputMixin, SurvivorAbiliti
         self.update_menu_buttons()
         self.walls = self.create_walls()
         self.rescale_world_for_resize(old_arena, ARENA_RECT)
+        self.resize_killer_intro_video()
 
     def rescale_world_for_resize(self, old_arena: pygame.Rect, new_arena: pygame.Rect) -> None:
         if old_arena.width <= 0 or old_arena.height <= 0:

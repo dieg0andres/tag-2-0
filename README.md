@@ -150,7 +150,21 @@ Game assets are grouped by media type:
 - `assets/sprites/`: character, killer, skin, and form sprites.
 - `assets/sprites/animations/`: walking and form animation frames.
 - `assets/audio/`: optional WAV music and sound effects.
-- `assets/videos/`: reserved for future video assets.
+- `assets/videos/`: killer intro videos played before the arena starts.
+
+## Killer Intro Videos
+
+`assets/videos/game_intro_video.mp4` plays once when the program starts, before the title screen. It does not replay when returning to the title screen. Press any key or click during the video to skip it.
+
+The game also looks for killer video files in `assets/videos/` before each arena round. A video is selected when its filename contains the killer id, display name, or alias after ignoring spaces, underscores, and punctuation. The current killer intro files are:
+
+- `ducky_intro_video.mp4` for Ducky.
+- `sub_slasher_intro_video.mp4` for Subslasher.
+- `show_runner_intro_video.mp4` for Show Runner.
+- `malice_intro_video.mp4` for Malice.
+- `vengance_bot_intro_video.mp4` for Vengance Bot.
+
+Intro videos use `pyvidplayer2` with the FFmpeg reader. Press any key or click during the video to skip to the arena.
 
 ## Custom Music And Sounds
 
