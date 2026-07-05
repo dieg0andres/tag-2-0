@@ -247,7 +247,12 @@ class RoundFlowMixin:
 
         importlib.util.find_spec = guarded_find_spec
         try:
-            from pyvidplayer2 import READER_FFMPEG, Video
+            from pyvidplayer2 import READER_FFMPEG, Video, set_ffmpeg_path, set_ffprobe_path
+            if getattr(sys, "frozen", False):
+                if FFMPEG_FILE.exists():
+                    set_ffmpeg_path(str(FFMPEG_FILE))
+                if FFPROBE_FILE.exists():
+                    set_ffprobe_path(str(FFPROBE_FILE))
         finally:
             importlib.util.find_spec = original_find_spec
 

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
+import sys
 
 import pygame
 
@@ -22,14 +24,48 @@ LEADERBOARD_CACHE_TTL_SECONDS = 600.0
 LABEL_FULL_VISIBLE_DURATION = 4.0
 LABEL_FADE_DURATION = 2.0
 
-ROOT_DIR = Path(__file__).resolve().parents[2]
+APP_NAME = "Tag 2.0"
+
+
+def bundled_resource_dir() -> Path:
+    if getattr(sys, "frozen", False):
+        bundle_dir = getattr(sys, "_MEIPASS", None)
+        if bundle_dir:
+            return Path(bundle_dir)
+        return Path(sys.executable).resolve().parent
+    return Path(__file__).resolve().parents[2]
+
+
+def writable_data_dir() -> Path:
+    if not getattr(sys, "frozen", False):
+        return ROOT_DIR
+    if sys.platform == "darwin":
+        return Path.home() / "Library" / "Application Support" / APP_NAME
+    return Path.home() / f".{APP_NAME.lower().replace(' ', '_')}"
+
+
+def expose_bundled_ffmpeg(resource_dir: Path) -> None:
+    if not getattr(sys, "frozen", False):
+        return
+    ffmpeg_dir = str(resource_dir)
+    path_parts = os.environ.get("PATH", "").split(os.pathsep)
+    if ffmpeg_dir not in path_parts:
+        os.environ["PATH"] = os.pathsep.join([ffmpeg_dir, *path_parts])
+
+
+ROOT_DIR = bundled_resource_dir()
+FFMPEG_FILE = ROOT_DIR / "ffmpeg"
+FFPROBE_FILE = ROOT_DIR / "ffprobe"
+expose_bundled_ffmpeg(ROOT_DIR)
+DATA_DIR = writable_data_dir()
+DATA_DIR.mkdir(parents=True, exist_ok=True)
 ASSET_DIR = ROOT_DIR / "assets"
 AUDIO_DIR = ASSET_DIR / "audio"
 SPRITE_DIR = ASSET_DIR / "sprites"
 ANIMATION_DIR = SPRITE_DIR / "animations"
 VIDEO_DIR = ASSET_DIR / "videos"
-SAVE_FILE = ROOT_DIR / "save_data.json"
-HIGH_SCORE_FILE = ROOT_DIR / "high_scores.json"
+SAVE_FILE = DATA_DIR / "save_data.json"
+HIGH_SCORE_FILE = DATA_DIR / "high_scores.json"
 
 UI_MARGIN = 24
 TOP_BAR_HEIGHT = 88

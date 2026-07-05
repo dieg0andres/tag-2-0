@@ -18,6 +18,7 @@ htmlcov/
 build/
 dist/
 *.egg-info/
+icon.iconset/
 
 # Local editor and OS files
 .DS_Store
